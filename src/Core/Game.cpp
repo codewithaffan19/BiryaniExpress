@@ -23,10 +23,10 @@ void Game::Initialize()
     );
 
     DisableCursor();
-    map.LoadMap("assets/maps/test.txt");
-    SetTargetFPS(
-        Config::TARGET_FPS
-    );
+
+    SetTargetFPS(Config::TARGET_FPS);
+
+    map.LoadMap("../assets/maps/test.txt");
 }
 
 void Game::Update()

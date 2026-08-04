@@ -163,11 +163,7 @@ void Editor::SaveShortcut(Map& map)
 {
     if (IsKeyPressed(KEY_S))
     {
-        const std::string path = "assets/maps/test.txt";
-
-        TraceLog(LOG_INFO, TextFormat("Saving to: %s", path.c_str()));
-
-        map.SaveMap(path);
+        map.SaveMap("../assets/maps/test.txt");
     }
 }
 
