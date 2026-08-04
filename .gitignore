@@ -1,0 +1,38 @@
+# Visual Studio
+.vs/
+Debug/
+Release/
+x64/
+x86/
+
+# Build output
+bin/
+obj/
+
+# CMake
+CMakeFiles/
+CMakeCache.txt
+
+# Visual Studio generated files
+*.VC.db
+*.VC.opendb
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Temporary files
+*.log
+*.tmp
+
+# IntelliSense
+ipch/
+
+# Raylib executable
+*.exe
+*.pdb
+*.ilk
+
+# Windows
+Thumbs.db
+Desktop.ini
