@@ -9,6 +9,7 @@
 #include <cmath>
 #include "../Renderer/Renderer.h"
 #include "../World/Map.h"
+#include "../Renderer/TextureManager.h"
 Game::Game()
 {
     running = true;
@@ -22,6 +23,7 @@ void Game::Initialize()
         Config::SCREEN_HEIGHT,
         "BiryaniExpress"
     );
+    renderer.LoadTextures();
 
     DisableCursor();
     SetTargetFPS(Config::TARGET_FPS);
@@ -95,6 +97,7 @@ void Game::Draw()
 
 void Game::Shutdown()
 {
+    renderer.UnloadTextures();
     CloseWindow();
 }
 
@@ -108,6 +111,5 @@ void Game::Run()
 
         Draw();
     }
-
     Shutdown();
 }

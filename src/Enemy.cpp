@@ -27,7 +27,8 @@ void Enemy::update(Player P, Map& m1) {
 	Vector2 Velocity;
 	int side = 0;
 	int sideHit = 0;
-	float WallDistance = m1.CastSingleRay(position, NormalDis, m1, side);
+	RayHit hit = m1.CastSingleRay(position, NormalDis, m1, side);
+	float WallDistance = hit.distance;
 	float deltaTime = GetFrameTime();
 	if (WallDistance < playerdis) {
 		state = STILL;

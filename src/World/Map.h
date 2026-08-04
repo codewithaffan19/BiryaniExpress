@@ -4,6 +4,14 @@
 #include <string>
 #include "raylib.h"
 
+struct RayHit
+{
+    float distance;
+    int side;
+    int tile;
+    float wallX;
+};
+
 class Map
 {
 public:
@@ -22,7 +30,7 @@ public:
 
     int GetRows() const;
     int GetCols() const;
-    float CastSingleRay(
+    RayHit CastSingleRay(
         Vector2 playerPos,
         Vector2 rayDir,
         Map& map,

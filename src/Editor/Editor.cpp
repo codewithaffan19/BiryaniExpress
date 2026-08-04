@@ -24,6 +24,8 @@ void Editor::Update(Map& map)
 
     if (IsKeyPressed(KEY_ONE))
         currentTile = 1;
+    if (IsKeyPressed(KEY_TWO))
+        currentTile = 2;
 
     //--------------------------------
     // Paint

@@ -1,7 +1,7 @@
 #include "Map.h"
 
 #include <fstream>
-
+#include<cmath>
 Map::Map()
 {
     for (int r = 0;r < ROWS;r++)
@@ -86,40 +86,15 @@ int Map::GetCols() const
 {
     return COLS;
 }
-void Map::SaveMap(const std::string& file)
-{
-    std::ofstream out(file);
 
-    if (!out.is_open())
-    {
-        TraceLog(LOG_ERROR, "Cannot open file!");
-        return;
-    }
-
-    for (int r = 0; r < ROWS; r++)
-    {
-        for (int c = 0; c < COLS; c++)
-        {
-            out << grid[r][c] << " ";
-        }
-        out << "\n";
-    }
-
-    out.flush();
-    out.close();
-
-    TraceLog(LOG_INFO, "Map Saved!");
-}
-
-//DDA algorithm moved here from renderer
-
-
-float Map::CastSingleRay(
+RayHit Map::CastSingleRay(
     Vector2 playerPos,
     Vector2 rayDir,
     Map& map,
     int& side)
 {
+    RayHit hit;
+
     int mapX = (int)playerPos.x;
     int mapY = (int)playerPos.y;
 
@@ -142,70 +117,90 @@ float Map::CastSingleRay(
     if (rayDir.x < 0)
     {
         stepX = -1;
-
-        sideDistX =
-            (playerPos.x - mapX) *
-            deltaDistX;
+        sideDistX = (playerPos.x - mapX) * deltaDistX;
     }
     else
     {
         stepX = 1;
-
-        sideDistX =
-            (mapX + 1.0f - playerPos.x) *
-            deltaDistX;
+        sideDistX = (mapX + 1.0f - playerPos.x) * deltaDistX;
     }
 
     if (rayDir.y < 0)
     {
         stepY = -1;
-
-        sideDistY =
-            (playerPos.y - mapY) *
-            deltaDistY;
+        sideDistY = (playerPos.y - mapY) * deltaDistY;
     }
     else
     {
         stepY = 1;
-
-        sideDistY =
-            (mapY + 1.0f - playerPos.y) *
-            deltaDistY;
+        sideDistY = (mapY + 1.0f - playerPos.y) * deltaDistY;
     }
 
-    bool hit = false;
+    bool found = false;
 
-    while (!hit)
+    while (!found)
     {
         if (sideDistX < sideDistY)
         {
             sideDistX += deltaDistX;
-
             mapX += stepX;
-
             side = 0;
         }
         else
         {
             sideDistY += deltaDistY;
-
             mapY += stepY;
-
             side = 1;
         }
 
-        if (map.GetCell(mapY, mapX) == 1)
-            hit = true;
+        if (map.GetCell(mapY, mapX) != 0)
+            found = true;
     }
 
     float perpWallDist;
 
     if (side == 0)
-        perpWallDist =
-        sideDistX - deltaDistX;
+        perpWallDist = sideDistX - deltaDistX;
     else
-        perpWallDist =
-        sideDistY - deltaDistY;
+        perpWallDist = sideDistY - deltaDistY;
 
-    return perpWallDist;
+    float wallX;
+
+    if (side == 0)
+        wallX = playerPos.y + perpWallDist * rayDir.y;
+    else
+        wallX = playerPos.x + perpWallDist * rayDir.x;
+
+    wallX -= floorf(wallX);
+
+    hit.distance = perpWallDist;
+    hit.side = side;
+    hit.tile = map.GetCell(mapY, mapX);
+    hit.wallX = wallX;
+
+    return hit;
 }
+void Map::SaveMap(const std::string& file)
+{
+    std::ofstream out(file);
+
+    if (!out.is_open())
+    {
+        TraceLog(LOG_ERROR, "Cannot open file!");
+        return;
+    }
+
+    for (int r = 0; r < ROWS; r++)
+    {
+        for (int c = 0; c < COLS; c++)
+        {
+            out << grid[r][c] << " ";
+        }
+        out << "\n";
+    }
+
+    out.close();
+
+    TraceLog(LOG_INFO, "Map Saved!");
+}
+

@@ -1,9 +1,20 @@
 #include "Renderer.h"
-
+#include "../World/Map.h"
 #include <cmath>
 
 Renderer::Renderer()
 {
+    wallTexture = { 0 };
+}
+
+void Renderer::LoadTextures()
+{
+    wallTexture = LoadTexture("../assets/textures/wall1.png");
+}
+void Renderer::UnloadTextures()
+{
+
+    UnloadTexture(wallTexture);
 }
 
 void Renderer::DrawSky()
@@ -30,39 +41,78 @@ void Renderer::DrawFloor()
 void Renderer::DrawWallColumn(
     int screenX,
     float distance,
-    int side)
+    int side,
+    int tile,
+    float wallX)
 {
     if (distance < 0.1f)
         distance = 0.1f;
 
-    int lineHeight =
-        (int)(Config::SCREEN_HEIGHT / distance);
+    int lineHeight = (int)(Config::SCREEN_HEIGHT / distance);
 
-    int drawStart =
-        Config::SCREEN_HEIGHT / 2 -
-        lineHeight / 2;
+    int drawStart = Config::SCREEN_HEIGHT / 2 - lineHeight / 2;
+    int drawEnd = Config::SCREEN_HEIGHT / 2 + lineHeight / 2;
 
-    int drawEnd =
-        Config::SCREEN_HEIGHT / 2 +
-        lineHeight / 2;
-
-    if (drawStart < 0)
-        drawStart = 0;
-
+    if (drawStart < 0) drawStart = 0;
     if (drawEnd >= Config::SCREEN_HEIGHT)
         drawEnd = Config::SCREEN_HEIGHT - 1;
 
-    Color color =
-        (side == 0)
-        ? RED
-        : MAROON;
+    // OLD RED WALL
+    if (tile == 1)
+    {
+        Color color = (side == 0) ? RED : MAROON;
 
-    DrawRectangle(
-        screenX,
-        drawStart,
-        1,
-        drawEnd - drawStart,
-        color);
+        DrawRectangle(
+            screenX,
+            drawStart,
+            1,
+            drawEnd - drawStart,
+            color);
+
+        return;
+    }
+
+    // NEW TEXTURED WALL
+    if (tile == 2)
+    {
+        int texX = (int)(wallX * wallTexture.width);
+
+        if (side == 0)
+            texX = wallTexture.width - texX - 1;
+
+        if (texX < 0)
+            texX = 0;
+
+        if (texX >= wallTexture.width)
+            texX = wallTexture.width - 1;
+
+        Rectangle source =
+        {
+            (float)texX,
+            0.0f,
+            1.0f,
+            (float)wallTexture.height
+        };
+
+        Rectangle dest =
+        {
+            (float)screenX,
+            (float)drawStart,
+            1.0f,
+            (float)(drawEnd - drawStart)
+        };
+
+        DrawTexturePro(
+            wallTexture,
+            source,
+            dest,
+            { 0,0 },
+            0.0f,
+            WHITE
+        );
+
+        return;
+    }
 }
 void Renderer::Draw(
     Vector2 playerPos,
@@ -93,19 +143,22 @@ void Renderer::Draw(
 
         int side = 0;
 
-        float distance = map.CastSingleRay(
-            playerPos,
-            rayDir,
-            map,
-            side);
+        RayHit hit =
+            map.CastSingleRay(
+                playerPos,
+                rayDir,
+                map,
+                side);
 
         DrawWallColumn(
             x,
-            distance,
-            side);
+            hit.distance,
+            hit.side,
+            hit.tile,
+            hit.wallX);
 
         // 3. LOG THE WALL DISTANCE INTO THE Z-BUFFER
-        Zbuffer[x] = distance;
+        Zbuffer[x] = hit.distance;
     }
 
     // PHASE 2: DRAW ENEMIES

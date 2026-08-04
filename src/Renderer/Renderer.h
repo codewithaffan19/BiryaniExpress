@@ -6,12 +6,6 @@
 #include "../World/Map.h"
 #include "../Core/Config.h"
 #include "../Enemy.h"
-struct RayHit
-{
-    float distance;
-
-    int side;
-};
 
 class Renderer
 {
@@ -25,7 +19,9 @@ public:
         Vector2 cameraPlane,
         Map& map,
         const std::vector<Enemy>& enemies);
-   
+    Texture2D wallTexture;
+    void LoadTextures();
+    void UnloadTextures();
 private:
 
 
@@ -33,10 +29,11 @@ private:
     void DrawWallColumn(
         int screenX,
         float distance,
-        int side);
+        int side,
+        int tile,
+        float wallX);
 
     void DrawSky();
 
     void DrawFloor();
-
 };
