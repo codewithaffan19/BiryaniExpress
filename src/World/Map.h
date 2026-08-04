@@ -22,7 +22,11 @@ public:
 
     int GetRows() const;
     int GetCols() const;
-
+    float CastSingleRay(
+        Vector2 playerPos,
+        Vector2 rayDir,
+        Map& map,
+        int& side);
 private:
 
     static const int ROWS = 20;

@@ -116,10 +116,6 @@ void Player::Update(
     }
 }
 
-Vector2 Player::GetPosition() const
-{
-    return position;
-}
 
 Vector2 Player::GetDirection() const
 {

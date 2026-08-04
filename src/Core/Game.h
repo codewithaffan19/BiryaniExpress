@@ -5,6 +5,8 @@
 #include "../Renderer/Renderer.h"
 #include "../Core/InputManager.h"
 #include "../Editor/Editor.h"
+#include "../Enemy.h"
+#include <vector>
 class Game
 {
 public:
@@ -32,6 +34,6 @@ private:
 
     InputManager input;
     Editor editor;
-
+    std::vector<Enemy>enemies;
     bool editorMode = false;
 };

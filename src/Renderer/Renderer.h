@@ -5,6 +5,7 @@
 
 #include "../World/Map.h"
 #include "../Core/Config.h"
+#include "../Enemy.h"
 struct RayHit
 {
     float distance;
@@ -22,14 +23,12 @@ public:
         Vector2 playerPos,
         Vector2 playerDir,
         Vector2 cameraPlane,
-        Map& map);
+        Map& map,
+        const std::vector<Enemy>& enemies);
+   
 private:
 
-    float CastSingleRay(
-        Vector2 playerPos,
-        Vector2 rayDir,
-        Map& map,
-        int& side);
+
 
     void DrawWallColumn(
         int screenX,

@@ -1,0 +1,45 @@
+#include "Enemy.h"
+#include "../src/Player/Player.h"
+#include "raylib.h"
+#include "raymath.h"
+#include "../src/World/Collision.h"
+
+enum { STILL, CHASE, ATTACK };
+
+Enemy::Enemy() {
+	position = { 3.5f,3.5f };
+	radius = 0.4f;
+	collosionDistance = 5.0f;
+	AttackDistance = 1.0f;
+	state = STILL;
+	moveSpeed = 0.5f;
+}
+
+void Enemy::update(Player P, Map& m1) {
+	float dx = P.position.x - position.x;
+	float dy = P.position.y - position.y;
+
+	float playerdis = sqrt(dx * dx + dy * dy);
+	Vector2 NormalDis;
+	if (playerdis > 0) {
+		NormalDis = { dx / playerdis,dy / playerdis };
+	}
+	Vector2 Velocity;
+	int side = 0;
+	int sideHit = 0;
+	float WallDistance = m1.CastSingleRay(position, NormalDis, m1, side);
+	float deltaTime = GetFrameTime();
+	if (WallDistance < playerdis) {
+		state = STILL;
+	}
+	if (WallDistance > playerdis) {
+		state = CHASE;
+	}
+
+	if (state == CHASE) {
+		Velocity = { moveSpeed * NormalDis.x * deltaTime,moveSpeed * NormalDis.y * deltaTime };
+		position = CheckMapCollosion(position, radius, Velocity, m1);
+
+	}
+
+}

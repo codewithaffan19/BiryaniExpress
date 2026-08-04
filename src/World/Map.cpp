@@ -110,3 +110,102 @@ void Map::SaveMap(const std::string& file)
 
     TraceLog(LOG_INFO, "Map Saved!");
 }
+
+//DDA algorithm moved here from renderer
+
+
+float Map::CastSingleRay(
+    Vector2 playerPos,
+    Vector2 rayDir,
+    Map& map,
+    int& side)
+{
+    int mapX = (int)playerPos.x;
+    int mapY = (int)playerPos.y;
+
+    float deltaDistX =
+        (rayDir.x == 0.0f)
+        ? 1e30f
+        : fabsf(1.0f / rayDir.x);
+
+    float deltaDistY =
+        (rayDir.y == 0.0f)
+        ? 1e30f
+        : fabsf(1.0f / rayDir.y);
+
+    int stepX;
+    int stepY;
+
+    float sideDistX;
+    float sideDistY;
+
+    if (rayDir.x < 0)
+    {
+        stepX = -1;
+
+        sideDistX =
+            (playerPos.x - mapX) *
+            deltaDistX;
+    }
+    else
+    {
+        stepX = 1;
+
+        sideDistX =
+            (mapX + 1.0f - playerPos.x) *
+            deltaDistX;
+    }
+
+    if (rayDir.y < 0)
+    {
+        stepY = -1;
+
+        sideDistY =
+            (playerPos.y - mapY) *
+            deltaDistY;
+    }
+    else
+    {
+        stepY = 1;
+
+        sideDistY =
+            (mapY + 1.0f - playerPos.y) *
+            deltaDistY;
+    }
+
+    bool hit = false;
+
+    while (!hit)
+    {
+        if (sideDistX < sideDistY)
+        {
+            sideDistX += deltaDistX;
+
+            mapX += stepX;
+
+            side = 0;
+        }
+        else
+        {
+            sideDistY += deltaDistY;
+
+            mapY += stepY;
+
+            side = 1;
+        }
+
+        if (map.GetCell(mapY, mapX) == 1)
+            hit = true;
+    }
+
+    float perpWallDist;
+
+    if (side == 0)
+        perpWallDist =
+        sideDistX - deltaDistX;
+    else
+        perpWallDist =
+        sideDistY - deltaDistY;
+
+    return perpWallDist;
+}
