@@ -109,7 +109,6 @@ void Game::Draw()
 
 void Game::Shutdown()
 {
-    renderer.UnloadTextures();
     CloseWindow();
 }
 

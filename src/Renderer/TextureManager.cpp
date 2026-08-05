@@ -3,29 +3,23 @@
 #include<string>
 void TextureManager::Load()
 {
-    for (int i = 0; i < 10; i++)
-    {
-        walls[i].id = 0;
-        wallPixels[i] = nullptr;
-    }
-
-    for (int i = 1; i <= 3; i++)   // <-- only load existing walls
+    for (int i = 1; i <= 8; i++)
     {
         std::string path =
             "../assets/textures/wall" +
             std::to_string(i) +
             ".png";
 
-        walls[i + 1] = LoadTexture(path.c_str());
+        walls[i - 1] = LoadTexture(path.c_str());
 
-        Image img = LoadImageFromTexture(walls[i + 1]);
-        wallPixels[i + 1] = LoadImageColors(img);
+        Image img = LoadImageFromTexture(walls[i - 1]);
+        wallPixels[i - 1] = LoadImageColors(img);
         UnloadImage(img);
     }
 }
 void TextureManager::Unload()
 {
-    for (int i = 1; i <= 9; i++)
+    for (int i = 1; i < 8; i++)
     {
         if (wallPixels[i])
             UnloadImageColors(wallPixels[i]);

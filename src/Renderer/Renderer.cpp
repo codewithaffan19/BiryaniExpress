@@ -76,8 +76,14 @@ void Renderer::DrawWallColumn(
     // NEW TEXTURED WALL
     if (tile >= 2 && tile <= 9)
     {
-        Texture2D& tex = textures.walls[tile];
+        int texIndex = tile - 2;
 
+        Texture2D& tex = textures.walls[texIndex];
+
+        if (tex.id == 0)
+        {
+            return;
+        }
         int texX = (int)(wallX * tex.width);
 
         if (side == 0)
