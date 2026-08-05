@@ -11,11 +11,21 @@ void TextureManager::Load()
             ".png";
 
         walls[i - 1] = LoadTexture(path.c_str());
-
+        SetTextureFilter(walls[i - 1], TEXTURE_FILTER_POINT);
         Image img = LoadImageFromTexture(walls[i - 1]);
         wallPixels[i - 1] = LoadImageColors(img);
         UnloadImage(img);
     }
+    for (int i = 3; i <= 8; i++)
+    {
+        std::string path =
+            "../assets/textures/wall" +
+            std::to_string(i) +
+            "_anim.png";
+
+        wallAnim[i - 3] = LoadTexture(path.c_str());
+    }
+
 }
 void TextureManager::Unload()
 {

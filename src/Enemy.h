@@ -7,7 +7,11 @@ private:
 	float collosionDistance;
 	float AttackDistance;
 public:
-	Texture texture;
+	Texture2D spriteSheet;
+	int currentframe;
+	int totalframes=5;
+	float frametimer;
+	float framespeed;
 	Enemy();
 	void update(Player P, Map& m1);
 };

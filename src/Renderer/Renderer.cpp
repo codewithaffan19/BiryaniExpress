@@ -1,7 +1,7 @@
 #include "Renderer.h"
 #include "../World/Map.h"
 #include <cmath>
-
+#include "../Renderer/TextureManager.h"
 Renderer::Renderer()
 {
 }
@@ -78,29 +78,41 @@ void Renderer::DrawWallColumn(
     {
         int texIndex = tile - 2;
 
-        Texture2D& tex = textures.walls[texIndex];
+        Texture2D* tex = &textures.walls[texIndex];
 
-        if (tex.id == 0)
+        // Animated walls (wall3 -> wall8)
+        if (tile >= 4 && tile <= 9)
+        {
+            int animIndex = tile - 4;
+
+            if (((int)(GetTime() * 2)) % 2 == 1)
+            {
+                if (textures.wallAnim[animIndex].id != 0)
+                    tex = &textures.wallAnim[animIndex];
+            }
+        }
+
+        if (tex->id == 0)
         {
             return;
         }
-        int texX = (int)(wallX * tex.width);
+        int texX = (int)(wallX * tex->width);
 
         if (side == 0)
-            texX = tex.width - texX - 1;
+            texX = tex->width - texX - 1;
 
         if (texX < 0)
             texX = 0;
 
-        if (texX >= tex.width)
-            texX = tex.width - 1;
+        if (texX >= tex->width)
+            texX = tex->width - 1;
 
         Rectangle source =
         {
             (float)texX,
             0.0f,
             1.0f,
-            (float)tex.height
+            (float)tex->height
         };
 
         Rectangle dest =
@@ -112,7 +124,7 @@ void Renderer::DrawWallColumn(
         };
 
         DrawTexturePro(
-            tex,
+            *tex,
             source,
             dest,
             { 0,0 },
@@ -202,8 +214,12 @@ void Renderer::Draw(
             int drawEndX = (spriteWidth / 2) + spriteScreenX;
             if (drawEndX >= Config::SCREEN_WIDTH) drawEndX = Config::SCREEN_WIDTH - 1;
 
-            float texWidth = 64.0f; // Width of your enemy .png
-            float texHeight = 64.0f; // Height of your enemy .png
+           
+            float frameWidth = (float)enemies[i].spriteSheet.width / enemies[i].totalframes;
+            float frameHeight = (float)enemies[i].spriteSheet.height;
+
+            // 2. Calculate where this specific frame starts on the X axis of the image
+            float frameOffsetX = enemies[i].currentframe * frameWidth;
 
             // Draw the enemy vertical stripe by vertical stripe
             for (int stripe = drawStartX; stripe < drawEndX; stripe++)
@@ -213,24 +229,27 @@ void Renderer::Draw(
                 if (stripe > 0 && stripe < Config::SCREEN_WIDTH && transformY < Zbuffer[stripe])
                 {
                     int trueStartX = -(spriteWidth / 2) + spriteScreenX;
-                    int texX = int((stripe - trueStartX) * texWidth / spriteWidth);
 
-                    // Clamp to prevent pulling pixels outside the image
+                    // Calculate which pixel of the current FRAME we are drawing
+                    int texX = int((stripe - trueStartX) * frameWidth / spriteWidth);
+
+                    // Clamp to prevent pulling pixels outside the frame bounds
                     if (texX < 0) texX = 0;
-                    if (texX >= texWidth) texX = texWidth - 1;
+                    if (texX >= frameWidth) texX = frameWidth - 1;
 
-                    Rectangle sourceRec = { (float)texX, 0.0f, 1.0f, texHeight };
+                    // 3. Define the Source Rectangle (The 1-pixel wide slice of the image)
+                    // Notice how we add `frameOffsetX` to `texX` to shift our window to the correct animation frame!
+                    Rectangle sourceRec = { frameOffsetX + (float)texX, 0.0f, 1.0f, frameHeight };
+
                     Rectangle destRec = { (float)stripe, (float)drawStartY, 1.0f, (float)spriteHeight };
                     Vector2 origin = { 0.0f, 0.0f };
 
-                    // Draw this specific enemy's texture
-                    /*DrawTexturePro(enemies[i].texture, sourceRec, destRec, origin, 0.0f, WHITE);*/
-                    DrawLine(stripe, drawStartY, stripe, drawEndY, GREEN);
-
+                    // 4. Draw the animated slice (Replacing the GREEN line)
+                    DrawTexturePro(enemies[i].spriteSheet, sourceRec, destRec, origin, 0.0f, WHITE);
                 }
             }
+            }
         }
-    }
     Texture2D weaponTex;
     if (player.currentWeaponIndex == WEAPON_SPOON)
         weaponTex=player.spoonTex;

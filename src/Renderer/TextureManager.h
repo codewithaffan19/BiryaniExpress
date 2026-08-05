@@ -11,5 +11,6 @@ public:
     void Unload();
 
     Texture2D walls[10];
+    Texture2D wallAnim[8];
     Color* wallPixels[10];
 };
