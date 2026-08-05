@@ -1,7 +1,7 @@
 #include "Renderer.h"
 #include "../World/Map.h"
 #include <cmath>
-
+#include "../Renderer/TextureManager.h"
 Renderer::Renderer()
 {
 }
@@ -196,8 +196,12 @@ void Renderer::Draw(
             int drawEndX = (spriteWidth / 2) + spriteScreenX;
             if (drawEndX >= Config::SCREEN_WIDTH) drawEndX = Config::SCREEN_WIDTH - 1;
 
-            float texWidth = 64.0f; // Width of your enemy .png
-            float texHeight = 64.0f; // Height of your enemy .png
+           
+            float frameWidth = (float)enemies[i].spriteSheet.width / enemies[i].totalframes;
+            float frameHeight = (float)enemies[i].spriteSheet.height;
+
+            // 2. Calculate where this specific frame starts on the X axis of the image
+            float frameOffsetX = enemies[i].currentframe * frameWidth;
 
             // Draw the enemy vertical stripe by vertical stripe
             for (int stripe = drawStartX; stripe < drawEndX; stripe++)
@@ -207,24 +211,27 @@ void Renderer::Draw(
                 if (stripe > 0 && stripe < Config::SCREEN_WIDTH && transformY < Zbuffer[stripe])
                 {
                     int trueStartX = -(spriteWidth / 2) + spriteScreenX;
-                    int texX = int((stripe - trueStartX) * texWidth / spriteWidth);
 
-                    // Clamp to prevent pulling pixels outside the image
+                    // Calculate which pixel of the current FRAME we are drawing
+                    int texX = int((stripe - trueStartX) * frameWidth / spriteWidth);
+
+                    // Clamp to prevent pulling pixels outside the frame bounds
                     if (texX < 0) texX = 0;
-                    if (texX >= texWidth) texX = texWidth - 1;
+                    if (texX >= frameWidth) texX = frameWidth - 1;
 
-                    Rectangle sourceRec = { (float)texX, 0.0f, 1.0f, texHeight };
+                    // 3. Define the Source Rectangle (The 1-pixel wide slice of the image)
+                    // Notice how we add `frameOffsetX` to `texX` to shift our window to the correct animation frame!
+                    Rectangle sourceRec = { frameOffsetX + (float)texX, 0.0f, 1.0f, frameHeight };
+
                     Rectangle destRec = { (float)stripe, (float)drawStartY, 1.0f, (float)spriteHeight };
                     Vector2 origin = { 0.0f, 0.0f };
 
-                    // Draw this specific enemy's texture
-                    /*DrawTexturePro(enemies[i].texture, sourceRec, destRec, origin, 0.0f, WHITE);*/
-                    DrawLine(stripe, drawStartY, stripe, drawEndY, GREEN);
-
+                    // 4. Draw the animated slice (Replacing the GREEN line)
+                    DrawTexturePro(enemies[i].spriteSheet, sourceRec, destRec, origin, 0.0f, WHITE);
                 }
             }
+            }
         }
-    }
     Texture2D weaponTex;
     if (player.currentWeaponIndex == WEAPON_SPOON)
         weaponTex=player.spoonTex;

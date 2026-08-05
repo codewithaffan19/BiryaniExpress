@@ -13,6 +13,9 @@ Enemy::Enemy() {
 	AttackDistance = 1.0f;
 	state = STILL;
 	moveSpeed = 0.5f;
+	currentframe = 0;
+	framespeed = 0.15f;
+	frametimer = 0.0f;		
 }
 
 void Enemy::update(Player P, Map& m1) {
@@ -41,5 +44,12 @@ void Enemy::update(Player P, Map& m1) {
 		Velocity = { moveSpeed * NormalDis.x * deltaTime,moveSpeed * NormalDis.y * deltaTime };
 		position = CheckMapCollosion(position, radius, Velocity, m1);
 	}
-
+	frametimer += deltaTime;
+	if (frametimer >= framespeed) {
+		frametimer = 0.0f;
+		currentframe++;
+		if (currentframe >= totalframes) {
+			currentframe = 0;
+		}
+	}
 }
