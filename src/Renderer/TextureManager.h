@@ -10,9 +10,6 @@ public:
 
     void Unload();
 
-    Texture2D wall;
-    Texture2D wallTexture1;
-
-    Color* wallPixels;
-    Color* wallTexture1Pixels;
+    Texture2D walls[10];
+    Color* wallPixels[10];
 };

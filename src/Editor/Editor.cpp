@@ -19,13 +19,16 @@ void Editor::Update(Map& map)
     // Select tile
     //--------------------------------
 
-    if (IsKeyPressed(KEY_ZERO))
-        currentTile = 0;
-
-    if (IsKeyPressed(KEY_ONE))
-        currentTile = 1;
-    if (IsKeyPressed(KEY_TWO))
-        currentTile = 2;
+    if (IsKeyPressed(KEY_ZERO))  currentTile = 0;
+    if (IsKeyPressed(KEY_ONE))   currentTile = 1;
+    if (IsKeyPressed(KEY_TWO))   currentTile = 2;
+    if (IsKeyPressed(KEY_THREE)) currentTile = 3;
+    if (IsKeyPressed(KEY_FOUR))  currentTile = 4;
+    if (IsKeyPressed(KEY_FIVE))  currentTile = 5;
+    if (IsKeyPressed(KEY_SIX))   currentTile = 6;
+    if (IsKeyPressed(KEY_SEVEN)) currentTile = 7;
+    if (IsKeyPressed(KEY_EIGHT)) currentTile = 8;
+    if (IsKeyPressed(KEY_NINE))  currentTile = 9;
 
     //--------------------------------
     // Paint
@@ -75,6 +78,12 @@ void Editor::Draw(Map& map)
             case 1: color = DARKGRAY; break;
             case 2: color = BROWN; break;
             case 3: color = ORANGE; break;
+            case 4: color = PINK; break;
+            case 5: color = PURPLE; break;
+            case 6: color = BLUE; break;
+            case 7: color = GREEN; break;
+            case 8: color = YELLOW; break;
+            case 9: color = RED; break;
             }
 
             DrawRectangleRec(rect, color);

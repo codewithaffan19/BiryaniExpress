@@ -7,12 +7,12 @@
 #include "../Core/Config.h"
 #include "../Enemy.h"
 #include "../Player/Player.h"
+#include "../Renderer/TextureManager.h"
 class Renderer
 {
 public:
 
     Renderer();
-
     void Draw(
         Vector2 playerPos,
         Vector2 playerDir,
@@ -20,7 +20,7 @@ public:
         Map& map,
         const std::vector<Enemy>& enemies,
         Player player);
-    Texture2D wallTexture;
+    TextureManager textures;
     void LoadTextures();
     void UnloadTextures();
 private:

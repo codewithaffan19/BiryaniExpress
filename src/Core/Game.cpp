@@ -28,7 +28,7 @@ void Game::Initialize()
     DisableCursor();
     SetTargetFPS(Config::TARGET_FPS);
 
-    Image Spoon = LoadImage("C:/spoon.png");
+    Image Spoon = LoadImage("../assets/textures/spoon.png");
     ImageColorReplace(&Spoon, MAGENTA, BLANK);
     player.spoonTex = LoadTextureFromImage(Spoon);
     //Enemies 

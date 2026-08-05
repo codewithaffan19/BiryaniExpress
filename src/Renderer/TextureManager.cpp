@@ -1,24 +1,36 @@
 #include "TextureManager.h"
 #include "raylib.h"
+#include<string>
 void TextureManager::Load()
 {
-    wall = LoadTexture("assets/textures/wall.png");
-    wallTexture1 = LoadTexture("assets/textures/wall1.png");
+    for (int i = 0; i < 10; i++)
+    {
+        walls[i].id = 0;
+        wallPixels[i] = nullptr;
+    }
 
-    Image img = LoadImageFromTexture(wall);
-    wallPixels = LoadImageColors(img);
-    UnloadImage(img);
+    for (int i = 1; i <= 3; i++)   // <-- only load existing walls
+    {
+        std::string path =
+            "../assets/textures/wall" +
+            std::to_string(i) +
+            ".png";
 
-    Image img2 = LoadImageFromTexture(wallTexture1);
-    wallTexture1Pixels = LoadImageColors(img2);
-    UnloadImage(img2);
+        walls[i + 1] = LoadTexture(path.c_str());
+
+        Image img = LoadImageFromTexture(walls[i + 1]);
+        wallPixels[i + 1] = LoadImageColors(img);
+        UnloadImage(img);
+    }
 }
-
 void TextureManager::Unload()
 {
-    UnloadImageColors(wallPixels);
-    UnloadTexture(wall);
+    for (int i = 1; i <= 9; i++)
+    {
+        if (wallPixels[i])
+            UnloadImageColors(wallPixels[i]);
 
-    UnloadImageColors(wallTexture1Pixels);
-    UnloadTexture(wallTexture1);
+        if (walls[i].id != 0)
+            UnloadTexture(walls[i]);
+    }
 }

@@ -4,17 +4,18 @@
 
 Renderer::Renderer()
 {
-    wallTexture = { 0 };
 }
+
+
 
 void Renderer::LoadTextures()
 {
-    wallTexture = LoadTexture("../assets/textures/wall1.png");
+    textures.Load();
 }
+
 void Renderer::UnloadTextures()
 {
-
-    UnloadTexture(wallTexture);
+    textures.Unload();
 }
 
 void Renderer::DrawSky()
@@ -73,25 +74,27 @@ void Renderer::DrawWallColumn(
     }
 
     // NEW TEXTURED WALL
-    if (tile == 2)
+    if (tile >= 2 && tile <= 9)
     {
-        int texX = (int)(wallX * wallTexture.width);
+        Texture2D& tex = textures.walls[tile];
+
+        int texX = (int)(wallX * tex.width);
 
         if (side == 0)
-            texX = wallTexture.width - texX - 1;
+            texX = tex.width - texX - 1;
 
         if (texX < 0)
             texX = 0;
 
-        if (texX >= wallTexture.width)
-            texX = wallTexture.width - 1;
+        if (texX >= tex.width)
+            texX = tex.width - 1;
 
         Rectangle source =
         {
             (float)texX,
             0.0f,
             1.0f,
-            (float)wallTexture.height
+            (float)tex.height
         };
 
         Rectangle dest =
@@ -103,13 +106,12 @@ void Renderer::DrawWallColumn(
         };
 
         DrawTexturePro(
-            wallTexture,
+            tex,
             source,
             dest,
             { 0,0 },
             0.0f,
-            WHITE
-        );
+            WHITE);
 
         return;
     }
