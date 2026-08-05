@@ -6,7 +6,7 @@
 #include "../World/Map.h"
 #include "../Core/Config.h"
 #include "../Enemy.h"
-
+#include "../Player/Player.h"
 class Renderer
 {
 public:
@@ -18,7 +18,8 @@ public:
         Vector2 playerDir,
         Vector2 cameraPlane,
         Map& map,
-        const std::vector<Enemy>& enemies);
+        const std::vector<Enemy>& enemies,
+        Player player);
     Texture2D wallTexture;
     void LoadTextures();
     void UnloadTextures();

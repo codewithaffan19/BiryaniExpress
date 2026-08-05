@@ -28,12 +28,24 @@ void Game::Initialize()
     DisableCursor();
     SetTargetFPS(Config::TARGET_FPS);
 
+    Image Spoon = LoadImage("C:/spoon.png");
+    ImageColorReplace(&Spoon, MAGENTA, BLANK);
+    player.spoonTex = LoadTextureFromImage(Spoon);
+    //Enemies 
     enemies.clear();
-    Enemy E1;
-    E1.position = {5.5f,6.5f};
-    enemies.push_back(E1);
+    //Burger Boy
+    Enemy BurgerBoy;
+    BurgerBoy.moveSpeed = 1.0f;
+    BurgerBoy .position = { 5.5f,6.5f };
+    //Uncle takla
+    Enemy AngryUncle;
+    AngryUncle.position = { 4.5f,5.5f };
+    AngryUncle.moveSpeed = 0.7f;
 
+    enemies.push_back(AngryUncle);
+    enemies.push_back(BurgerBoy);
 
+    UnloadImage(Spoon);
     map.LoadMap("../assets/maps/test.txt");
 }
 
@@ -85,7 +97,7 @@ void Game::Draw()
             player.position,
             player.GetDirection(),
             player.GetCameraPlane(),
-            map, enemies
+            map, enemies,player
         );
     }
 

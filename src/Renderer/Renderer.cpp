@@ -119,7 +119,8 @@ void Renderer::Draw(
     Vector2 playerDir,
     Vector2 cameraPlane,
     Map& map,
-    const std::vector<Enemy>& enemies) // 1. ADD ENEMY LIST TO PARAMETERS
+    const std::vector<Enemy>& enemies,
+    Player player) 
 {
     // INITIALIZE THE Z-BUFFER
     // This array will hold the distance of the wall for every pixel column
@@ -222,4 +223,33 @@ void Renderer::Draw(
             }
         }
     }
+    Texture2D weaponTex;
+    if (player.currentWeaponIndex == WEAPON_SPOON)
+        weaponTex=player.spoonTex;
+
+    // ... previous size/scale calculations ...
+    float scale = (Config::SCREEN_HEIGHT * 0.5f) / weaponTex.height;
+    float drawWidth = weaponTex.width * scale;
+    float drawHeight = weaponTex.height * scale;
+
+    // --- NEW BOBBING MATH ---
+    // The X-axis uses cosine to swing left and right (Amplitude: 30 pixels)
+    float bobX = cos(player.weaponbobtimer) * 30.0f;
+
+    // The Y-axis uses absolute sine to simulate the heavy "bounce" of footsteps (Amplitude: 20 pixels)
+    // Using abs() ensures the weapon only bounces UP, never down through the floor
+    float bobY = abs(sin(player.weaponbobtimer)) * 20.0f;
+
+    // --- APPLY THE OFFSETS ---
+    // Start with your base left-handed position (-20.0f), then add the bob
+    float drawX = -20.0f + bobX;
+
+    // Start with the bottom anchor, then push it DOWN based on the bounce
+    float drawY = Config::SCREEN_HEIGHT - drawHeight + bobY;
+
+    Rectangle sourceRec = { 0.0f, 0.0f, (float)weaponTex.width, (float)weaponTex.height };
+    Rectangle destRec = { drawX, drawY, drawWidth, drawHeight };
+    Vector2 origin = { 0.0f, 0.0f };
+
+    DrawTexturePro(weaponTex, sourceRec, destRec, origin, 0.0f, WHITE);
 }

@@ -4,7 +4,7 @@
 #include "raymath.h"
 #include "../src/World/Collision.h"
 
-enum { STILL, CHASE, ATTACK };
+enum { STILL, CHASE, ATTACK,STUNNED };
 
 Enemy::Enemy() {
 	position = { 3.5f,3.5f };
@@ -40,7 +40,6 @@ void Enemy::update(Player P, Map& m1) {
 	if (state == CHASE) {
 		Velocity = { moveSpeed * NormalDis.x * deltaTime,moveSpeed * NormalDis.y * deltaTime };
 		position = CheckMapCollosion(position, radius, Velocity, m1);
-
 	}
 
 }

@@ -1,5 +1,5 @@
 #include "Player.h"
-
+#include "raymath.h"
 #include "../Core/InputManager.h"
 #include "../World/Collision.h"
 #include "../World/Map.h"
@@ -8,14 +8,17 @@
 Player::Player()
 {
     position = { 5.5f,5.5f };
-
     direction = { 1.0f,0.0f };
-
     cameraPlane = { 0.0f,0.66f };
-
     moveSpeed = 3.0f;
-
     radius = 0.25f;
+    Inventory.push_back(WEAPON_SPOON);
+    currentWeaponIndex = 0;
+}
+WeaponType Player::ActivateWeapon()const {
+    if (Inventory.empty())
+        return WEAPON_SPOON;
+    return Inventory[currentWeaponIndex];
 }
 
 void Player::Update(
@@ -23,9 +26,28 @@ void Player::Update(
     InputManager& input,
     Map& map)
 {
+    //Inventory
+    if (IsKeyDown(KEY_ONE)&&Inventory.size()>=1) {
+        currentWeaponIndex = 0;
+    }
+    if (IsKeyDown(KEY_TWO)&&Inventory.size()>=2) {
+        currentWeaponIndex = 1;
+    }
+    if (IsKeyDown(KEY_THREE)&&Inventory.size()>=3) {
+        currentWeaponIndex = 2;
+    }
+
+    bool isWalking = IsKeyDown(KEY_W) || IsKeyDown(KEY_A) || IsKeyDown(KEY_S) || IsKeyDown(KEY_D);
+    if (isWalking) {
+        weaponbobtimer = dt * 10.0f;
+    }
+    else {
+        weaponbobtimer = Lerp(weaponbobtimer, 0.0f, dt * 10.0f);
+    }
+
     //-------------------------------------------------
-    // Mouse Look
-    //-------------------------------------------------
+   // Mouse Look
+   //-------------------------------------------------
 
     Vector2 mouse = input.GetMouseDelta();
 
