@@ -28,7 +28,7 @@ public:
 private:
 
 
-
+    float cloudOffset = 0.0f;
     void DrawWallColumn(
         int screenX,
         float distance,
@@ -37,6 +37,6 @@ private:
         float wallX);
 
     void DrawSky();
-
+    void DrawSunAndClouds();
     void DrawFloor(Vector2 PlayerPos, Vector2 PlayerDir,Vector2 CameraPlane);
 };

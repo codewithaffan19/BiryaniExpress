@@ -25,7 +25,7 @@ void TextureManager::Load()
 
         wallAnim[i - 3] = LoadTexture(path.c_str());
     }
-    floorimg = LoadImage("C:/Users/Pccenter/Documents/BiryaniExpress/assets/textures/floor.png");
+    floorimg = LoadImage("../assets/textures/floor.png");
 
 }
 void TextureManager::Unload()

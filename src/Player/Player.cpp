@@ -7,7 +7,7 @@
 
 Player::Player()
 {
-    position = { 1.5f,1.5f };
+    position = { 2.0f,2.0f };
     direction = { 1.0f,0.0f };
     cameraPlane = { 0.0f,0.66f };
     moveSpeed = 3.0f;

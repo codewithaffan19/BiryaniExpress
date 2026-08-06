@@ -9,6 +9,45 @@ Editor::Editor()
 void Editor::Update(Map& map)
 {
     Vector2 mouse = GetMousePosition();
+    // -------------------------
+// Mouse Wheel Zoom
+// -------------------------
+
+    float wheel = GetMouseWheelMove();
+
+    if (wheel != 0)
+    {
+        tileSize += wheel * 4.0f;
+
+        if (tileSize < 16)
+            tileSize = 16;
+
+        if (tileSize > 120)
+            tileSize = 120;
+    }
+
+    // -------------------------
+// Ctrl + / Ctrl - Zoom
+// -------------------------
+
+    if (IsKeyDown(KEY_LEFT_CONTROL) || IsKeyDown(KEY_RIGHT_CONTROL))
+    {
+        if (IsKeyPressed(KEY_EQUAL) || IsKeyPressed(KEY_KP_ADD))
+        {
+            tileSize += 4;
+
+            if (tileSize > 120)
+                tileSize = 120;
+        }
+
+        if (IsKeyPressed(KEY_MINUS) || IsKeyPressed(KEY_KP_SUBTRACT))
+        {
+            tileSize -= 4;
+
+            if (tileSize < 16)
+                tileSize = 16;
+        }
+    }
 
     const int sidebar = 150;
 

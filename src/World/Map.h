@@ -37,8 +37,8 @@ public:
         int& side);
 private:
 
-    static const int ROWS = 20;
-    static const int COLS = 20;
+    static const int ROWS = 25;
+    static const int COLS = 25;
 
     int grid[ROWS][COLS];
 };

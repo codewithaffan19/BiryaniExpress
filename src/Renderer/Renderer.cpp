@@ -28,12 +28,69 @@ void Renderer::UnloadTextures()
 
 void Renderer::DrawSky()
 {
-    DrawRectangle(
+    DrawRectangleGradientV(
         0,
         0,
         Config::SCREEN_WIDTH,
         Config::SCREEN_HEIGHT / 2,
-        SKYBLUE);
+
+        Color{ 255,180,80,255 },      // Golden horizon
+        Color{ 90,170,255,255 }       // Blue sky
+    );
+
+    DrawSunAndClouds();
+}
+
+void Renderer::DrawSunAndClouds()
+{
+    cloudOffset += GetFrameTime() * 15.0f;
+
+    if (cloudOffset > Config::SCREEN_WIDTH + 400)
+        cloudOffset = -400;
+    //--------------------------
+    // SUN
+    //--------------------------
+    float c1 = 220 + cloudOffset;
+    float c2 = 700 + cloudOffset * 0.6f;
+    float c3 = 1000 + cloudOffset * 0.3f;
+    DrawCircle(
+        Config::SCREEN_WIDTH - 180,
+        90,
+        55,
+        Color{ 255,240,120,255 });
+
+    DrawCircle(
+        Config::SCREEN_WIDTH - 180,
+        90,
+        45,
+        YELLOW);
+
+    //--------------------------
+    // CLOUD 1
+    //--------------------------
+
+    DrawCircle(c1, 100, 30, WHITE);
+    DrawCircle(c1 + 30, 90, 35, WHITE);
+    DrawCircle(c1 + 70, 100, 30, WHITE);
+    DrawRectangle(c1, 100, 70, 25, WHITE);
+
+    //--------------------------
+    // CLOUD 2
+    //--------------------------
+
+    DrawCircle(c2, 100, 30, WHITE);
+    DrawCircle(c2 + 30, 90, 35, WHITE);
+    DrawCircle(c2 + 70, 100, 30, WHITE);
+    DrawRectangle(c2, 100, 70, 25, WHITE);
+
+    //--------------------------
+    // CLOUD 3
+    //--------------------------
+
+    DrawCircle(c3, 100, 30, WHITE);
+    DrawCircle(c3 + 30, 90, 35, WHITE);
+    DrawCircle(c3 + 70, 100, 30, WHITE);
+    DrawRectangle(c3, 100, 70, 25, WHITE);
 }
 
 void Renderer::DrawFloor(Vector2 playerPos, Vector2 playerDir, Vector2 cameraPlane)
@@ -205,14 +262,13 @@ void Renderer::Draw(
     Vector2 cameraPlane,
     Map& map,
     const std::vector<Enemy>& enemies,
-    Player player) 
-{
+    Player player) {
     // INITIALIZE THE Z-BUFFER
     // This array will hold the distance of the wall for every pixel column
     float Zbuffer[Config::SCREEN_WIDTH];
 
     DrawSky();
-    DrawFloor(playerPos,playerDir,cameraPlane);
+    DrawFloor(playerPos, playerDir, cameraPlane);
 
     // ==========================================
     // PHASE 1: DRAW WALLS & LOG DISTANCES
@@ -279,7 +335,7 @@ void Renderer::Draw(
             int drawEndX = (spriteWidth / 2) + spriteScreenX;
             if (drawEndX >= Config::SCREEN_WIDTH) drawEndX = Config::SCREEN_WIDTH - 1;
 
-           
+
             float frameWidth = (float)enemies[i].spriteSheet.width / enemies[i].totalframes;
             float frameHeight = (float)enemies[i].spriteSheet.height;
 
@@ -313,35 +369,67 @@ void Renderer::Draw(
                     DrawTexturePro(enemies[i].spriteSheet, sourceRec, destRec, origin, 0.0f, WHITE);
                 }
             }
-            }
         }
-    Texture2D weaponTex;
-    if (player.currentWeaponIndex == WEAPON_SPOON)
-        weaponTex=player.spoonTex;
+    }
+    Texture2D& weaponTex = player.handTex;
 
-    // ... previous size/scale calculations ...
-    float scale = (Config::SCREEN_HEIGHT * 0.5f) / weaponTex.height;
+    float scale = (Config::SCREEN_HEIGHT * 0.55f) / weaponTex.height;
+
     float drawWidth = weaponTex.width * scale;
     float drawHeight = weaponTex.height * scale;
 
-    // --- NEW BOBBING MATH ---
-    // The X-axis uses cosine to swing left and right (Amplitude: 30 pixels)
-    float bobX = cos(player.weaponbobtimer) * 30.0f;
+    float bobX;
+    float bobY;
 
-    // The Y-axis uses absolute sine to simulate the heavy "bounce" of footsteps (Amplitude: 20 pixels)
-    // Using abs() ensures the weapon only bounces UP, never down through the floor
-    float bobY = abs(sin(player.weaponbobtimer)) * 20.0f;
+    bool walking =
+        IsKeyDown(KEY_W) ||
+        IsKeyDown(KEY_A) ||
+        IsKeyDown(KEY_S) ||
+        IsKeyDown(KEY_D);
 
-    // --- APPLY THE OFFSETS ---
-    // Start with your base left-handed position (-20.0f), then add the bob
-    float drawX = -20.0f + bobX;
+    if (walking)
+    {
+        bobX = cosf((float)GetTime() * 10.0f) * 18.0f;
+        bobY = fabsf(sinf((float)GetTime() * 10.0f)) * 16.0f;
+    }
+    else
+    {
+        bobX = 0.0f;
+        bobY = sinf((float)GetTime() * 2.0f) * 3.0f;
+    }
 
-    // Start with the bottom anchor, then push it DOWN based on the bounce
-    float drawY = Config::SCREEN_HEIGHT - drawHeight + bobY;
+    float drawX =
+        Config::SCREEN_WIDTH / 2.0f
+        - drawWidth / 2.0f
+        + bobX;
 
-    Rectangle sourceRec = { 0.0f, 0.0f, (float)weaponTex.width, (float)weaponTex.height };
-    Rectangle destRec = { drawX, drawY, drawWidth, drawHeight };
-    Vector2 origin = { 0.0f, 0.0f };
+    float drawY =
+        Config::SCREEN_HEIGHT
+        - drawHeight
+        + 100.0f
+        + bobY;
 
-    DrawTexturePro(weaponTex, sourceRec, destRec, origin, 0.0f, WHITE);
+    Rectangle src =
+    {
+        0.0f,
+        0.0f,
+        (float)weaponTex.width,
+        (float)weaponTex.height
+    };
+
+    Rectangle dst =
+    {
+        drawX,
+        drawY,
+        drawWidth,
+        drawHeight
+    };
+
+    DrawTexturePro(
+        weaponTex,
+        src,
+        dst,
+        { 0,0 },
+        0.0f,
+        WHITE);
 }

@@ -28,9 +28,12 @@ void Game::Initialize()
     DisableCursor();
     SetTargetFPS(Config::TARGET_FPS);
 
-    Image Spoon = LoadImage("../assets/textures/spoon.png");
-    ImageColorReplace(&Spoon, MAGENTA, BLANK);
-    player.spoonTex = LoadTextureFromImage(Spoon);
+    Image hand = LoadImage("../assets/textures/hand.png");
+    ImageColorReplace(&hand, MAGENTA, BLANK);
+
+    player.handTex = LoadTextureFromImage(hand);
+
+    UnloadImage(hand);
     //Enemies 
     enemies.clear();
     //Burger Boy
@@ -39,14 +42,13 @@ void Game::Initialize()
     BurgerBoy .position = { 5.5f,6.5f };
     //Uncle takla
     Enemy AngryUncle;
-    AngryUncle.spriteSheet = LoadTexture("C:/Users/Pccenter/Documents/BiryaniExpress/assets/textures/uncle.png");
+    AngryUncle.spriteSheet = LoadTexture("../assets/textures/uncle.png");
     AngryUncle.position = { 4.5f,5.5f };
     AngryUncle.moveSpeed = 0.7f;
 
     enemies.push_back(AngryUncle);
     enemies.push_back(BurgerBoy);
 
-    UnloadImage(Spoon);
     map.LoadMap("../assets/maps/test.txt");
 }
 

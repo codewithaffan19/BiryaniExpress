@@ -16,7 +16,7 @@ private:
 
     Vector2 cameraOffset = { 0,0 };
 
-    const float tileSize = 40.0f;
+    float tileSize = 40.0f;
 
     int currentTile = 1;
 
