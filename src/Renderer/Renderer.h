@@ -21,6 +21,8 @@ public:
         const std::vector<Enemy>& enemies,
         Player player);
     TextureManager textures;
+    Color* floorBuffer;
+    Texture2D floorTexture;
     void LoadTextures();
     void UnloadTextures();
 private:
@@ -36,5 +38,5 @@ private:
 
     void DrawSky();
 
-    void DrawFloor();
+    void DrawFloor(Vector2 PlayerPos, Vector2 PlayerDir,Vector2 CameraPlane);
 };

@@ -39,7 +39,7 @@ void Game::Initialize()
     BurgerBoy .position = { 5.5f,6.5f };
     //Uncle takla
     Enemy AngryUncle;
-    AngryUncle.spriteSheet = LoadTexture("/assets/textures/uncle.png");
+    AngryUncle.spriteSheet = LoadTexture("C:/Users/Pccenter/Documents/BiryaniExpress/assets/textures/uncle.png");
     AngryUncle.position = { 4.5f,5.5f };
     AngryUncle.moveSpeed = 0.7f;
 

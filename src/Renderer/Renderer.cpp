@@ -7,10 +7,18 @@ Renderer::Renderer()
 }
 
 
-
 void Renderer::LoadTextures()
 {
     textures.Load();
+    int totalframes = Config::SCREEN_HEIGHT * Config::SCREEN_WIDTH;
+    floorBuffer = new Color[totalframes];
+
+    for (int i = 0; i < totalframes; i++) {
+        floorBuffer[i] = BLANK;
+    }
+    Image blankImg = GenImageColor(Config::SCREEN_WIDTH, Config::SCREEN_HEIGHT, BLANK);
+    floorTexture = LoadTextureFromImage(blankImg);
+    UnloadImage(blankImg);
 }
 
 void Renderer::UnloadTextures()
@@ -28,14 +36,71 @@ void Renderer::DrawSky()
         SKYBLUE);
 }
 
-void Renderer::DrawFloor()
+void Renderer::DrawFloor(Vector2 playerPos, Vector2 playerDir, Vector2 cameraPlane)
 {
-    DrawRectangle(
-        0,
-        Config::SCREEN_HEIGHT / 2,
-        Config::SCREEN_WIDTH,
-        Config::SCREEN_HEIGHT / 2,
-        DARKGRAY);
+
+    if (textures.floorimg.width <= 0 || textures.floorimg.height <= 0)
+    {
+        return;
+    }
+    // We loop through the bottom half of the screen (from the center horizon to the bottom edge)
+    for (int y = Config::SCREEN_HEIGHT / 2 + 1; y < Config::SCREEN_HEIGHT; ++y)
+    {
+        // Calculate the ray directions for the leftmost (x=0) and rightmost (x=width) pixels of this specific row
+        float rayDirX0 = playerDir.x - cameraPlane.x;
+        float rayDirY0 = playerDir.y - cameraPlane.y;
+        float rayDirX1 = playerDir.x + cameraPlane.x;
+        float rayDirY1 = playerDir.y + cameraPlane.y;
+
+        // 'p' is the current Y position compared to the center of the screen (the horizon)
+        int p = y - Config::SCREEN_HEIGHT / 2;
+
+        // Vertical position of the camera (simulating the height of the player's eyes)
+        float posZ = 0.5f * Config::SCREEN_HEIGHT;
+
+        // Horizontal distance from the camera to the floor for this specific row
+        float rowDistance = posZ / p;
+
+        // Calculate the "Step Vector" (How much we move in the 2D map for every 1 pixel we move right on the screen)
+        float floorStepX = rowDistance * (rayDirX1 - rayDirX0) / Config::SCREEN_WIDTH;
+        float floorStepY = rowDistance * (rayDirY1 - rayDirY0) / Config::SCREEN_WIDTH;
+
+        // Real world coordinates of the leftmost pixel in this row. 
+        // We will add the Step Vector to this as we loop across the screen.
+        float floorX = playerPos.x + rowDistance * rayDirX0;
+        float floorY = playerPos.y + rowDistance * rayDirY0;
+
+        // Now, loop across every horizontal pixel in this specific row
+        for (int x = 0; x < Config::SCREEN_WIDTH; ++x)
+        {
+            // Calculate the exact grid cell the floor coordinate is in
+            int cellX = (int)(floorX);
+            int cellY = (int)(floorY);
+
+            // Get the exact texture coordinates based on the fractional part of the floor coordinates
+            // Note: Replace 'textures.floorImg.width' with your actual width if you aren't using the TextureManager dynamically here
+            int texWidth = textures.floorimg.width;
+            int texHeight = textures.floorimg.height;
+
+            // The bitwise AND (&) creates a perfect repeating/tiling effect!
+            int tx = (int)(texWidth * (floorX - cellX)) & (texWidth - 1);
+            int ty = (int)(texHeight * (floorY - cellY)) & (texHeight - 1);
+
+            // Move our real-world position over by one Step Vector for the next pixel
+            floorX += floorStepX;
+            floorY += floorStepY;
+
+            // 1. Get the exact pixel color from our CPU Image
+            Color color = GetImageColor(textures.floorimg, tx, ty);
+
+            int arrayIndex = y * Config::SCREEN_WIDTH + x;
+            floorBuffer[arrayIndex] = color;
+        }
+    }
+    UpdateTexture(floorTexture, floorBuffer);
+
+    // Draw the entire floor to the screen in a single command!
+    DrawTexture(floorTexture, 0, 0, WHITE);
 }
 
 
@@ -147,7 +212,7 @@ void Renderer::Draw(
     float Zbuffer[Config::SCREEN_WIDTH];
 
     DrawSky();
-    DrawFloor();
+    DrawFloor(playerPos,playerDir,cameraPlane);
 
     // ==========================================
     // PHASE 1: DRAW WALLS & LOG DISTANCES
