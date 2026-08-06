@@ -25,6 +25,11 @@ public:
     Texture2D floorTexture;
     void LoadTextures();
     void UnloadTextures();
+    void DrawDoor(
+        Vector2 playerPos,
+        Vector2 playerDir,
+        Vector2 cameraPlane,
+        float Zbuffer[]);
 private:
 
 
@@ -36,7 +41,7 @@ private:
         int tile,
         float wallX);
 
-    void DrawSky();
+    void DrawSky(Vector2 playerDir);
     void DrawSunAndClouds();
     void DrawFloor(Vector2 PlayerPos, Vector2 PlayerDir,Vector2 CameraPlane);
 };

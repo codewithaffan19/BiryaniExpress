@@ -26,21 +26,67 @@ void Renderer::UnloadTextures()
     textures.Unload();
 }
 
-void Renderer::DrawSky()
+void Renderer::DrawSky(Vector2 playerDir)
 {
-    DrawRectangleGradientV(
-        0,
-        0,
-        Config::SCREEN_WIDTH,
-        Config::SCREEN_HEIGHT / 2,
+    float angle = atan2f(playerDir.y, playerDir.x);
 
-        Color{ 255,180,80,255 },      // Golden horizon
-        Color{ 90,170,255,255 }       // Blue sky
+    float u =
+        (angle / (2.0f * PI) + 0.5f) *
+        textures.skyTex.width;
+
+    Rectangle src =
+    {
+        u,
+        0,
+        (float)Config::SCREEN_WIDTH,
+        (float)textures.skyTex.height
+    };
+
+    Rectangle dst =
+    {
+        0,
+        0,
+        (float)Config::SCREEN_WIDTH,
+        (float)(Config::SCREEN_HEIGHT / 2)
+    };
+
+    DrawTexturePro(
+        textures.skyTex,
+        src,
+        dst,
+        { 0,0 },
+        0,
+        WHITE
     );
 
-    DrawSunAndClouds();
-}
+    if (src.x + src.width > textures.skyTex.width)
+    {
+        Rectangle src2 =
+        {
+            0,
+            0,
+            src.x + src.width - textures.skyTex.width,
+            (float)textures.skyTex.height
+        };
 
+        Rectangle dst2 =
+        {
+            textures.skyTex.width - src.x,
+            0,
+            src2.width,
+            (float)(Config::SCREEN_HEIGHT / 2)
+        };
+
+        DrawTexturePro(
+            textures.skyTex,
+            src2,
+            dst2,
+            { 0,0 },
+            0,
+            WHITE
+        );
+    }
+}
 void Renderer::DrawSunAndClouds()
 {
     cloudOffset += GetFrameTime() * 15.0f;
@@ -196,21 +242,18 @@ void Renderer::DrawWallColumn(
     }
 
     // NEW TEXTURED WALL
-    if (tile >= 2 && tile <= 9)
+    if (tile >= 2 && tile <= 19)
     {
-        int texIndex = tile - 2;
 
-        Texture2D* tex = &textures.walls[texIndex];
+        Texture2D* tex = &textures.tiles[tile];
 
-        // Animated walls (wall3 -> wall8)
-        if (tile >= 4 && tile <= 9)
+        // Only shops have animation
+        if (tile >= 10)
         {
-            int animIndex = tile - 4;
-
             if (((int)(GetTime() * 2)) % 2 == 1)
             {
-                if (textures.wallAnim[animIndex].id != 0)
-                    tex = &textures.wallAnim[animIndex];
+                if (textures.tileAnim[tile].id != 0)
+                    tex = &textures.tileAnim[tile];
             }
         }
 
@@ -263,11 +306,18 @@ void Renderer::Draw(
     Map& map,
     const std::vector<Enemy>& enemies,
     Player player) {
+
+    
+    void DrawDoor(
+        Vector2 playerPos,
+        Vector2 playerDir,
+        Vector2 cameraPlane,
+        float Zbuffer[]);
     // INITIALIZE THE Z-BUFFER
     // This array will hold the distance of the wall for every pixel column
     float Zbuffer[Config::SCREEN_WIDTH];
 
-    DrawSky();
+    DrawSky(playerDir);
     DrawFloor(playerPos, playerDir, cameraPlane);
 
     // ==========================================
@@ -432,4 +482,112 @@ void Renderer::Draw(
         { 0,0 },
         0.0f,
         WHITE);
+}
+void Renderer::DrawDoor(
+    Vector2 playerPos,
+    Vector2 playerDir,
+    Vector2 cameraPlane,
+    float Zbuffer[])
+{
+    DrawCircle(100, 100, 20, RED);
+    Vector2 doorPos = { 2.5f, 2.5f };   // <-- Door position
+
+    float dist = sqrtf(
+        (doorPos.x - playerPos.x) * (doorPos.x - playerPos.x) +
+        (doorPos.y - playerPos.y) * (doorPos.y - playerPos.y));
+
+    int frame = 0;
+
+    if (dist < 4.0f)
+        frame = 1;
+
+    if (dist < 2.0f)
+        frame = 2;
+
+    Texture2D tex = textures.door[frame];
+
+    Vector2 sprite =
+    {
+        doorPos.x - playerPos.x,
+        doorPos.y - playerPos.y
+    };
+
+    float invDet =
+        1.0f /
+        (cameraPlane.x * playerDir.y
+            - cameraPlane.y * playerDir.x);
+
+    float transformX =
+        invDet *
+        (playerDir.y * sprite.x
+            - playerDir.x * sprite.y);
+
+    float transformY =
+        invDet *
+        (-cameraPlane.y * sprite.x
+            + cameraPlane.x * sprite.y);
+
+    if (transformY <= 0)
+        return;
+
+    int screenX =
+        (int)((Config::SCREEN_WIDTH / 2)
+            * (1 + transformX / transformY));
+
+    int height =
+        abs((int)(Config::SCREEN_HEIGHT / transformY));
+
+    int width = height;
+
+    int startY =
+        -height / 2
+        + Config::SCREEN_HEIGHT / 2;
+
+    int endY =
+        height / 2
+        + Config::SCREEN_HEIGHT / 2;
+
+    int startX =
+        -width / 2
+        + screenX;
+
+    int endX =
+        width / 2
+        + screenX;
+
+    for (int stripe = startX; stripe < endX; stripe++)
+    {
+        if (stripe < 0 || stripe >= Config::SCREEN_WIDTH)
+            continue;
+
+        if (transformY > Zbuffer[stripe])
+            continue;
+
+        int texX =
+            (stripe - startX) * tex.width / width;
+
+        Rectangle src =
+        {
+            (float)texX,
+            0,
+            1,
+            (float)tex.height
+        };
+
+        Rectangle dst =
+        {
+            (float)stripe,
+            (float)startY,
+            1,
+            (float)(endY - startY)
+        };
+
+        DrawTexturePro(
+            tex,
+            src,
+            dst,
+            { 0,0 },
+            0,
+            WHITE);
+    }
 }

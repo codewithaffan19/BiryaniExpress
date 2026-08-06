@@ -24,7 +24,7 @@ void Game::Initialize()
         "BiryaniExpress"
     );
     renderer.LoadTextures();
-
+    editor.SetTextureManager(&renderer.textures);
     DisableCursor();
     SetTargetFPS(Config::TARGET_FPS);
 

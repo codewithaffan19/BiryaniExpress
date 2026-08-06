@@ -9,6 +9,27 @@ Editor::Editor()
 void Editor::Update(Map& map)
 {
     Vector2 mouse = GetMousePosition();
+
+    int y = 55;
+
+    for (int i = 0; i < 20; i++)
+    {
+        Rectangle item =
+        {
+            10,
+            (float)y,
+            SIDEBAR_WIDTH - 20,
+            28
+        };
+
+        if (CheckCollisionPointRec(mouse, item) &&
+            IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
+        {
+            currentTile = i;
+        }
+
+        y += 32;
+    }
     // -------------------------
 // Mouse Wheel Zoom
 // -------------------------
@@ -54,26 +75,14 @@ void Editor::Update(Map& map)
     int col = (int)((mouse.x - SIDEBAR_WIDTH - cameraOffset.x) / tileSize);
     int row = (int)((mouse.y - cameraOffset.y) / tileSize);
 
-    //--------------------------------
-    // Select tile
-    //--------------------------------
 
-    if (IsKeyPressed(KEY_ZERO))  currentTile = 0;
-    if (IsKeyPressed(KEY_ONE))   currentTile = 1;
-    if (IsKeyPressed(KEY_TWO))   currentTile = 2;
-    if (IsKeyPressed(KEY_THREE)) currentTile = 3;
-    if (IsKeyPressed(KEY_FOUR))  currentTile = 4;
-    if (IsKeyPressed(KEY_FIVE))  currentTile = 5;
-    if (IsKeyPressed(KEY_SIX))   currentTile = 6;
-    if (IsKeyPressed(KEY_SEVEN)) currentTile = 7;
-    if (IsKeyPressed(KEY_EIGHT)) currentTile = 8;
-    if (IsKeyPressed(KEY_NINE))  currentTile = 9;
 
     //--------------------------------
     // Paint
     //--------------------------------
 
-    if (IsMouseButtonDown(MOUSE_BUTTON_LEFT))
+    if (mouse.x > SIDEBAR_WIDTH &&
+        IsMouseButtonDown(MOUSE_BUTTON_LEFT))
     {
         map.SetCell(row, col, currentTile);
     }
@@ -137,76 +146,53 @@ void Editor::Draw(Map& map)
         }
     }
 
-    DrawRectangle(
-        0,
-        0,
-        150,
-        GetScreenHeight(),
-        LIGHTGRAY);
+    DrawRectangle(0, 0, SIDEBAR_WIDTH, GetScreenHeight(), LIGHTGRAY);
+
+    DrawText("EDITOR", 20, 15, 24, BLACK);
+
+    int y = 55;
+
+    for (int i = 0; i < 20; i++)
+    {
+        Rectangle item =
+        {
+            10,
+            (float)y,
+            SIDEBAR_WIDTH - 20,
+            28
+        };
+
+        if (i == currentTile)
+            DrawRectangleRec(item, SKYBLUE);
+
+        DrawRectangleLinesEx(item, 1, BLACK);
+
+        DrawText(
+            TextFormat("[%d] %s",
+                i,
+                textures->tileNames[i].c_str()),
+            18,
+            y + 6,
+            18,
+            BLACK);
+
+        y += 32;
+    }
 
     DrawText(
-        "EDITOR",
-        20,
-        20,
-        25,
-        BLACK);
-
-    DrawRectangle(
-        20,
-        80,
-        25,
-        25,
-        WHITE);
-
-    DrawRectangleLines(
-        20,
-        80,
-        25,
-        25,
-        BLACK);
-
-    DrawText(
-        "0 Empty",
-        55,
-        84,
-        18,
-        BLACK);
-
-    DrawRectangle(
-        20,
-        120,
-        25,
-        25,
-        RED);
-
-    DrawRectangleLines(
-        20,
-        120,
-        25,
-        25,
-        BLACK);
-
-    DrawText(
-        "1 Wall",
-        55,
-        124,
-        18,
-        BLACK);
-
-    DrawText(
-        TextFormat("Current : %d", currentTile),
-        20,
-        180,
+        TextFormat("Current : %s",
+            textures->tileNames[currentTile].c_str()),
+        10,
+        GetScreenHeight() - 60,
         20,
         RED);
 
     DrawText(
         "S = Save",
-        20,
-        220,
-        20,
+        10,
+        GetScreenHeight() - 30,
+        18,
         BLACK);
-
 }
 
 void Editor::SaveShortcut(Map& map)
