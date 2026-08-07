@@ -482,6 +482,9 @@ void Renderer::Draw(
         { 0,0 },
         0.0f,
         WHITE);
+    if (player.hitmessagetimer > 0) {
+        DrawText("BAM! UNCLE HIT!", GetScreenWidth() / 2 - 150, GetScreenHeight() / 2 + 100, 40, GREEN);
+    }
 }
 void Renderer::DrawDoor(
     Vector2 playerPos,
@@ -590,4 +593,5 @@ void Renderer::DrawDoor(
             0,
             WHITE);
     }
+    
 }

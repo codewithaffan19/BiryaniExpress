@@ -14,6 +14,7 @@ Player::Player()
     radius = 0.25f;
     Inventory.push_back(WEAPON_SPOON);
     currentWeaponIndex = 0;
+    hitmessagetimer = 0;
 }
 WeaponType Player::ActivateWeapon()const {
     if (Inventory.empty())
@@ -136,6 +137,8 @@ void Player::Update(
     {
         position.y = newPos.y;
     }
+    if (hitmessagetimer > 0)
+        hitmessagetimer--;
 }
 
 

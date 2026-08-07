@@ -31,6 +31,7 @@ public:
     Vector2 position;
     std::vector<WeaponType>Inventory;
     int currentWeaponIndex;
+    int hitmessagetimer;
     Texture2D handTex;
 private:
     Vector2 direction;
