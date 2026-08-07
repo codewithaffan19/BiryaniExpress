@@ -32,6 +32,7 @@ public:
     std::vector<WeaponType>Inventory;
     int currentWeaponIndex;
     Texture2D handTex;
+    Vector2 GetPosition() const;
 private:
     Vector2 direction;
     Vector2 cameraPlane;

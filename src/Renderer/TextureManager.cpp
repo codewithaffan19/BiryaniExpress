@@ -81,6 +81,16 @@ void TextureManager::Load()
     tileNames[19] = "SlimeLite";
 
     //==========================
+    // Door
+    //==========================
+
+    tiles[20] = LoadTexture("../assets/textures/door_idle.png");
+    tileNames[20] = "EntranceDoor";
+
+    tiles[21] = LoadTexture("../assets/textures/door_idle.png");
+    tileNames[21] = "ExitDoor";
+
+    //==========================
     // Animation Frames
     //==========================
 
@@ -91,6 +101,8 @@ void TextureManager::Load()
     tileAnim[14] = LoadTexture("../assets/textures/wall8_anim.png");
     tileAnim[18] = LoadTexture("../assets/textures/AMW_anim.png");
     tileAnim[19] = LoadTexture("../assets/textures/SlimeLite_anim.png");
+    tileAnim[20] = LoadTexture("../assets/textures/door_stop.png");
+    tileAnim[21] = LoadTexture("../assets/textures/door_stop.png");
 
     //==========================
     // Floor
@@ -104,15 +116,6 @@ void TextureManager::Load()
 
     skyTex = LoadTexture("../assets/textures/sky.png");
     SetTextureFilter(skyTex, TEXTURE_FILTER_BILINEAR);
-    //==========================
-    // Door
-    //==========================
-    door[0] = LoadTexture("../assets/textures/door.png");
-    door[1] = LoadTexture("../assets/textures/door2.png");
-    door[2] = LoadTexture("../assets/textures/door3.png");
-
-    for (int i = 0; i < 3; i++)
-        SetTextureFilter(door[i], TEXTURE_FILTER_BILINEAR);
 }
 void TextureManager::Unload()
 {
@@ -142,9 +145,5 @@ void TextureManager::Unload()
 
     if (skyTex.id != 0)
         UnloadTexture(skyTex);
-    for (int i = 0; i < 3; i++)
-    {
-        if (door[i].id != 0)
-            UnloadTexture(door[i]);
-    }
+
 }

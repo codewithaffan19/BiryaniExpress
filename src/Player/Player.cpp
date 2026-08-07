@@ -148,3 +148,7 @@ Vector2 Player::GetCameraPlane() const
 {
     return cameraPlane;
 }
+Vector2 Player::GetPosition() const
+{
+    return position;
+}

@@ -87,57 +87,6 @@ void Renderer::DrawSky(Vector2 playerDir)
         );
     }
 }
-void Renderer::DrawSunAndClouds()
-{
-    cloudOffset += GetFrameTime() * 15.0f;
-
-    if (cloudOffset > Config::SCREEN_WIDTH + 400)
-        cloudOffset = -400;
-    //--------------------------
-    // SUN
-    //--------------------------
-    float c1 = 220 + cloudOffset;
-    float c2 = 700 + cloudOffset * 0.6f;
-    float c3 = 1000 + cloudOffset * 0.3f;
-    DrawCircle(
-        Config::SCREEN_WIDTH - 180,
-        90,
-        55,
-        Color{ 255,240,120,255 });
-
-    DrawCircle(
-        Config::SCREEN_WIDTH - 180,
-        90,
-        45,
-        YELLOW);
-
-    //--------------------------
-    // CLOUD 1
-    //--------------------------
-
-    DrawCircle(c1, 100, 30, WHITE);
-    DrawCircle(c1 + 30, 90, 35, WHITE);
-    DrawCircle(c1 + 70, 100, 30, WHITE);
-    DrawRectangle(c1, 100, 70, 25, WHITE);
-
-    //--------------------------
-    // CLOUD 2
-    //--------------------------
-
-    DrawCircle(c2, 100, 30, WHITE);
-    DrawCircle(c2 + 30, 90, 35, WHITE);
-    DrawCircle(c2 + 70, 100, 30, WHITE);
-    DrawRectangle(c2, 100, 70, 25, WHITE);
-
-    //--------------------------
-    // CLOUD 3
-    //--------------------------
-
-    DrawCircle(c3, 100, 30, WHITE);
-    DrawCircle(c3 + 30, 90, 35, WHITE);
-    DrawCircle(c3 + 70, 100, 30, WHITE);
-    DrawRectangle(c3, 100, 70, 25, WHITE);
-}
 
 void Renderer::DrawFloor(Vector2 playerPos, Vector2 playerDir, Vector2 cameraPlane)
 {
@@ -242,13 +191,22 @@ void Renderer::DrawWallColumn(
     }
 
     // NEW TEXTURED WALL
-    if (tile >= 2 && tile <= 19)
+    if (tile >= 2 && tile <= 21)
     {
 
         Texture2D* tex = &textures.tiles[tile];
-
+        // Door uses idle/stop image depending on distance
+        if (tile == 20 || tile == 21)
+        {
+            // Approximate player distance from wall
+            if (distance < 1.5f)
+            {
+                if (textures.tileAnim[tile].id != 0)
+                    tex = &textures.tileAnim[tile];
+            }
+        }
         // Only shops have animation
-        if (tile >= 10)
+        if (tile >= 10 && tile<=19)
         {
             if (((int)(GetTime() * 2)) % 2 == 1)
             {
@@ -307,14 +265,9 @@ void Renderer::Draw(
     const std::vector<Enemy>& enemies,
     Player player) {
 
-    
-    void DrawDoor(
-        Vector2 playerPos,
-        Vector2 playerDir,
-        Vector2 cameraPlane,
-        float Zbuffer[]);
     // INITIALIZE THE Z-BUFFER
     // This array will hold the distance of the wall for every pixel column
+
     float Zbuffer[Config::SCREEN_WIDTH];
 
     DrawSky(playerDir);
@@ -352,7 +305,6 @@ void Renderer::Draw(
         // 3. LOG THE WALL DISTANCE INTO THE Z-BUFFER
         Zbuffer[x] = hit.distance;
     }
-
     // PHASE 2: DRAW ENEMIES
     for (size_t i = 0; i < enemies.size(); i++)
     {
@@ -482,34 +434,31 @@ void Renderer::Draw(
         { 0,0 },
         0.0f,
         WHITE);
+    DrawDoorMarker(
+        playerPos,
+        playerDir,
+        cameraPlane,
+        Zbuffer,
+        { 9.5f, 2.5f });
+
+    DrawDoorMarker(
+        playerPos,
+        playerDir,
+        cameraPlane,
+        Zbuffer,
+        { 24.5f, 23.5f });
 }
-void Renderer::DrawDoor(
+void Renderer::DrawDoorMarker(
     Vector2 playerPos,
     Vector2 playerDir,
     Vector2 cameraPlane,
-    float Zbuffer[])
+    float Zbuffer[],
+    Vector2 markerPos)
 {
-    DrawCircle(100, 100, 20, RED);
-    Vector2 doorPos = { 2.5f, 2.5f };   // <-- Door position
-
-    float dist = sqrtf(
-        (doorPos.x - playerPos.x) * (doorPos.x - playerPos.x) +
-        (doorPos.y - playerPos.y) * (doorPos.y - playerPos.y));
-
-    int frame = 0;
-
-    if (dist < 4.0f)
-        frame = 1;
-
-    if (dist < 2.0f)
-        frame = 2;
-
-    Texture2D tex = textures.door[frame];
-
     Vector2 sprite =
     {
-        doorPos.x - playerPos.x,
-        doorPos.y - playerPos.y
+        markerPos.x - playerPos.x,
+        markerPos.y - playerPos.y
     };
 
     float invDet =
@@ -534,60 +483,86 @@ void Renderer::DrawDoor(
         (int)((Config::SCREEN_WIDTH / 2)
             * (1 + transformX / transformY));
 
-    int height =
-        abs((int)(Config::SCREEN_HEIGHT / transformY));
+    float bob =
+        sinf(GetTime() * 3.0f) * 8.0f;
 
-    int width = height;
+    int markerHeight =
+        abs((int)(120 / transformY));
 
-    int startY =
-        -height / 2
-        + Config::SCREEN_HEIGHT / 2;
+    int markerWidth = markerHeight;
 
-    int endY =
-        height / 2
-        + Config::SCREEN_HEIGHT / 2;
+    int drawY =
+        Config::SCREEN_HEIGHT / 2
+        - (int)(150 / transformY)
+        + (int)bob;
 
-    int startX =
-        -width / 2
-        + screenX;
+    Color color =
+        (((int)(GetTime() * 4)) % 2 == 0)
+        ? YELLOW
+        : GOLD;
 
-    int endX =
-        width / 2
-        + screenX;
-
-    for (int stripe = startX; stripe < endX; stripe++)
+    DrawTriangle(
+        {
+            (float)screenX,
+            (float)drawY
+        },
+        {
+            (float)(screenX - markerWidth / 2),
+            (float)(drawY - markerHeight)
+        },
+        {
+            (float)(screenX + markerWidth / 2),
+            (float)(drawY - markerHeight)
+        },
+        color);
+}
+void Renderer::StartFadeIn()
+{
+    fadingIn = true;
+    fadingOut = false;
+}
+bool Renderer::IsFadeFinished() const
+{
+    return fadeAlpha >= 255;
+}
+void Renderer::UpdateFade(float dt)
+{
+    if (fadingIn)
     {
-        if (stripe < 0 || stripe >= Config::SCREEN_WIDTH)
-            continue;
+        fadeAlpha += 350 * dt;
 
-        if (transformY > Zbuffer[stripe])
-            continue;
-
-        int texX =
-            (stripe - startX) * tex.width / width;
-
-        Rectangle src =
+        if (fadeAlpha >= 255)
         {
-            (float)texX,
-            0,
-            1,
-            (float)tex.height
-        };
-
-        Rectangle dst =
-        {
-            (float)stripe,
-            (float)startY,
-            1,
-            (float)(endY - startY)
-        };
-
-        DrawTexturePro(
-            tex,
-            src,
-            dst,
-            { 0,0 },
-            0,
-            WHITE);
+            fadeAlpha = 255;
+            fadingIn = false;
+        }
     }
+
+    if (fadingOut)
+    {
+        fadeAlpha -= 350 * dt;
+
+        if (fadeAlpha <= 0)
+        {
+            fadeAlpha = 0;
+            fadingOut = false;
+        }
+    }
+}
+void Renderer::DrawFade()
+{
+    if (fadeAlpha <= 0)
+        return;
+
+    DrawRectangle(
+        0,
+        0,
+        Config::SCREEN_WIDTH,
+        Config::SCREEN_HEIGHT,
+        Fade(BLACK, fadeAlpha / 255.0f));
+}
+void Renderer::StartFadeOut()
+{
+    fadingOut = true;
+    fadingIn = false;
 }
