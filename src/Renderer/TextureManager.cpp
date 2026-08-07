@@ -20,7 +20,7 @@ void TextureManager::Load()
 
         // ---------- Normal frame ----------
         std::string path =
-            "../assets/textures/wall" +
+            "../../assets/textures/wall" +
             std::to_string(i) +
             ".png";
 
@@ -33,7 +33,7 @@ void TextureManager::Load()
 
         // ---------- Animation frame ----------
         std::string animPath =
-            "../assets/textures/wall" +
+            "../../assets/textures/wall" +
             std::to_string(i) +
             "_anim.png";
 
@@ -50,34 +50,34 @@ void TextureManager::Load()
     // Shops
     //==========================
 
-    tiles[10] = LoadTexture("../assets/textures/6.3cafe.png");
+    tiles[10] = LoadTexture("../../assets/textures/6.3cafe.png");
     tileNames[10] = "Cafe";
 
-    tiles[11] = LoadTexture("../assets/textures/AFC.png");
+    tiles[11] = LoadTexture("../../assets/textures/AFC.png");
     tileNames[11] = "AFC";
 
-    tiles[12] = LoadTexture("../assets/textures/drumble.png");
+    tiles[12] = LoadTexture("../../assets/textures/drumble.png");
     tileNames[12] = "Drumble";
 
-    tiles[13] = LoadTexture("../assets/textures/CHIPS.png");
+    tiles[13] = LoadTexture("../../assets/textures/CHIPS.png");
     tileNames[13] = "CHIPS";
 
-    tiles[14] = LoadTexture("../assets/textures/wall8.png");
+    tiles[14] = LoadTexture("../../assets/textures/wall8.png");
     tileNames[14] = "Butcher";
 
-    tiles[15] = LoadTexture("../assets/textures/marketwall1.png");
+    tiles[15] = LoadTexture("../../assets/textures/marketwall1.png");
     tileNames[15] = "MarketWall1";
 
-    tiles[16] = LoadTexture("../assets/textures/marketwall2.png");
+    tiles[16] = LoadTexture("../../assets/textures/marketwall2.png");
     tileNames[16] = "MarketWall2";
 
-    tiles[17] = LoadTexture("../assets/textures/marketwall3.png");
+    tiles[17] = LoadTexture("../../assets/textures/marketwall3.png");
     tileNames[17] = "MarketWall3";
 
-    tiles[18] = LoadTexture("../assets/textures/AMW.png");
+    tiles[18] = LoadTexture("../../assets/textures/AMW.png");
     tileNames[18] = "AMW";
 
-    tiles[19] = LoadTexture("../assets/textures/SlimeLite.png");
+    tiles[19] = LoadTexture("../../assets/textures/SlimeLite.png");
     tileNames[19] = "SlimeLite";
 
     //==========================
@@ -94,6 +94,7 @@ void TextureManager::Load()
     // Animation Frames
     //==========================
 
+<<<<<<< HEAD
     tileAnim[10] = LoadTexture("../assets/textures/6.3cafe_anim.png");
     tileAnim[11] = LoadTexture("../assets/textures/AFC_anim.png");
     tileAnim[12] = LoadTexture("../assets/textures/drumble_anim.png");
@@ -103,19 +104,40 @@ void TextureManager::Load()
     tileAnim[19] = LoadTexture("../assets/textures/SlimeLite_anim.png");
     tileAnim[20] = LoadTexture("../assets/textures/door_stop.png");
     tileAnim[21] = LoadTexture("../assets/textures/door_stop.png");
+=======
+    tileAnim[10] = LoadTexture("../../assets/textures/6.3cafe_anim.png");
+    tileAnim[11] = LoadTexture("../../assets/textures/AFC_anim.png");
+    tileAnim[12] = LoadTexture("../../assets/textures/drumble_anim.png");
+    tileAnim[13] = LoadTexture("../../assets/textures/CHIPS_anim.png");
+    tileAnim[14] = LoadTexture("../../assets/textures/wall8_anim.png");
+    tileAnim[18] = LoadTexture("../../assets/textures/AMW_anim.png");
+    tileAnim[19] = LoadTexture("../../assets/textures/SlimeLite_anim.png");
+>>>>>>> 5cbc5611331ec0ecf0f9e96df0355fe07f4aa72d
 
     //==========================
     // Floor
     //==========================
 
-    floorimg = LoadImage("../assets/textures/floor.png");
+    floorimg = LoadImage("../../assets/textures/floor.png");
 
     //==========================
     // Sky
     //==========================
 
-    skyTex = LoadTexture("../assets/textures/sky.png");
+    skyTex = LoadTexture("../../assets/textures/sky.png");
     SetTextureFilter(skyTex, TEXTURE_FILTER_BILINEAR);
+<<<<<<< HEAD
+=======
+    //==========================
+    // Door
+    //==========================
+    door[0] = LoadTexture("../../assets/textures/door.png");
+    door[1] = LoadTexture("../../assets/textures/door2.png");
+    door[2] = LoadTexture("../../assets/textures/door3.png");
+
+    for (int i = 0; i < 3; i++)
+        SetTextureFilter(door[i], TEXTURE_FILTER_BILINEAR);
+>>>>>>> 5cbc5611331ec0ecf0f9e96df0355fe07f4aa72d
 }
 void TextureManager::Unload()
 {
