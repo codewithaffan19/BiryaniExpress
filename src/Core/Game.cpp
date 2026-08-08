@@ -51,6 +51,39 @@ void Game::Initialize()
     enemies.push_back(BurgerBoy);
 
     map.LoadMap("../assets/maps/test.txt");
+
+    NPC afc;
+    afc.Load(
+        "AFC Waiter",
+        "../assets/textures/AFC_waiter.png",
+        { 13.5f, 1.5f }
+    );
+
+    NPC mike;
+    mike.Load(
+        "MIKE Waiter",
+        "../assets/textures/MIKE_waiter.png",
+        { 13.5f, 3.5f }
+    );
+
+    NPC clinex;
+    clinex.Load(
+        "CLINEX Waiter",
+        "../assets/textures/CLINEX_waiter.png",
+        { 18.5f, 3.5f }
+    );
+
+    NPC drumble;
+    drumble.Load(
+        "DRUMBLE Waiter",
+        "../assets/textures/DRUMBLE_waiter.png",
+        { 17.5f, 1.5f }
+    );
+
+    npcs.push_back(afc);
+    npcs.push_back(mike);
+    npcs.push_back(clinex);
+    npcs.push_back(drumble);
 }
 
 void Game::Update()
@@ -81,7 +114,17 @@ void Game::Update()
         }
 
     }
+
+    // ==========================================
+// UPDATE NPCs
+// ==========================================
+
     Vector2 playerPos = player.GetPosition();
+
+    for (NPC& npc : npcs)
+    {
+        npc.Update(playerPos);
+    }
 
     Vector2 targetDoor =
         insideMarket ? insideDoor : outsideDoor;
@@ -107,48 +150,82 @@ void Game::Draw()
 
     ClearBackground(RAYWHITE);
 
+    // ==========================================
+    // EDITOR
+    // ==========================================
+
     if (editorMode)
     {
         editor.Draw(map);
     }
     else
     {
+        // ==========================================
+        // PLAYER CAMERA DATA
+        // ==========================================
+
+        Vector2 playerPos =
+            player.GetPosition();
+
+        Vector2 playerDir =
+            player.GetDirection();
+
+        Vector2 cameraPlane =
+            player.GetCameraPlane();
+
+        // ==========================================
+        // 3D WORLD
+        // ==========================================
+
         renderer.Draw(
-            player.position,
-            player.GetDirection(),
-            player.GetCameraPlane(),
+            playerPos,
+            playerDir,
+            cameraPlane,
             map,
             enemies,
+            npcs,
             player,
             insideMarket
         );
+
+        // ==========================================
+        // DOOR INTERACTION TEXT
+        // ==========================================
+
+        float distOutside =
+            Vector2Distance(
+                playerPos,
+                outsideDoor
+            );
+
+        float distInside =
+            Vector2Distance(
+                playerPos,
+                insideDoor
+            );
+
+        if (distOutside < 1.2f ||
+            distInside < 1.2f)
+        {
+            DrawText(
+                insideMarket
+                ? "Press E to Exit"
+                : "Press E to Enter",
+
+                Config::SCREEN_WIDTH / 2 - 120,
+                Config::SCREEN_HEIGHT - 80,
+                24,
+                YELLOW
+            );
+        }
     }
-    Vector2 playerPos = player.GetPosition();
 
-    Vector2 targetDoor =
-        insideMarket ? insideDoor : outsideDoor;
+    // ==========================================
+    // FADE
+    // ==========================================
 
-    float distOutside =
-        Vector2Distance(playerPos, outsideDoor);
-
-    float distInside =
-        Vector2Distance(playerPos, insideDoor);
-
-    if (distOutside < 1.2f || distInside < 1.2f)
-    {
-        DrawText(
-            insideMarket ?
-            "Press E to Exit"
-            :
-            "Press E to Enter",
-
-            Config::SCREEN_WIDTH / 2 - 120,
-            Config::SCREEN_HEIGHT - 80,
-            24,
-            YELLOW
-        );
-    }
     renderer.UpdateFade(GetFrameTime());
+
     if (teleportPending &&
         renderer.IsFadeFinished())
     {
@@ -165,16 +242,15 @@ void Game::Draw()
 
         insideMarket = !insideMarket;
 
-        // start fade out
         renderer.StartFadeOut();
     }
+
     renderer.DrawFade();
 
     DrawFPS(20, 20);
 
     EndDrawing();
 }
-
 
 void Game::Shutdown()
 {

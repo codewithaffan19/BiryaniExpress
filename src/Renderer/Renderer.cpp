@@ -392,37 +392,49 @@ void Renderer::Draw(
     Vector2 cameraPlane,
     Map& map,
     const std::vector<Enemy>& enemies,
+    const std::vector<NPC>& npcs,
     Player player,
-    bool insideMarket) {
-
-    // INITIALIZE THE Z-BUFFER
-    // This array will hold the distance of the wall for every pixel column
+    bool insideMarket)
+{
+    // ==========================================
+    // Z-BUFFER
+    // ==========================================
 
     float Zbuffer[Config::SCREEN_WIDTH];
+
+    // ==========================================
+    // SKY / ROOF + FLOOR
+    // ==========================================
 
     if (insideMarket)
     {
         DrawMarketRoof(playerDir);
+
         DrawMarketFloor(
             playerPos,
             playerDir,
-            cameraPlane);
+            cameraPlane
+        );
     }
     else
     {
         DrawSky(playerDir);
+
         DrawStreetFloor(
             playerPos,
             playerDir,
-            cameraPlane);
+            cameraPlane
+        );
     }
 
     // ==========================================
-    // PHASE 1: DRAW WALLS & LOG DISTANCES
+    // PHASE 1: WALLS
     // ==========================================
+
     for (int x = 0; x < Config::SCREEN_WIDTH; x++)
     {
-        float cameraX = 2.0f * x / (float)Config::SCREEN_WIDTH - 1.0f;
+        float cameraX =
+            2.0f * x / (float)Config::SCREEN_WIDTH - 1.0f;
 
         Vector2 rayDir =
         {
@@ -437,7 +449,8 @@ void Renderer::Draw(
                 playerPos,
                 rayDir,
                 map,
-                side);
+                side
+            );
 
         DrawWallColumn(
             x,
@@ -446,154 +459,267 @@ void Renderer::Draw(
             hit.tile,
             hit.wallX,
             rayDir.x,
-            rayDir.y);
+            rayDir.y
+        );
 
-        // 3. LOG THE WALL DISTANCE INTO THE Z-BUFFER
         Zbuffer[x] = hit.distance;
     }
 
-    // PHASE 2: DRAW ENEMIES
+    // ==========================================
+    // PHASE 2: ENEMIES
+    // ==========================================
+
     for (size_t i = 0; i < enemies.size(); i++)
     {
-        // Calculate sprite position relative to the player
-        Vector2 sprite = { enemies[i].position.x - playerPos.x, enemies[i].position.y - playerPos.y };
-
-        // Camera Matrix Math (Translates 2D coordinates into 3D camera depth)
-        float invDet = 1.0f / (cameraPlane.x * playerDir.y - cameraPlane.y * playerDir.x);
-        float transformX = invDet * (playerDir.y * sprite.x - playerDir.x * sprite.y);
-        float transformY = invDet * (-cameraPlane.y * sprite.x + cameraPlane.x * sprite.y); // transformY is the depth!
-
-        // Only process the enemy if they are IN FRONT of the camera
-        if (transformY > 0)
+        Vector2 sprite =
         {
-            int spriteScreenX = int((Config::SCREEN_WIDTH / 2) * (1 + (transformX / transformY)));
-            int spriteHeight = abs(int(Config::SCREEN_HEIGHT / transformY));
-            int spriteWidth = spriteHeight; // Assuming square sprites
+            enemies[i].position.x - playerPos.x,
+            enemies[i].position.y - playerPos.y
+        };
 
-            // Calculate vertical drawing boundaries
-            int drawStartY = -(spriteHeight / 2) + (Config::SCREEN_HEIGHT / 2);
-            if (drawStartY < 0) drawStartY = 0;
+        float invDet =
+            1.0f /
+            (cameraPlane.x * playerDir.y -
+                cameraPlane.y * playerDir.x);
 
-            int drawEndY = (spriteHeight / 2) + (Config::SCREEN_HEIGHT / 2);
-            if (drawEndY >= Config::SCREEN_HEIGHT) drawEndY = Config::SCREEN_HEIGHT - 1;
+        float transformX =
+            invDet *
+            (playerDir.y * sprite.x -
+                playerDir.x * sprite.y);
 
-            // Calculate horizontal drawing boundaries
-            int drawStartX = -(spriteWidth / 2) + spriteScreenX;
-            if (drawStartX < 0) drawStartX = 0;
+        float transformY =
+            invDet *
+            (-cameraPlane.y * sprite.x +
+                cameraPlane.x * sprite.y);
 
-            int drawEndX = (spriteWidth / 2) + spriteScreenX;
-            if (drawEndX >= Config::SCREEN_WIDTH) drawEndX = Config::SCREEN_WIDTH - 1;
+        // Enemy behind player
+        if (transformY <= 0)
+            continue;
 
+        int spriteScreenX =
+            (int)(
+                (Config::SCREEN_WIDTH / 2) *
+                (1 + transformX / transformY)
+                );
 
-            float frameWidth = (float)enemies[i].spriteSheet.width / enemies[i].totalframes;
-            float frameHeight = (float)enemies[i].spriteSheet.height;
+        int spriteHeight =
+            abs((int)(
+                Config::SCREEN_HEIGHT / transformY
+                ));
 
-            // 2. Calculate where this specific frame starts on the X axis of the image
-            float frameOffsetX = enemies[i].currentframe * frameWidth;
+        int spriteWidth = spriteHeight;
 
-            // Draw the enemy vertical stripe by vertical stripe
-            for (int stripe = drawStartX; stripe < drawEndX; stripe++)
+        // Vertical boundaries
+        int drawStartY =
+            -(spriteHeight / 2) +
+            Config::SCREEN_HEIGHT / 2;
+
+        if (drawStartY < 0)
+            drawStartY = 0;
+
+        int drawEndY =
+            (spriteHeight / 2) +
+            Config::SCREEN_HEIGHT / 2;
+
+        if (drawEndY >= Config::SCREEN_HEIGHT)
+            drawEndY = Config::SCREEN_HEIGHT - 1;
+
+        // Horizontal boundaries
+        int drawStartX =
+            -(spriteWidth / 2) +
+            spriteScreenX;
+
+        if (drawStartX < 0)
+            drawStartX = 0;
+
+        int drawEndX =
+            (spriteWidth / 2) +
+            spriteScreenX;
+
+        if (drawEndX >= Config::SCREEN_WIDTH)
+            drawEndX = Config::SCREEN_WIDTH - 1;
+
+        float frameWidth =
+            (float)enemies[i].spriteSheet.width /
+            enemies[i].totalframes;
+
+        float frameHeight =
+            (float)enemies[i].spriteSheet.height;
+
+        float frameOffsetX =
+            enemies[i].currentframe * frameWidth;
+
+        for (int stripe = drawStartX;
+            stripe < drawEndX;
+            stripe++)
+        {
+            if (stripe >= 0 &&
+                stripe < Config::SCREEN_WIDTH &&
+                transformY < Zbuffer[stripe])
             {
-                // 4. THE Z-BUFFER CHECK
-                // Only draw this vertical slice IF it is closer than the wall (Zbuffer[stripe])
-                if (stripe > 0 && stripe < Config::SCREEN_WIDTH && transformY < Zbuffer[stripe])
+                int trueStartX =
+                    -(spriteWidth / 2) +
+                    spriteScreenX;
+
+                int texX =
+                    (int)(
+                        (stripe - trueStartX) *
+                        frameWidth /
+                        spriteWidth
+                        );
+
+                if (texX < 0)
+                    texX = 0;
+
+                if (texX >= (int)frameWidth)
+                    texX = (int)frameWidth - 1;
+
+                Rectangle sourceRec =
                 {
-                    int trueStartX = -(spriteWidth / 2) + spriteScreenX;
+                    frameOffsetX + (float)texX,
+                    0.0f,
+                    1.0f,
+                    frameHeight
+                };
 
-                    // Calculate which pixel of the current FRAME we are drawing
-                    int texX = int((stripe - trueStartX) * frameWidth / spriteWidth);
+                Rectangle destRec =
+                {
+                    (float)stripe,
+                    (float)drawStartY,
+                    1.0f,
+                    (float)spriteHeight
+                };
 
-                    // Clamp to prevent pulling pixels outside the frame bounds
-                    if (texX < 0) texX = 0;
-                    if (texX >= frameWidth) texX = frameWidth - 1;
-
-                    // 3. Define the Source Rectangle (The 1-pixel wide slice of the image)
-                    // Notice how we add `frameOffsetX` to `texX` to shift our window to the correct animation frame!
-                    Rectangle sourceRec = { frameOffsetX + (float)texX, 0.0f, 1.0f, frameHeight };
-
-                    Rectangle destRec = { (float)stripe, (float)drawStartY, 1.0f, (float)spriteHeight };
-                    Vector2 origin = { 0.0f, 0.0f };
-
-                    // 4. Draw the animated slice (Replacing the GREEN line)
-                    DrawTexturePro(enemies[i].spriteSheet, sourceRec, destRec, origin, 0.0f, WHITE);
-                }
+                DrawTexturePro(
+                    enemies[i].spriteSheet,
+                    sourceRec,
+                    destRec,
+                    { 0, 0 },
+                    0.0f,
+                    WHITE
+                );
             }
         }
     }
+
+    // ==========================================
+    // PHASE 3: NPCs
+    // ==========================================
+
+    for (const NPC& npc : npcs)
+    {
+        npc.Draw(
+            playerPos,
+            playerDir,
+            cameraPlane,
+            Zbuffer,
+            Config::SCREEN_WIDTH,
+            Config::SCREEN_HEIGHT
+        );
+    }
+
+    // ==========================================
+    // PHASE 4: PLAYER HAND
+    // ==========================================
+
     Texture2D& weaponTex = player.handTex;
 
-    float scale = (Config::SCREEN_HEIGHT * 0.55f) / weaponTex.height;
-
-    float drawWidth = weaponTex.width * scale;
-    float drawHeight = weaponTex.height * scale;
-
-    float bobX;
-    float bobY;
-
-    bool walking =
-        IsKeyDown(KEY_W) ||
-        IsKeyDown(KEY_A) ||
-        IsKeyDown(KEY_S) ||
-        IsKeyDown(KEY_D);
-
-    if (walking)
+    if (weaponTex.id != 0)
     {
-        bobX = cosf((float)GetTime() * 10.0f) * 18.0f;
-        bobY = fabsf(sinf((float)GetTime() * 10.0f)) * 16.0f;
+        float scale =
+            (Config::SCREEN_HEIGHT * 0.55f) /
+            weaponTex.height;
+
+        float drawWidth =
+            weaponTex.width * scale;
+
+        float drawHeight =
+            weaponTex.height * scale;
+
+        float bobX;
+        float bobY;
+
+        bool walking =
+            IsKeyDown(KEY_W) ||
+            IsKeyDown(KEY_A) ||
+            IsKeyDown(KEY_S) ||
+            IsKeyDown(KEY_D);
+
+        if (walking)
+        {
+            bobX =
+                cosf((float)GetTime() * 10.0f) *
+                18.0f;
+
+            bobY =
+                fabsf(sinf((float)GetTime() * 10.0f)) *
+                16.0f;
+        }
+        else
+        {
+            bobX = 0.0f;
+
+            bobY =
+                sinf((float)GetTime() * 2.0f) *
+                3.0f;
+        }
+
+        float drawX =
+            Config::SCREEN_WIDTH / 2.0f -
+            drawWidth / 2.0f +
+            bobX;
+
+        float drawY =
+            Config::SCREEN_HEIGHT -
+            drawHeight +
+            100.0f +
+            bobY;
+
+        Rectangle src =
+        {
+            0.0f,
+            0.0f,
+            (float)weaponTex.width,
+            (float)weaponTex.height
+        };
+
+        Rectangle dst =
+        {
+            drawX,
+            drawY,
+            drawWidth,
+            drawHeight
+        };
+
+        DrawTexturePro(
+            weaponTex,
+            src,
+            dst,
+            { 0, 0 },
+            0.0f,
+            WHITE
+        );
     }
-    else
-    {
-        bobX = 0.0f;
-        bobY = sinf((float)GetTime() * 2.0f) * 3.0f;
-    }
 
-    float drawX =
-        Config::SCREEN_WIDTH / 2.0f
-        - drawWidth / 2.0f
-        + bobX;
+    // ==========================================
+    // DOOR MARKERS
+    // ==========================================
 
-    float drawY =
-        Config::SCREEN_HEIGHT
-        - drawHeight
-        + 100.0f
-        + bobY;
-
-    Rectangle src =
-    {
-        0.0f,
-        0.0f,
-        (float)weaponTex.width,
-        (float)weaponTex.height
-    };
-
-    Rectangle dst =
-    {
-        drawX,
-        drawY,
-        drawWidth,
-        drawHeight
-    };
-
-    DrawTexturePro(
-        weaponTex,
-        src,
-        dst,
-        { 0,0 },
-        0.0f,
-        WHITE);
     DrawDoorMarker(
         playerPos,
         playerDir,
         cameraPlane,
         Zbuffer,
-        { 9.5f, 2.5f });
+        { 9.5f, 2.5f }
+    );
 
     DrawDoorMarker(
         playerPos,
         playerDir,
         cameraPlane,
         Zbuffer,
-        { 24.5f, 23.5f });
+        { 24.5f, 23.5f }
+    );
 }
 void Renderer::DrawDoorMarker(
     Vector2 playerPos,
