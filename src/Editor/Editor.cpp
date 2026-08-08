@@ -10,46 +10,52 @@ void Editor::Update(Map& map)
 {
     Vector2 mouse = GetMousePosition();
 
-    int y = 55;
-
-    for (int i = 0; i < 22; i++)
-    {
-        Rectangle item =
-        {
-            10,
-            (float)y,
-            SIDEBAR_WIDTH - 20,
-            28
-        };
-
-        if (CheckCollisionPointRec(mouse, item) &&
-            IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
-        {
-            currentTile = i;
-        }
-
-        y += 32;
-    }
-    // -------------------------
-// Mouse Wheel Zoom
-// -------------------------
+    //----------------------------------
+    // Mouse Wheel
+    //----------------------------------
 
     float wheel = GetMouseWheelMove();
 
-    if (wheel != 0)
+    if (mouse.x < SIDEBAR_WIDTH)
     {
-        tileSize += wheel * 4.0f;
+        // Sidebar scrolling
 
-        if (tileSize < 16)
-            tileSize = 16;
+        if (wheel > 0)
+            scrollOffset--;
 
-        if (tileSize > 120)
-            tileSize = 120;
+        if (wheel < 0)
+            scrollOffset++;
+
+        if (scrollOffset < 0)
+            scrollOffset = 0;
+
+        int maxScroll = TextureManager::MAX_TILES - VISIBLE_ITEMS;
+
+        if (maxScroll < 0)
+            maxScroll = 0;
+
+        if (scrollOffset > maxScroll)
+            scrollOffset = maxScroll;
+    }
+    else
+    {
+        // Map zoom
+
+        if (wheel != 0)
+        {
+            tileSize += wheel * 4.0f;
+
+            if (tileSize < 16)
+                tileSize = 16;
+
+            if (tileSize > 120)
+                tileSize = 120;
+        }
     }
 
-    // -------------------------
-// Ctrl + / Ctrl - Zoom
-// -------------------------
+    //----------------------------------
+    // CTRL + + / -
+    //----------------------------------
 
     if (IsKeyDown(KEY_LEFT_CONTROL) || IsKeyDown(KEY_RIGHT_CONTROL))
     {
@@ -70,26 +76,59 @@ void Editor::Update(Map& map)
         }
     }
 
-    const int sidebar = 150;
+    //----------------------------------
+    // Sidebar Selection
+    //----------------------------------
 
-    int col = (int)((mouse.x - SIDEBAR_WIDTH - cameraOffset.x) / tileSize);
-    int row = (int)((mouse.y - cameraOffset.y) / tileSize);
+    int y = 55;
 
+    for (int i = 0; i < VISIBLE_ITEMS; i++)
+    {
+        int tileIndex = i + scrollOffset;
 
+        if (tileIndex >= TextureManager::MAX_TILES)
+            break;
 
-    //--------------------------------
+        Rectangle item =
+        {
+            10,
+            (float)y,
+            SIDEBAR_WIDTH - 20,
+            28
+        };
+
+        if (CheckCollisionPointRec(mouse, item) &&
+            IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
+        {
+            currentTile = tileIndex;
+        }
+
+        y += 32;
+    }
+
+    //----------------------------------
+    // Map Cell
+    //----------------------------------
+
+    int col =
+        (int)((mouse.x - SIDEBAR_WIDTH - cameraOffset.x) / tileSize);
+
+    int row =
+        (int)((mouse.y - cameraOffset.y) / tileSize);
+
+    //----------------------------------
     // Paint
-    //--------------------------------
+    //----------------------------------
 
     if (mouse.x > SIDEBAR_WIDTH &&
-        IsMouseButtonDown(MOUSE_BUTTON_LEFT))
+        IsMouseButtonDown(MOUSE_LEFT_BUTTON))
     {
         map.SetCell(row, col, currentTile);
     }
 
-    //--------------------------------
+    //----------------------------------
     // Camera Pan
-    //--------------------------------
+    //----------------------------------
 
     if (IsMouseButtonDown(MOUSE_BUTTON_MIDDLE))
     {
@@ -101,7 +140,6 @@ void Editor::Update(Map& map)
 
     SaveShortcut(map);
 }
-
 void Editor::Draw(Map& map)
 {
     for (int r = 0; r < map.GetRows(); r++)
@@ -120,19 +158,52 @@ void Editor::Draw(Map& map)
 
             Color color = RAYWHITE;
 
-            switch (tile)
+            Color tileColors[31] =
             {
-            case 0: color = WHITE; break;
-            case 1: color = DARKGRAY; break;
-            case 2: color = BROWN; break;
-            case 3: color = ORANGE; break;
-            case 4: color = PINK; break;
-            case 5: color = PURPLE; break;
-            case 6: color = BLUE; break;
-            case 7: color = GREEN; break;
-            case 8: color = YELLOW; break;
-            case 9: color = RED; break;
-            }
+                WHITE,                          // 0
+                DARKGRAY,                       // 1
+
+                {139, 69, 19, 255},             // 2  Wall1
+                {255, 140, 0, 255},             // 3  Wall2
+                {255, 105, 180, 255},           // 4  Wall3
+                {128, 0, 128, 255},             // 5  Wall4
+                {30, 144, 255, 255},            // 6  Wall5
+                {50, 205, 50, 255},             // 7  Wall6
+                {255, 215, 0, 255},             // 8  Wall7
+                {220, 20, 60, 255},             // 9  Wall8
+
+                {0, 191, 255, 255},             // 10 Cafe
+                {255, 165, 0, 255},             // 11 AFC
+                {50, 255, 50, 255},              // 12 Drumble
+                {255, 0, 255, 255},              // 13 CHIPS
+                {210, 180, 140, 255},            // 14 Butcher
+
+                {0, 0, 139, 255},                // 15 MarketWall1
+                {0, 100, 0, 255},                // 16 MarketWall2
+                {75, 0, 130, 255},               // 17 MarketWall3
+                {128, 0, 0, 255},                // 18 AMW
+                {0, 128, 128, 255},              // 19 SlimeLite
+
+                {138, 43, 226, 255},              // 20 EntranceDoor
+                {255, 20, 147, 255},              // 21 ExitDoor
+
+                {0, 128, 255, 255},               // 22 Gym
+                {255, 100, 0, 255},               // 23 Mike
+                {255, 200, 0, 255},               // 24 KikoMilano
+                {100, 255, 100, 255},             // 25 MehakPosh
+                {0, 220, 220, 255},               // 26 CleanX
+
+                {160, 82, 45, 255},               // 27 Bar
+                {180, 70, 220, 255},              // 28 Brolex
+                {40, 180, 100, 255},              // 29 DavidPutra
+                {255, 50, 50, 255}                // 30 GamingZone
+            };
+
+
+            if (tile >= 0 && tile <= 30)
+                color = tileColors[tile];
+            else
+                color = GRAY;
 
             DrawRectangleRec(rect, color);
 
@@ -152,8 +223,12 @@ void Editor::Draw(Map& map)
 
     int y = 55;
 
-    for (int i = 0; i < 22; i++)
+    for (int i = 0; i < VISIBLE_ITEMS; i++)
     {
+        int tileIndex = i + scrollOffset;
+
+        if (tileIndex >= TextureManager::MAX_TILES)
+            break;
         Rectangle item =
         {
             10,
@@ -162,15 +237,15 @@ void Editor::Draw(Map& map)
             28
         };
 
-        if (i == currentTile)
+        if ( tileIndex== currentTile)
             DrawRectangleRec(item, SKYBLUE);
 
         DrawRectangleLinesEx(item, 1, BLACK);
 
         DrawText(
             TextFormat("[%d] %s",
-                i,
-                textures->tileNames[i].c_str()),
+                tileIndex,
+                textures->tileNames[tileIndex].c_str()),
             18,
             y + 6,
             18,
@@ -186,7 +261,14 @@ void Editor::Draw(Map& map)
         GetScreenHeight() - 60,
         20,
         RED);
-
+    DrawText(
+        TextFormat("Showing %d - %d",
+            scrollOffset,
+            scrollOffset + VISIBLE_ITEMS - 1),
+        10,
+        GetScreenHeight() - 90,
+        18,
+        DARKGRAY);
     DrawText(
         "S = Save",
         10,

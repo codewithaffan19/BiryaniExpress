@@ -28,6 +28,7 @@ private:
     static constexpr int SIDEBAR_WIDTH = 220;
     static constexpr int TILE_SIZE = 40;
     int selectedTile = 0;
-    float scroll = 0;
+    int scrollOffset = 0;
+    static constexpr int VISIBLE_ITEMS = 18;
     
 };

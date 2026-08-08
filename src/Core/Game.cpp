@@ -117,7 +117,10 @@ void Game::Draw()
             player.position,
             player.GetDirection(),
             player.GetCameraPlane(),
-            map, enemies,player
+            map,
+            enemies,
+            player,
+            insideMarket
         );
     }
     Vector2 playerPos = player.GetPosition();

@@ -19,7 +19,8 @@ public:
         Vector2 cameraPlane,
         Map& map,
         const std::vector<Enemy>& enemies,
-        Player player);
+        Player player,
+        bool insideMarket);
     TextureManager textures;
     Color* floorBuffer;
     Texture2D floorTexture;
@@ -50,8 +51,22 @@ private:
         float distance,
         int side,
         int tile,
-        float wallX);
+        float wallX,
+        float rayDirX,
+        float rayDirY);
 
     void DrawSky(Vector2 playerDir);
     void DrawFloor(Vector2 PlayerPos, Vector2 PlayerDir,Vector2 CameraPlane);
+    void DrawStreetFloor(
+        Vector2 playerPos,
+        Vector2 playerDir,
+        Vector2 cameraPlane);
+
+    void DrawMarketFloor(
+        Vector2 playerPos,
+        Vector2 playerDir,
+        Vector2 cameraPlane);
+
+    void DrawMarketRoof(
+        Vector2 playerDir);
 };

@@ -87,8 +87,68 @@ void Renderer::DrawSky(Vector2 playerDir)
         );
     }
 }
+void Renderer::DrawMarketRoof(Vector2 playerDir)
+{
+    float angle = atan2f(playerDir.y, playerDir.x);
 
-void Renderer::DrawFloor(Vector2 playerPos, Vector2 playerDir, Vector2 cameraPlane)
+    float u =
+        (angle / (2.0f * PI) + 0.5f) *
+        textures.marketRoofTex.width;
+
+    Rectangle src =
+    {
+        u,
+        0,
+        (float)Config::SCREEN_WIDTH,
+        (float)textures.marketRoofTex.height
+    };
+
+    Rectangle dst =
+    {
+        0,
+        0,
+        (float)Config::SCREEN_WIDTH,
+        (float)(Config::SCREEN_HEIGHT / 2)
+    };
+
+    DrawTexturePro(
+        textures.marketRoofTex,
+        src,
+        dst,
+        { 0,0 },
+        0,
+        WHITE
+    );
+
+    if (src.x + src.width > textures.marketRoofTex.width)
+    {
+        Rectangle src2 =
+        {
+            0,
+            0,
+            src.x + src.width - textures.marketRoofTex.width,
+            (float)textures.marketRoofTex.height
+        };
+
+        Rectangle dst2 =
+        {
+            textures.marketRoofTex.width - src.x,
+            0,
+            src2.width,
+            (float)(Config::SCREEN_HEIGHT / 2)
+        };
+
+        DrawTexturePro(
+            textures.marketRoofTex,
+            src2,
+            dst2,
+            { 0,0 },
+            0,
+            WHITE
+        );
+    }
+}
+void Renderer::DrawStreetFloor(Vector2 playerPos, Vector2 playerDir, Vector2 cameraPlane)
 {
 
     if (textures.floorimg.width <= 0 || textures.floorimg.height <= 0)
@@ -154,14 +214,81 @@ void Renderer::DrawFloor(Vector2 playerPos, Vector2 playerDir, Vector2 cameraPla
     // Draw the entire floor to the screen in a single command!
     DrawTexture(floorTexture, 0, 0, WHITE);
 }
+void Renderer::DrawMarketFloor(Vector2 playerPos, Vector2 playerDir, Vector2 cameraPlane)
+{
 
+    if (textures.marketFloorImg.width <= 0 || textures.marketFloorImg.height <= 0)
+    {
+        return;
+    }
+    // We loop through the bottom half of the screen (from the center horizon to the bottom edge)
+    for (int y = Config::SCREEN_HEIGHT / 2 + 1; y < Config::SCREEN_HEIGHT; ++y)
+    {
+        // Calculate the ray directions for the leftmost (x=0) and rightmost (x=width) pixels of this specific row
+        float rayDirX0 = playerDir.x - cameraPlane.x;
+        float rayDirY0 = playerDir.y - cameraPlane.y;
+        float rayDirX1 = playerDir.x + cameraPlane.x;
+        float rayDirY1 = playerDir.y + cameraPlane.y;
+
+        // 'p' is the current Y position compared to the center of the screen (the horizon)
+        int p = y - Config::SCREEN_HEIGHT / 2;
+
+        // Vertical position of the camera (simulating the height of the player's eyes)
+        float posZ = 0.5f * Config::SCREEN_HEIGHT;
+
+        // Horizontal distance from the camera to the floor for this specific row
+        float rowDistance = posZ / p;
+
+        // Calculate the "Step Vector" (How much we move in the 2D map for every 1 pixel we move right on the screen)
+        float floorStepX = rowDistance * (rayDirX1 - rayDirX0) / Config::SCREEN_WIDTH;
+        float floorStepY = rowDistance * (rayDirY1 - rayDirY0) / Config::SCREEN_WIDTH;
+
+        // Real world coordinates of the leftmost pixel in this row. 
+        // We will add the Step Vector to this as we loop across the screen.
+        float floorX = playerPos.x + rowDistance * rayDirX0;
+        float floorY = playerPos.y + rowDistance * rayDirY0;
+
+        // Now, loop across every horizontal pixel in this specific row
+        for (int x = 0; x < Config::SCREEN_WIDTH; ++x)
+        {
+            // Calculate the exact grid cell the floor coordinate is in
+            int cellX = (int)(floorX);
+            int cellY = (int)(floorY);
+
+            // Get the exact texture coordinates based on the fractional part of the floor coordinates
+            // Note: Replace 'textures.floorImg.width' with your actual width if you aren't using the TextureManager dynamically here
+            int texWidth = textures.marketFloorImg.width;
+            int texHeight = textures.marketFloorImg.height;
+
+            // The bitwise AND (&) creates a perfect repeating/tiling effect!
+            int tx = (int)(texWidth * (floorX - cellX)) & (texWidth - 1);
+            int ty = (int)(texHeight * (floorY - cellY)) & (texHeight - 1);
+
+            // Move our real-world position over by one Step Vector for the next pixel
+            floorX += floorStepX;
+            floorY += floorStepY;
+
+            // 1. Get the exact pixel color from our CPU Image
+            Color color = GetImageColor(textures.marketFloorImg, tx, ty);
+
+            int arrayIndex = y * Config::SCREEN_WIDTH + x;
+            floorBuffer[arrayIndex] = color;
+        }
+    }
+    UpdateTexture(floorTexture, floorBuffer);
+
+    // Draw the entire floor to the screen in a single command!
+    DrawTexture(floorTexture, 0, 0, WHITE);
+}
 
 void Renderer::DrawWallColumn(
     int screenX,
     float distance,
     int side,
     int tile,
-    float wallX)
+    float wallX,
+    float rayDirX,
+    float rayDirY)
 {
     if (distance < 0.1f)
         distance = 0.1f;
@@ -191,7 +318,7 @@ void Renderer::DrawWallColumn(
     }
 
     // NEW TEXTURED WALL
-    if (tile >= 2 && tile <= 21)
+    if (tile >= 2 && tile <= 30)
     {
 
         Texture2D* tex = &textures.tiles[tile];
@@ -206,7 +333,7 @@ void Renderer::DrawWallColumn(
             }
         }
         // Only shops have animation
-        if (tile >= 10 && tile<=19)
+        if (tile >= 10 && tile<=14 || tile == 22 || tile == 23 || tile == 24 || tile == 25 || tile == 26 || tile == 27 || tile == 28 || tile == 29 || tile == 30)
         {
             if (((int)(GetTime() * 2)) % 2 == 1)
             {
@@ -221,9 +348,11 @@ void Renderer::DrawWallColumn(
         }
         int texX = (int)(wallX * tex->width);
 
-        if (side == 0)
+        if (side == 0 && rayDirX < 0)
             texX = tex->width - texX - 1;
 
+        if (side == 1 && rayDirY > 0)
+            texX = tex->width - texX - 1;
         if (texX < 0)
             texX = 0;
 
@@ -263,15 +392,30 @@ void Renderer::Draw(
     Vector2 cameraPlane,
     Map& map,
     const std::vector<Enemy>& enemies,
-    Player player) {
+    Player player,
+    bool insideMarket) {
 
     // INITIALIZE THE Z-BUFFER
     // This array will hold the distance of the wall for every pixel column
 
     float Zbuffer[Config::SCREEN_WIDTH];
 
-    DrawSky(playerDir);
-    DrawFloor(playerPos, playerDir, cameraPlane);
+    if (insideMarket)
+    {
+        DrawMarketRoof(playerDir);
+        DrawMarketFloor(
+            playerPos,
+            playerDir,
+            cameraPlane);
+    }
+    else
+    {
+        DrawSky(playerDir);
+        DrawStreetFloor(
+            playerPos,
+            playerDir,
+            cameraPlane);
+    }
 
     // ==========================================
     // PHASE 1: DRAW WALLS & LOG DISTANCES
@@ -300,11 +444,14 @@ void Renderer::Draw(
             hit.distance,
             hit.side,
             hit.tile,
-            hit.wallX);
+            hit.wallX,
+            rayDir.x,
+            rayDir.y);
 
         // 3. LOG THE WALL DISTANCE INTO THE Z-BUFFER
         Zbuffer[x] = hit.distance;
     }
+
     // PHASE 2: DRAW ENEMIES
     for (size_t i = 0; i < enemies.size(); i++)
     {
@@ -493,28 +640,31 @@ void Renderer::DrawDoorMarker(
 
     int drawY =
         Config::SCREEN_HEIGHT / 2
-        - (int)(150 / transformY)
+        - markerHeight
+        - 20
         + (int)bob;
+    if (screenX < 0 || screenX >= Config::SCREEN_WIDTH)
+        return;
 
     Color color =
-        (((int)(GetTime() * 4)) % 2 == 0)
+        (((int)(GetTime() * 4) % 2) == 0)
         ? YELLOW
-        : GOLD;
+        : ORANGE;
 
     DrawTriangle(
         {
             (float)screenX,
-            (float)drawY
-        },
-        {
-            (float)(screenX - markerWidth / 2),
             (float)(drawY - markerHeight)
         },
-        {
-            (float)(screenX + markerWidth / 2),
-            (float)(drawY - markerHeight)
-        },
-        color);
+{
+    (float)(screenX - markerWidth / 2),
+    (float)drawY
+},
+{
+    (float)(screenX + markerWidth / 2),
+    (float)drawY
+},
+color);
 }
 void Renderer::StartFadeIn()
 {

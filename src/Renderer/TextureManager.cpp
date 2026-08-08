@@ -115,6 +115,69 @@ void TextureManager::Load()
     //==========================
 
     skyTex = LoadTexture("../assets/textures/sky.png");
+    marketFloorImg =
+        LoadImage("../assets/textures/marketFloor.png");
+
+    marketRoofTex =
+        LoadTexture("../assets/textures/marketRoof.png");
+
+    //==========================
+// Extra Shops
+//==========================
+
+    tiles[22] = LoadTexture("../assets/textures/gym.png");
+    tileNames[22] = "Gym";
+
+    tiles[23] = LoadTexture("../assets/textures/mike.png");
+    tileNames[23] = "Mike";
+
+    tileAnim[22] = LoadTexture("../assets/textures/gym_anim.png");
+    tileAnim[23] = LoadTexture("../assets/textures/mike_anim.png");
+
+    //==========================
+// New Shops
+//==========================
+
+    tiles[24] = LoadTexture("../assets/textures/kiko_milano.png");
+    tileNames[24] = "KikoMilano";
+
+    tileAnim[24] = LoadTexture("../assets/textures/kiko_milano_anim.png");
+
+    tiles[25] = LoadTexture("../assets/textures/mehak_posh.png");
+    tileNames[25] = "MehakPosh";
+
+    tileAnim[25] = LoadTexture("../assets/textures/mehak_posh_anim.png");
+
+    tiles[26] = LoadTexture("../assets/textures/clinex.png");
+    tileNames[26] = "Clinex";
+
+    tileAnim[26] = LoadTexture("../assets/textures/clinex_anim.png");
+    //==========================
+// Frame 2 Shops
+//==========================
+
+    tiles[27] = LoadTexture("../assets/textures/bar.png");
+    tileNames[27] = "Bar";
+
+    tileAnim[27] = LoadTexture("../assets/textures/bar_anim.png");
+
+
+    tiles[28] = LoadTexture("../assets/textures/brolex.png");
+    tileNames[28] = "Brolex";
+
+    tileAnim[28] = LoadTexture("../assets/textures/brolex_anim.png");
+
+
+    tiles[29] = LoadTexture("../assets/textures/Davidputra.png");
+    tileNames[29] = "DavidPutra";
+
+    tileAnim[29] = LoadTexture("../assets/textures/Davidputra_anim.png");
+
+
+    tiles[30] = LoadTexture("../assets/textures/gamingzone.png");
+    tileNames[30] = "GamingZone";
+
+    tileAnim[30] = LoadTexture("../assets/textures/gamingzone_anim.png");
     SetTextureFilter(skyTex, TEXTURE_FILTER_BILINEAR);
 }
 void TextureManager::Unload()
@@ -142,8 +205,11 @@ void TextureManager::Unload()
 
     if (floorimg.data != nullptr)
         UnloadImage(floorimg);
-
+    if (marketFloorImg.data != nullptr)
+        UnloadImage(marketFloorImg);
     if (skyTex.id != 0)
         UnloadTexture(skyTex);
+    if (marketRoofTex.id != 0)
+        UnloadTexture(marketRoofTex);
 
 }
