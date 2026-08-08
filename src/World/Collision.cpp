@@ -38,7 +38,7 @@ Vector2 CheckMapCollosion(Vector2 pos, float PlayerRadius, Vector2 Velocity, Map
 
 	return pos;
 }
-void CheckPlayerEnemyCollision(Player& p, Enemy& E) {
+void CheckPlayerEnemyCollision(Player& p, Enemy& E,Map&m1) {
 	float dx = E.position.x-p.position.x;
 	float dy =  E.position.y- p.position.y;
 	float dis = sqrt((dx * dx) + (dy * dy));
@@ -49,12 +49,18 @@ void CheckPlayerEnemyCollision(Player& p, Enemy& E) {
 		float pushforce = Overlap / 2.0f;
 		float NormalX = dx / dis;
 		float NormalY = dy / dis;
+		Vector2 PlayerBumpVelocity = { -NormalX * pushforce, -NormalY * pushforce };
 
-		//Enemy Bump
-		E.position.x = E.position.x + (NormalX * pushforce);
-		E.position.y = E.position.y + (NormalY * pushforce);
-		//PlayerBump
-		p.position.x -= (NormalX * pushforce);
-		p.position.y -= (NormalX * pushforce);
+		Vector2 OldPlayerPos = p.position;
+		p.position = CheckMapCollosion(p.position, p.radius, PlayerBumpVelocity, m1);
+
+		float movedX = p.position.x - OldPlayerPos.x;
+		float movedY = p.position.y - OldPlayerPos.y;
+		float actualMovedDis = sqrt((movedX * movedX) + (movedY * movedY));
+		//Moveable distance check
+		float EnemyForce = pushforce + (pushforce - actualMovedDis);
+
+		Vector2 EnemyBumpVelocity = { NormalX * EnemyForce, NormalY * EnemyForce };
+		E.position = CheckMapCollosion(E.position, E.radius, EnemyBumpVelocity, m1);
 	}
 }

@@ -35,17 +35,43 @@ void Game::Initialize()
     enemies.clear();
     //Burger Boy
     Enemy BurgerBoy;
-    BurgerBoy.moveSpeed = 1.0f;
-    BurgerBoy .position = { 5.5f,6.5f };
+    BurgerBoy.spriteSheet = LoadTexture("../../assets/textures/Boy.png");
+    BurgerBoy.totalframes = 4;
+    BurgerBoy.moveSpeed = 0.8f;
+    BurgerBoy.position = { 13.0f,14.0f };
     //Uncle takla
     Enemy AngryUncle;
     AngryUncle.spriteSheet = LoadTexture("../../assets/textures/uncle.png");
-    AngryUncle.position = { 15.5f,2.5f };
+    AngryUncle.position = { 7.0f,10.0f };
+    AngryUncle.totalframes = 5;
     AngryUncle.moveSpeed = 0.7f;
+    Enemy AngryUncle2;
+    AngryUncle2.spriteSheet = LoadTexture("../../assets/textures/uncle.png");
+    AngryUncle2.position = { 17.0f,16.0f };
+    AngryUncle2.totalframes = 5;
+    AngryUncle2.moveSpeed = 0.7f;
+    //Thief
+    Enemy Thief;
+    Thief.spriteSheet = LoadTexture("../../assets/textures/Chor.png");
+    Thief.position = {1.0f,7.0f};
+    Thief.totalframes = 2;
+    Thief.moveSpeed = 0.9f;
+    //Second Thief
+    Enemy Thief2;
+    Thief2.spriteSheet = LoadTexture("../../assets/textures/Chor2.png");
+    Thief2.position = { 14.0f,16.0f };
+    Thief2.totalframes = 2;
+    Thief2.moveSpeed = 0.9f;
+
+
+    enemies.push_back(Thief);
     enemies.push_back(AngryUncle);
+    enemies.push_back(Thief2);
     enemies.push_back(BurgerBoy);
+    enemies.push_back(AngryUncle2);
     map.LoadMap("../../assets/maps/test.txt");
 }
+
 void Game::CheckSpoonCollosion(Player& p, Enemy& E) {
     if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
         float dx = E.position.x - p.position.x;
@@ -59,6 +85,7 @@ void Game::CheckSpoonCollosion(Player& p, Enemy& E) {
             float result = (p.GetDirection().x * normX) + (p.GetDirection().y * normY);
             if (result > 0.85f) {
                 p.hitmessagetimer = 30;
+                E.health -= 20;
             }
         }
     }
@@ -88,7 +115,7 @@ void Game::Update()
         player.Update(dt, input, map);
         for (int i = 0; i < enemies.size(); i++) {
             enemies[i].update(player, map);
-            CheckPlayerEnemyCollision(player, enemies[i]);
+            CheckPlayerEnemyCollision(player, enemies[i],map);
             CheckSpoonCollosion(player, enemies[i]);
         }
     }

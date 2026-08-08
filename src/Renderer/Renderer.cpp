@@ -2,6 +2,8 @@
 #include "../World/Map.h"
 #include <cmath>
 #include "../Renderer/TextureManager.h"
+//Enemy states
+enum { STILL, CHASE, INTERROGATE, DEAD };
 Renderer::Renderer()
 {
 }
@@ -306,13 +308,6 @@ void Renderer::Draw(
     Map& map,
     const std::vector<Enemy>& enemies,
     Player player) {
-
-    
-    void DrawDoor(
-        Vector2 playerPos,
-        Vector2 playerDir,
-        Vector2 cameraPlane,
-        float Zbuffer[]);
     // INITIALIZE THE Z-BUFFER
     // This array will hold the distance of the wall for every pixel column
     float Zbuffer[Config::SCREEN_WIDTH];
@@ -356,67 +351,99 @@ void Renderer::Draw(
     // PHASE 2: DRAW ENEMIES
     for (size_t i = 0; i < enemies.size(); i++)
     {
-        // Calculate sprite position relative to the player
-        Vector2 sprite = { enemies[i].position.x - playerPos.x, enemies[i].position.y - playerPos.y };
+        if (enemies[i].state != DEAD) {
+            // Calculate sprite position relative to the player
+            Vector2 sprite = { enemies[i].position.x - playerPos.x, enemies[i].position.y - playerPos.y };
 
-        // Camera Matrix Math (Translates 2D coordinates into 3D camera depth)
-        float invDet = 1.0f / (cameraPlane.x * playerDir.y - cameraPlane.y * playerDir.x);
-        float transformX = invDet * (playerDir.y * sprite.x - playerDir.x * sprite.y);
-        float transformY = invDet * (-cameraPlane.y * sprite.x + cameraPlane.x * sprite.y); // transformY is the depth!
+            // Camera Matrix Math (Translates 2D coordinates into 3D camera depth)
+            float invDet = 1.0f / (cameraPlane.x * playerDir.y - cameraPlane.y * playerDir.x);
+            float transformX = invDet * (playerDir.y * sprite.x - playerDir.x * sprite.y);
+            float transformY = invDet * (-cameraPlane.y * sprite.x + cameraPlane.x * sprite.y); // transformY is the depth!
 
-        // Only process the enemy if they are IN FRONT of the camera
-        if (transformY > 0)
-        {
-            int spriteScreenX = int((Config::SCREEN_WIDTH / 2) * (1 + (transformX / transformY)));
-            int spriteHeight = abs(int(Config::SCREEN_HEIGHT / transformY));
-            int spriteWidth = spriteHeight; // Assuming square sprites
-
-            // Calculate vertical drawing boundaries
-            int drawStartY = -(spriteHeight / 2) + (Config::SCREEN_HEIGHT / 2);
-            if (drawStartY < 0) drawStartY = 0;
-
-            int drawEndY = (spriteHeight / 2) + (Config::SCREEN_HEIGHT / 2);
-            if (drawEndY >= Config::SCREEN_HEIGHT) drawEndY = Config::SCREEN_HEIGHT - 1;
-
-            // Calculate horizontal drawing boundaries
-            int drawStartX = -(spriteWidth / 2) + spriteScreenX;
-            if (drawStartX < 0) drawStartX = 0;
-
-            int drawEndX = (spriteWidth / 2) + spriteScreenX;
-            if (drawEndX >= Config::SCREEN_WIDTH) drawEndX = Config::SCREEN_WIDTH - 1;
-
-
-            float frameWidth = (float)enemies[i].spriteSheet.width / enemies[i].totalframes;
-            float frameHeight = (float)enemies[i].spriteSheet.height;
-
-            // 2. Calculate where this specific frame starts on the X axis of the image
-            float frameOffsetX = enemies[i].currentframe * frameWidth;
-
-            // Draw the enemy vertical stripe by vertical stripe
-            for (int stripe = drawStartX; stripe < drawEndX; stripe++)
+            // Only process the enemy if they are IN FRONT of the camera
+            if (transformY > 0)
             {
-                // 4. THE Z-BUFFER CHECK
-                // Only draw this vertical slice IF it is closer than the wall (Zbuffer[stripe])
-                if (stripe > 0 && stripe < Config::SCREEN_WIDTH && transformY < Zbuffer[stripe])
+                int spriteScreenX = int((Config::SCREEN_WIDTH / 2) * (1 + (transformX / transformY)));
+                int spriteHeight = abs(int(Config::SCREEN_HEIGHT / transformY));
+                int spriteWidth = spriteHeight; // Assuming square sprites
+
+                // Calculate vertical drawing boundaries
+                int drawStartY = -(spriteHeight / 2) + (Config::SCREEN_HEIGHT / 2);
+                if (drawStartY < 0) drawStartY = 0;
+
+                int drawEndY = (spriteHeight / 2) + (Config::SCREEN_HEIGHT / 2);
+                if (drawEndY >= Config::SCREEN_HEIGHT) drawEndY = Config::SCREEN_HEIGHT - 1;
+
+                // Calculate horizontal drawing boundaries
+                int drawStartX = -(spriteWidth / 2) + spriteScreenX;
+                if (drawStartX < 0) drawStartX = 0;
+
+                int drawEndX = (spriteWidth / 2) + spriteScreenX;
+                if (drawEndX >= Config::SCREEN_WIDTH) drawEndX = Config::SCREEN_WIDTH - 1;
+
+
+                float frameWidth = (float)enemies[i].spriteSheet.width / enemies[i].totalframes;
+                float frameHeight = (float)enemies[i].spriteSheet.height;
+
+                // 2. Calculate where this specific frame starts on the X axis of the image
+                float frameOffsetX = enemies[i].currentframe * frameWidth;
+
+                // Draw the enemy vertical stripe by vertical stripe
+                for (int stripe = drawStartX; stripe < drawEndX; stripe++)
                 {
-                    int trueStartX = -(spriteWidth / 2) + spriteScreenX;
+                    // 4. THE Z-BUFFER CHECK
+                    // Only draw this vertical slice IF it is closer than the wall (Zbuffer[stripe])
+                    if (stripe > 0 && stripe < Config::SCREEN_WIDTH && transformY < Zbuffer[stripe])
+                    {
+                        int trueStartX = -(spriteWidth / 2) + spriteScreenX;
 
-                    // Calculate which pixel of the current FRAME we are drawing
-                    int texX = int((stripe - trueStartX) * frameWidth / spriteWidth);
+                        // Calculate which pixel of the current FRAME we are drawing
+                        int texX = int((stripe - trueStartX) * frameWidth / spriteWidth);
 
-                    // Clamp to prevent pulling pixels outside the frame bounds
-                    if (texX < 0) texX = 0;
-                    if (texX >= frameWidth) texX = frameWidth - 1;
+                        // Clamp to prevent pulling pixels outside the frame bounds
+                        if (texX < 0) texX = 0;
+                        if (texX >= frameWidth) texX = frameWidth - 1;
 
-                    // 3. Define the Source Rectangle (The 1-pixel wide slice of the image)
-                    // Notice how we add `frameOffsetX` to `texX` to shift our window to the correct animation frame!
-                    Rectangle sourceRec = { frameOffsetX + (float)texX, 0.0f, 1.0f, frameHeight };
+                        // 3. Define the Source Rectangle (The 1-pixel wide slice of the image)
+                        // Notice how we add `frameOffsetX` to `texX` to shift our window to the correct animation frame!
+                        Rectangle sourceRec = { frameOffsetX + (float)texX, 0.0f, 1.0f, frameHeight };
 
-                    Rectangle destRec = { (float)stripe, (float)drawStartY, 1.0f, (float)spriteHeight };
-                    Vector2 origin = { 0.0f, 0.0f };
+                        Rectangle destRec = { (float)stripe, (float)drawStartY, 1.0f, (float)spriteHeight };
+                        Vector2 origin = { 0.0f, 0.0f };
 
-                    // 4. Draw the animated slice (Replacing the GREEN line)
-                    DrawTexturePro(enemies[i].spriteSheet, sourceRec, destRec, origin, 0.0f, WHITE);
+                        // 4. Draw the animated slice (Replacing the GREEN line)
+                        DrawTexturePro(enemies[i].spriteSheet, sourceRec, destRec, origin, 0.0f, WHITE);
+                    }
+                }
+            }
+        }
+        // PHASE 3: DRAW THE 3D BUBBLES
+        for (int j = 0; j < 12; j++) {
+            if (enemies[i].bubbles[j].active) {
+
+                // 1. Calculate bubble position relative to the player
+                Vector2 bubbleSprite = { enemies[i].bubbles[j].position.x - playerPos.x, enemies[i].bubbles[j].position.y - playerPos.y };
+
+                // 2. 3D Camera Projection Math (Same as the enemy body!)
+                float invDet = 1.0f / (cameraPlane.x * playerDir.y - cameraPlane.y * playerDir.x);
+                float transformX = invDet * (playerDir.y * bubbleSprite.x - playerDir.x * bubbleSprite.y);
+                float transformY = invDet * (-cameraPlane.y * bubbleSprite.x + cameraPlane.x * bubbleSprite.y);
+
+                // 3. Only draw if the bubble is in front of the camera
+                if (transformY > 0) {
+                    // Find exactly where on the screen the bubble should be
+                    int bubbleScreenX = int((Config::SCREEN_WIDTH / 2) * (1 + (transformX / transformY)));
+
+                    // Put them roughly in the middle of the screen height
+                    int bubbleScreenY = Config::SCREEN_HEIGHT / 2;
+
+                    // Scale the radius so bubbles get smaller the further away they are!
+                    float projectedRadius = (enemies[i].bubbles[j].radius / transformY) * 2.0f;
+
+                    unsigned char alpha = (unsigned char)(enemies[i].bubbles[j].life * 255);
+                    Color bubbleColor = { 173, 216, 230, alpha };
+
+                    DrawCircle(bubbleScreenX, bubbleScreenY, projectedRadius, bubbleColor);
                 }
             }
         }
@@ -486,6 +513,11 @@ void Renderer::Draw(
         DrawText("BAM! UNCLE HIT!", GetScreenWidth() / 2 - 150, GetScreenHeight() / 2 + 100, 40, GREEN);
     }
 }
+
+
+
+
+
 void Renderer::DrawDoor(
     Vector2 playerPos,
     Vector2 playerDir,
@@ -493,7 +525,7 @@ void Renderer::DrawDoor(
     float Zbuffer[])
 {
     DrawCircle(100, 100, 20, RED);
-    Vector2 doorPos = { 2.5f, 2.5f };   // <-- Door position
+    Vector2 doorPos = { 2.5f, 2.5f };  
 
     float dist = sqrtf(
         (doorPos.x - playerPos.x) * (doorPos.x - playerPos.x) +
