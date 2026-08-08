@@ -6,7 +6,10 @@
 NPC::NPC()
 {
 }
-
+void NPC::SetFountain(bool value)
+{
+    isFountain = value;
+}
 // ============================================================
 // LOAD
 // ============================================================
@@ -18,6 +21,9 @@ bool NPC::Load(
 {
     name = npcName;
     position = npcPosition;
+
+    // Automatically identify fountain
+    isFountain = (name == "Fountain");
 
     spriteSheet = LoadTexture(texturePath.c_str());
 
@@ -307,7 +313,8 @@ void NPC::DrawSprite(
     // Sprite size
     // --------------------------------------------------------
 
-    float spriteScale = 0.55f;
+    float spriteScale =
+        isFountain ? 0.30f : 0.55f;
 
     int spriteHeight =
         abs(
@@ -323,7 +330,6 @@ void NPC::DrawSprite(
     // Vertical position
     // --------------------------------------------------------
 
-    // Move the smaller NPC down toward the floor
     int verticalOffset =
         (int)(spriteHeight * 0.25f);
 
@@ -337,11 +343,7 @@ void NPC::DrawSprite(
         screenHeight / 2 +
         verticalOffset;
 
-    if (drawStartY < 0)
-        drawStartY = 0;
 
-    if (drawEndY >= screenHeight)
-        drawEndY = screenHeight - 1;
     // --------------------------------------------------------
     // Horizontal position
     // --------------------------------------------------------

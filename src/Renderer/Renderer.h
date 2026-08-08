@@ -28,7 +28,6 @@ public:
     );
 
     TextureManager textures;
-
     Color* floorBuffer = nullptr;
     Texture2D floorTexture{};
 
@@ -88,6 +87,12 @@ private:
         Vector2 playerDir,
         Vector2 cameraPlane
     );
-
+    void DrawFountain(
+        Vector2 fountainPos,
+        Vector2 playerPos,
+        Vector2 playerDir,
+        Vector2 cameraPlane,
+        float Zbuffer[]
+    );
     void DrawMarketRoof(Vector2 playerDir);
 };

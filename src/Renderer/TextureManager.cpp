@@ -179,6 +179,36 @@ void TextureManager::Load()
 
     tileAnim[30] = LoadTexture("../assets/textures/gamingzone_anim.png");
     SetTextureFilter(skyTex, TEXTURE_FILTER_BILINEAR);
+    //==========================
+// Market Fountain
+//==========================
+
+    fountainSheet =
+        LoadTexture("../assets/textures/fountain.png");
+
+    SetTextureFilter(
+        fountainSheet,
+        TEXTURE_FILTER_POINT
+    );
+
+}
+int TextureManager::GetFountainFrame()
+{
+    fountainFrameTimer += GetFrameTime();
+
+    const float frameSpeed = 6.0f;
+
+    if (fountainFrameTimer >= 1.0f / frameSpeed)
+    {
+        fountainFrameTimer = 0.0f;
+
+        fountainCurrentFrame++;
+
+        if (fountainCurrentFrame >= 4)
+            fountainCurrentFrame = 0;
+    }
+
+    return fountainCurrentFrame;
 }
 void TextureManager::Unload()
 {
@@ -211,5 +241,9 @@ void TextureManager::Unload()
         UnloadTexture(skyTex);
     if (marketRoofTex.id != 0)
         UnloadTexture(marketRoofTex);
-
+    if (fountainSheet.id != 0)
+    {
+        UnloadTexture(fountainSheet);
+        fountainSheet.id = 0;
+    }
 }

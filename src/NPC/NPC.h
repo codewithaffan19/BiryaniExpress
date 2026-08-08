@@ -72,7 +72,8 @@ private:
 
     bool playerIsNear = false;
     bool interacting = false;
-
+    bool isFountain = false;
+    void SetFountain(bool value);
     float interactionTimer = 0.0f;
 
     float interactionDuration = 0.7f;

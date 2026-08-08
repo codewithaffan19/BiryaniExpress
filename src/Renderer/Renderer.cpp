@@ -21,6 +21,8 @@ void Renderer::LoadTextures()
     Image blankImg = GenImageColor(Config::SCREEN_WIDTH, Config::SCREEN_HEIGHT, BLANK);
     floorTexture = LoadTextureFromImage(blankImg);
     UnloadImage(blankImg);
+
+
 }
 
 void Renderer::UnloadTextures()
@@ -322,20 +324,37 @@ void Renderer::DrawWallColumn(
     // NEW TEXTURED WALL
     if (tile >= 2 && tile <= 30)
     {
-
         Texture2D* tex = &textures.tiles[tile];
-        // Door uses idle/stop image depending on distance
+
+        // ==========================================
+        // DOOR ANIMATION
+        // ==========================================
+
         if (tile == 20 || tile == 21)
         {
-            // Approximate player distance from wall
             if (distance < 1.5f)
             {
                 if (textures.tileAnim[tile].id != 0)
                     tex = &textures.tileAnim[tile];
             }
         }
-        // Only shops have animation
-        if (tile >= 10 && tile<=14 || tile == 22 || tile == 23 || tile == 24 || tile == 25 || tile == 26 || tile == 27 || tile == 28 || tile == 29 || tile == 30)
+
+        // ==========================================
+        // SHOP ANIMATION
+        // ==========================================
+
+        if (
+            (tile >= 10 && tile <= 14) ||
+            tile == 22 ||
+            tile == 23 ||
+            tile == 24 ||
+            tile == 25 ||
+            tile == 26 ||
+            tile == 27 ||
+            tile == 28 ||
+            tile == 29 ||
+            tile == 30
+            )
         {
             if (((int)(GetTime() * 2)) % 2 == 1)
             {
@@ -736,7 +755,20 @@ void Renderer::Draw(
             );
         }
     }
+    // ==========================================
+// PHASE 2.5: MARKET FOUNTAIN
+// ==========================================
 
+    if (insideMarket)
+    {
+        DrawFountain(
+            { 15.5f, 2.5f },
+            playerPos,
+            playerDir,
+            cameraPlane,
+            Zbuffer
+        );
+    }
     // ==========================================
     // PHASE 3: NPCs
     // ==========================================
@@ -991,4 +1023,217 @@ void Renderer::StartFadeOut()
 {
     fadingOut = true;
     fadingIn = false;
+}
+void Renderer::DrawFountain(
+    Vector2 fountainPos,
+    Vector2 playerPos,
+    Vector2 playerDir,
+    Vector2 cameraPlane,
+    float Zbuffer[])
+{
+    Texture2D& sheet = textures.fountainSheet;
+
+    if (sheet.id == 0)
+        return;
+
+    // ==========================================
+    // POSITION RELATIVE TO PLAYER
+    // ==========================================
+
+    Vector2 sprite =
+    {
+        fountainPos.x - playerPos.x,
+        fountainPos.y - playerPos.y
+    };
+
+    // ==========================================
+    // CAMERA TRANSFORMATION
+    // ==========================================
+
+    float invDet =
+        1.0f /
+        (cameraPlane.x * playerDir.y -
+            cameraPlane.y * playerDir.x);
+
+    float transformX =
+        invDet *
+        (playerDir.y * sprite.x -
+            playerDir.x * sprite.y);
+
+    float transformY =
+        invDet *
+        (-cameraPlane.y * sprite.x +
+            cameraPlane.x * sprite.y);
+
+    // Behind player
+    if (transformY <= 0.0f)
+        return;
+
+    // ==========================================
+    // ANIMATION FRAME
+    // ==========================================
+
+    int currentFrame =
+        textures.GetFountainFrame();
+
+    float frameWidth =
+        (float)sheet.width / 4.0f;
+
+    float frameHeight =
+        (float)sheet.height;
+
+    float frameOffsetX =
+        currentFrame * frameWidth;
+
+    // ==========================================
+    // PROJECT SPRITE
+    // ==========================================
+
+    int spriteScreenX =
+        (int)(
+            (Config::SCREEN_WIDTH / 2.0f) *
+            (1.0f + transformX / transformY)
+            );
+
+    // Fountain size
+    int spriteHeight =
+        abs(
+            (int)(
+                Config::SCREEN_HEIGHT /
+                transformY
+                )
+        );
+
+    // Keep fountain proportional to its frame
+    float aspectRatio =
+        frameWidth / frameHeight;
+
+    int spriteWidth =
+        (int)(spriteHeight * aspectRatio);
+
+    // Make fountain a little bigger
+    spriteHeight *= 1.2f;
+    spriteWidth *= 1.2f;
+
+    // ==========================================
+    // VERTICAL POSITION
+    // ==========================================
+
+    int drawStartY =
+        -spriteHeight / 2 +
+        Config::SCREEN_HEIGHT / 2;
+
+    int drawEndY =
+        spriteHeight / 2 +
+        Config::SCREEN_HEIGHT / 2;
+
+    if (drawStartY < 0)
+        drawStartY = 0;
+
+    if (drawEndY >= Config::SCREEN_HEIGHT)
+        drawEndY =
+        Config::SCREEN_HEIGHT - 1;
+
+    // ==========================================
+    // HORIZONTAL POSITION
+    // ==========================================
+
+    int drawStartX =
+        -spriteWidth / 2 +
+        spriteScreenX;
+
+    int drawEndX =
+        spriteWidth / 2 +
+        spriteScreenX;
+
+    if (drawStartX < 0)
+        drawStartX = 0;
+
+    if (drawEndX >= Config::SCREEN_WIDTH)
+        drawEndX =
+        Config::SCREEN_WIDTH - 1;
+
+    // Completely outside screen
+    if (drawStartX >= Config::SCREEN_WIDTH ||
+        drawEndX < 0)
+    {
+        return;
+    }
+
+    // ==========================================
+    // DRAW STRIPE BY STRIPE
+    // ==========================================
+
+    for (int stripe = drawStartX;
+        stripe < drawEndX;
+        stripe++)
+    {
+        if (stripe < 0 ||
+            stripe >= Config::SCREEN_WIDTH)
+        {
+            continue;
+        }
+
+        // ======================================
+        // WALL Z-BUFFER
+        // ======================================
+
+        if (transformY >= Zbuffer[stripe])
+            continue;
+
+        // ======================================
+        // TEXTURE X
+        // ======================================
+
+        int trueStartX =
+            -spriteWidth / 2 +
+            spriteScreenX;
+
+        int texX =
+            (int)(
+                (stripe - trueStartX) *
+                frameWidth /
+                spriteWidth
+                );
+
+        if (texX < 0)
+            texX = 0;
+
+        if (texX >= (int)frameWidth)
+            texX =
+            (int)frameWidth - 1;
+
+        // ======================================
+        // SOURCE
+        // ======================================
+
+        Rectangle sourceRec =
+        {
+            frameOffsetX + texX,
+            0.0f,
+            1.0f,
+            frameHeight
+        };
+
+        // ======================================
+        // DESTINATION
+        // ======================================
+
+        Rectangle destRec =
+        {
+            (float)stripe,
+            (float)drawStartY,
+            1.0f,
+            (float)(drawEndY - drawStartY)
+        };
+
+        DrawTexturePro(
+            sheet,
+            sourceRec,
+            destRec,
+            { 0.0f, 0.0f },
+            0.0f,
+            WHITE
+        );
+    }
 }
