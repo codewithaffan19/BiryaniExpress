@@ -93,7 +93,6 @@ void TextureManager::Load()
     //==========================
     // Animation Frames
     //==========================
-
     tileAnim[10] = LoadTexture("../assets/textures/6.3cafe_anim.png");
     tileAnim[11] = LoadTexture("../assets/textures/AFC_anim.png");
     tileAnim[12] = LoadTexture("../assets/textures/drumble_anim.png");
@@ -103,6 +102,7 @@ void TextureManager::Load()
     tileAnim[19] = LoadTexture("../assets/textures/SlimeLite_anim.png");
     tileAnim[20] = LoadTexture("../assets/textures/door_stop.png");
     tileAnim[21] = LoadTexture("../assets/textures/door_stop.png");
+
 
     //==========================
     // Floor

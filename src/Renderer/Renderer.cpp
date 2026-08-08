@@ -2,6 +2,8 @@
 #include "../World/Map.h"
 #include <cmath>
 #include "../Renderer/TextureManager.h"
+//Enemy states
+enum { STILL, CHASE, INTERROGATE, DEAD };
 Renderer::Renderer()
 {
 }
@@ -471,11 +473,23 @@ void Renderer::Draw(
 
     for (size_t i = 0; i < enemies.size(); i++)
     {
+        // Don't draw dead enemies
+        if (enemies[i].state == DEAD)
+            continue;
+
+        // --------------------------------------
+        // Position relative to player
+        // --------------------------------------
+
         Vector2 sprite =
         {
             enemies[i].position.x - playerPos.x,
             enemies[i].position.y - playerPos.y
         };
+
+        // --------------------------------------
+        // Camera transformation
+        // --------------------------------------
 
         float invDet =
             1.0f /
@@ -492,52 +506,78 @@ void Renderer::Draw(
             (-cameraPlane.y * sprite.x +
                 cameraPlane.x * sprite.y);
 
-        // Enemy behind player
-        if (transformY <= 0)
+        // Enemy is behind player
+        if (transformY <= 0.0f)
             continue;
+
+        // --------------------------------------
+        // Project enemy onto screen
+        // --------------------------------------
 
         int spriteScreenX =
             (int)(
-                (Config::SCREEN_WIDTH / 2) *
-                (1 + transformX / transformY)
+                (Config::SCREEN_WIDTH / 2.0f) *
+                (1.0f + transformX / transformY)
                 );
 
         int spriteHeight =
-            abs((int)(
-                Config::SCREEN_HEIGHT / transformY
-                ));
+            abs(
+                (int)(
+                    Config::SCREEN_HEIGHT / transformY
+                    )
+            );
 
         int spriteWidth = spriteHeight;
 
+        // --------------------------------------
         // Vertical boundaries
+        // --------------------------------------
+
         int drawStartY =
-            -(spriteHeight / 2) +
+            -spriteHeight / 2 +
+            Config::SCREEN_HEIGHT / 2;
+
+        int drawEndY =
+            spriteHeight / 2 +
             Config::SCREEN_HEIGHT / 2;
 
         if (drawStartY < 0)
             drawStartY = 0;
 
-        int drawEndY =
-            (spriteHeight / 2) +
-            Config::SCREEN_HEIGHT / 2;
-
         if (drawEndY >= Config::SCREEN_HEIGHT)
             drawEndY = Config::SCREEN_HEIGHT - 1;
 
+        // --------------------------------------
         // Horizontal boundaries
+        // --------------------------------------
+
         int drawStartX =
-            -(spriteWidth / 2) +
+            -spriteWidth / 2 +
+            spriteScreenX;
+
+        int drawEndX =
+            spriteWidth / 2 +
             spriteScreenX;
 
         if (drawStartX < 0)
             drawStartX = 0;
 
-        int drawEndX =
-            (spriteWidth / 2) +
-            spriteScreenX;
-
         if (drawEndX >= Config::SCREEN_WIDTH)
             drawEndX = Config::SCREEN_WIDTH - 1;
+
+        // If completely outside screen
+        if (drawStartX >= Config::SCREEN_WIDTH ||
+            drawEndX < 0)
+        {
+            continue;
+        }
+
+        // --------------------------------------
+        // Animation frame
+        // --------------------------------------
+
+        if (enemies[i].totalframes <= 0)
+            continue;
 
         float frameWidth =
             (float)enemies[i].spriteSheet.width /
@@ -547,58 +587,153 @@ void Renderer::Draw(
             (float)enemies[i].spriteSheet.height;
 
         float frameOffsetX =
-            enemies[i].currentframe * frameWidth;
+            enemies[i].currentframe *
+            frameWidth;
+
+        // --------------------------------------
+        // Draw enemy stripe-by-stripe
+        // --------------------------------------
 
         for (int stripe = drawStartX;
             stripe < drawEndX;
             stripe++)
         {
-            if (stripe >= 0 &&
-                stripe < Config::SCREEN_WIDTH &&
-                transformY < Zbuffer[stripe])
+            if (stripe < 0 ||
+                stripe >= Config::SCREEN_WIDTH)
             {
-                int trueStartX =
-                    -(spriteWidth / 2) +
-                    spriteScreenX;
-
-                int texX =
-                    (int)(
-                        (stripe - trueStartX) *
-                        frameWidth /
-                        spriteWidth
-                        );
-
-                if (texX < 0)
-                    texX = 0;
-
-                if (texX >= (int)frameWidth)
-                    texX = (int)frameWidth - 1;
-
-                Rectangle sourceRec =
-                {
-                    frameOffsetX + (float)texX,
-                    0.0f,
-                    1.0f,
-                    frameHeight
-                };
-
-                Rectangle destRec =
-                {
-                    (float)stripe,
-                    (float)drawStartY,
-                    1.0f,
-                    (float)spriteHeight
-                };
-
-                DrawTexturePro(
-                    enemies[i].spriteSheet,
-                    sourceRec,
-                    destRec,
-                    { 0, 0 },
-                    0.0f,
-                    WHITE
-                );
+                continue;
             }
+
+            // Z-buffer test
+            if (transformY >= Zbuffer[stripe])
+                continue;
+
+            int trueStartX =
+                -spriteWidth / 2 +
+                spriteScreenX;
+
+            int texX =
+                (int)(
+                    (stripe - trueStartX) *
+                    frameWidth /
+                    spriteWidth
+                    );
+
+            // Clamp texture X
+            if (texX < 0)
+                texX = 0;
+
+            if (texX >= (int)frameWidth)
+                texX = (int)frameWidth - 1;
+
+            // ----------------------------------
+            // Source rectangle
+            // ----------------------------------
+
+            Rectangle sourceRec =
+            {
+                frameOffsetX + (float)texX,
+                0.0f,
+                1.0f,
+                frameHeight
+            };
+
+            // ----------------------------------
+            // Destination rectangle
+            // ----------------------------------
+
+            Rectangle destRec =
+            {
+                (float)stripe,
+                (float)drawStartY,
+                1.0f,
+                (float)(drawEndY - drawStartY)
+            };
+
+            // ----------------------------------
+            // Draw
+            // ----------------------------------
+
+            DrawTexturePro(
+                enemies[i].spriteSheet,
+                sourceRec,
+                destRec,
+                { 0.0f, 0.0f },
+                0.0f,
+                WHITE
+            );
+        }
+
+        // ======================================
+        // ENEMY BUBBLES
+        // ======================================
+
+        for (int j = 0; j < 12; j++)
+        {
+            if (!enemies[i].bubbles[j].active)
+                continue;
+
+            Vector2 bubbleSprite =
+            {
+                enemies[i].bubbles[j].position.x - playerPos.x,
+                enemies[i].bubbles[j].position.y - playerPos.y
+            };
+
+            // Camera transformation
+            float bubbleInvDet =
+                1.0f /
+                (cameraPlane.x * playerDir.y -
+                    cameraPlane.y * playerDir.x);
+
+            float bubbleTransformX =
+                bubbleInvDet *
+                (playerDir.y * bubbleSprite.x -
+                    playerDir.x * bubbleSprite.y);
+
+            float bubbleTransformY =
+                bubbleInvDet *
+                (-cameraPlane.y * bubbleSprite.x +
+                    cameraPlane.x * bubbleSprite.y);
+
+            // Behind camera
+            if (bubbleTransformY <= 0.0f)
+                continue;
+
+            int bubbleScreenX =
+                (int)(
+                    (Config::SCREEN_WIDTH / 2.0f) *
+                    (1.0f +
+                        bubbleTransformX /
+                        bubbleTransformY)
+                    );
+
+            int bubbleScreenY =
+                Config::SCREEN_HEIGHT / 2;
+
+            float projectedRadius =
+                (enemies[i].bubbles[j].radius /
+                    bubbleTransformY) *
+                2.0f;
+
+            unsigned char alpha =
+                (unsigned char)(
+                    enemies[i].bubbles[j].life * 255
+                    );
+
+            Color bubbleColor =
+            {
+                173,
+                216,
+                230,
+                alpha
+            };
+
+            DrawCircle(
+                bubbleScreenX,
+                bubbleScreenY,
+                projectedRadius,
+                bubbleColor
+            );
         }
     }
 
@@ -695,7 +830,7 @@ void Renderer::Draw(
             weaponTex,
             src,
             dst,
-            { 0, 0 },
+            { 0.0f, 0.0f },
             0.0f,
             WHITE
         );
@@ -720,6 +855,21 @@ void Renderer::Draw(
         Zbuffer,
         { 24.5f, 23.5f }
     );
+
+    // ==========================================
+    // HIT MESSAGE
+    // ==========================================
+
+    if (player.hitmessagetimer > 0)
+    {
+        DrawText(
+            "BAM! UNCLE HIT!",
+            GetScreenWidth() / 2 - 150,
+            GetScreenHeight() / 2 + 100,
+            40,
+            GREEN
+        );
+    }
 }
 void Renderer::DrawDoorMarker(
     Vector2 playerPos,

@@ -22,7 +22,7 @@ private:
     void Update();
     void Draw();
     void Shutdown();
-
+    void CheckSpoonCollosion(Player& a, Enemy& E1);
 private:
     bool running = false;
 
