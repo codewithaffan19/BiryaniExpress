@@ -485,7 +485,7 @@ void Renderer::Draw(
         DrawText("BAM! UNCLE HIT!", GetScreenWidth() / 2 - 150, GetScreenHeight() / 2 + 100, 40, GREEN);
     }
 }
-void Renderer::DrawDoor(
+void Renderer::DrawDoorMarker(
     Vector2 playerPos,
     Vector2 playerDir,
     Vector2 cameraPlane,
