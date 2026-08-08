@@ -81,9 +81,30 @@ void TextureManager::Load()
     tileNames[19] = "SlimeLite";
 
     //==========================
+    // Door
+    //==========================
+
+    tiles[20] = LoadTexture("../assets/textures/door_idle.png");
+    tileNames[20] = "EntranceDoor";
+
+    tiles[21] = LoadTexture("../assets/textures/door_idle.png");
+    tileNames[21] = "ExitDoor";
+
+    //==========================
     // Animation Frames
     //==========================
 
+<<<<<<< HEAD
+    tileAnim[10] = LoadTexture("../assets/textures/6.3cafe_anim.png");
+    tileAnim[11] = LoadTexture("../assets/textures/AFC_anim.png");
+    tileAnim[12] = LoadTexture("../assets/textures/drumble_anim.png");
+    tileAnim[13] = LoadTexture("../assets/textures/CHIPS_anim.png");
+    tileAnim[14] = LoadTexture("../assets/textures/wall8_anim.png");
+    tileAnim[18] = LoadTexture("../assets/textures/AMW_anim.png");
+    tileAnim[19] = LoadTexture("../assets/textures/SlimeLite_anim.png");
+    tileAnim[20] = LoadTexture("../assets/textures/door_stop.png");
+    tileAnim[21] = LoadTexture("../assets/textures/door_stop.png");
+=======
     tileAnim[10] = LoadTexture("../../assets/textures/6.3cafe_anim.png");
     tileAnim[11] = LoadTexture("../../assets/textures/AFC_anim.png");
     tileAnim[12] = LoadTexture("../../assets/textures/drumble_anim.png");
@@ -91,6 +112,7 @@ void TextureManager::Load()
     tileAnim[14] = LoadTexture("../../assets/textures/wall8_anim.png");
     tileAnim[18] = LoadTexture("../../assets/textures/AMW_anim.png");
     tileAnim[19] = LoadTexture("../../assets/textures/SlimeLite_anim.png");
+>>>>>>> 5cbc5611331ec0ecf0f9e96df0355fe07f4aa72d
 
     //==========================
     // Floor
@@ -104,6 +126,8 @@ void TextureManager::Load()
 
     skyTex = LoadTexture("../../assets/textures/sky.png");
     SetTextureFilter(skyTex, TEXTURE_FILTER_BILINEAR);
+<<<<<<< HEAD
+=======
     //==========================
     // Door
     //==========================
@@ -113,6 +137,7 @@ void TextureManager::Load()
 
     for (int i = 0; i < 3; i++)
         SetTextureFilter(door[i], TEXTURE_FILTER_BILINEAR);
+>>>>>>> 5cbc5611331ec0ecf0f9e96df0355fe07f4aa72d
 }
 void TextureManager::Unload()
 {
@@ -142,9 +167,5 @@ void TextureManager::Unload()
 
     if (skyTex.id != 0)
         UnloadTexture(skyTex);
-    for (int i = 0; i < 3; i++)
-    {
-        if (door[i].id != 0)
-            UnloadTexture(door[i]);
-    }
+
 }

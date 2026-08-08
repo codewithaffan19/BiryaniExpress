@@ -12,7 +12,7 @@ void Editor::Update(Map& map)
 
     int y = 55;
 
-    for (int i = 0; i < 20; i++)
+    for (int i = 0; i < 22; i++)
     {
         Rectangle item =
         {
@@ -152,7 +152,7 @@ void Editor::Draw(Map& map)
 
     int y = 55;
 
-    for (int i = 0; i < 20; i++)
+    for (int i = 0; i < 22; i++)
     {
         Rectangle item =
         {

@@ -25,14 +25,25 @@ public:
     Texture2D floorTexture;
     void LoadTextures();
     void UnloadTextures();
-    void DrawDoor(
+    void DrawDoorMarker(
         Vector2 playerPos,
         Vector2 playerDir,
         Vector2 cameraPlane,
-        float Zbuffer[]);
+        float Zbuffer[],
+        Vector2 markerPos);
+    void StartFadeIn();
+    void StartFadeOut();
+bool IsFadeFinished() const;
+
+void UpdateFade(float dt);
+
+void DrawFade();
 private:
 
+    float fadeAlpha = 0.0f;
 
+    bool fadingIn = false;
+    bool fadingOut = false;
     float cloudOffset = 0.0f;
     void DrawWallColumn(
         int screenX,
@@ -42,6 +53,5 @@ private:
         float wallX);
 
     void DrawSky(Vector2 playerDir);
-    void DrawSunAndClouds();
     void DrawFloor(Vector2 PlayerPos, Vector2 PlayerDir,Vector2 CameraPlane);
 };

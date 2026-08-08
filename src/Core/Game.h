@@ -36,4 +36,10 @@ private:
     Editor editor;
     std::vector<Enemy>enemies;
     bool editorMode = false;
+    bool insideMarket = false;
+
+    bool teleportPending = false;
+
+    Vector2 outsideDoor = { 8.5f, 2.5f };
+    Vector2 insideDoor = { 11.5f, 2.5f };
 };

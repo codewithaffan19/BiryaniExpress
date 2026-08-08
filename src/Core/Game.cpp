@@ -6,7 +6,11 @@
 #include "../Renderer/Renderer.h"
 #include "../World/Map.h"
 #include "../Renderer/TextureManager.h"
+<<<<<<< HEAD
+#include "raymath.h"
+=======
 #include "../World/Collision.h"
+>>>>>>> 5cbc5611331ec0ecf0f9e96df0355fe07f4aa72d
 Game::Game()
 {
     running = true;
@@ -118,8 +122,24 @@ void Game::Update()
             CheckPlayerEnemyCollision(player, enemies[i],map);
             CheckSpoonCollosion(player, enemies[i]);
         }
-    }
 
+    }
+    Vector2 playerPos = player.GetPosition();
+
+    Vector2 targetDoor =
+        insideMarket ? insideDoor : outsideDoor;
+
+    float dist =
+        Vector2Distance(playerPos, targetDoor);
+
+    if (dist < 1.2f)
+    {
+        if (IsKeyPressed(KEY_E))
+        {
+            renderer.StartFadeIn();
+            teleportPending = true;
+        }
+    }
     if (input.IsKeyPressed(KEY_ESCAPE))
         running = false;
 }
@@ -143,6 +163,52 @@ void Game::Draw()
             map, enemies,player
         );
     }
+    Vector2 playerPos = player.GetPosition();
+
+    Vector2 targetDoor =
+        insideMarket ? insideDoor : outsideDoor;
+
+    float distOutside =
+        Vector2Distance(playerPos, outsideDoor);
+
+    float distInside =
+        Vector2Distance(playerPos, insideDoor);
+
+    if (distOutside < 1.2f || distInside < 1.2f)
+    {
+        DrawText(
+            insideMarket ?
+            "Press E to Exit"
+            :
+            "Press E to Enter",
+
+            Config::SCREEN_WIDTH / 2 - 120,
+            Config::SCREEN_HEIGHT - 80,
+            24,
+            YELLOW
+        );
+    }
+    renderer.UpdateFade(GetFrameTime());
+    if (teleportPending &&
+        renderer.IsFadeFinished())
+    {
+        teleportPending = false;
+
+        if (!insideMarket)
+        {
+            player.position = insideDoor;
+        }
+        else
+        {
+            player.position = outsideDoor;
+        }
+
+        insideMarket = !insideMarket;
+
+        // start fade out
+        renderer.StartFadeOut();
+    }
+    renderer.DrawFade();
 
     DrawFPS(20, 20);
 

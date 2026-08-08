@@ -16,6 +16,5 @@ public:
     Texture2D tileAnim[MAX_TILES]{};
     Color* tilePixels[MAX_TILES]{};
     Texture2D skyTex;
-    Texture2D door[3];
     std::string tileNames[MAX_TILES];
 };
