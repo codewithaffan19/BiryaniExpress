@@ -468,7 +468,6 @@ void Renderer::Draw(
         { 0,0 },
         0.0f,
         WHITE);
-<<<<<<< HEAD
     DrawDoorMarker(
         playerPos,
         playerDir,
@@ -482,7 +481,6 @@ void Renderer::Draw(
         cameraPlane,
         Zbuffer,
         { 24.5f, 23.5f });
-=======
     if (player.hitmessagetimer > 0) {
         DrawText("BAM! UNCLE HIT!", GetScreenWidth() / 2 - 150, GetScreenHeight() / 2 + 100, 40, GREEN);
     }
@@ -576,7 +574,6 @@ void Renderer::UpdateFade(float dt)
             fadingIn = false;
         }
     }
-<<<<<<< HEAD
 
     if (fadingOut)
     {
@@ -605,7 +602,4 @@ void Renderer::StartFadeOut()
 {
     fadingOut = true;
     fadingIn = false;
-=======
-    
->>>>>>> 5cbc5611331ec0ecf0f9e96df0355fe07f4aa72d
 }

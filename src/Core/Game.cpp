@@ -6,11 +6,9 @@
 #include "../Renderer/Renderer.h"
 #include "../World/Map.h"
 #include "../Renderer/TextureManager.h"
-<<<<<<< HEAD
+
 #include "raymath.h"
-=======
 #include "../World/Collision.h"
->>>>>>> 5cbc5611331ec0ecf0f9e96df0355fe07f4aa72d
 Game::Game()
 {
     running = true;
