@@ -2,6 +2,7 @@
 #include "../World/Map.h"
 #include "../Player/Player.h"
 #include "../Enemy.h"
+#include "../NPC/NPC.h"
 //Objects 
 enum { NOWALL, WALL };
 Vector2 CheckMapCollosion(Vector2 pos, float PlayerRadius, Vector2 Velocity, Map& map) {
@@ -56,6 +57,32 @@ void CheckPlayerEnemyCollision(Player& p, Enemy& E,Map&m1) {
 
 		float movedX = p.position.x - OldPlayerPos.x;
 		float movedY = p.position.y - OldPlayerPos.y;
+		float actualMovedDis = sqrt((movedX * movedX) + (movedY * movedY));
+		//Moveable distance check
+		float EnemyForce = pushforce + (pushforce - actualMovedDis);
+
+		Vector2 EnemyBumpVelocity = { NormalX * EnemyForce, NormalY * EnemyForce };
+		E.position = CheckMapCollosion(E.position, E.radius, EnemyBumpVelocity, m1);
+	}
+}
+void CheckPlayerNPCCollision(Player& E, NPC& p, Map& m1) {
+	float dx = E.position.x - p.GetPosition().x;
+	float dy = E.position.y - p.GetPosition().y;
+	float dis = sqrt((dx * dx) + (dy * dy));
+	float RadiiSum = E.radius;
+
+	if (dis > 0.0001f && dis < RadiiSum) {
+		float Overlap = RadiiSum - dis;
+		float pushforce = Overlap / 2.0f;
+		float NormalX = dx / dis;
+		float NormalY = dy / dis;
+		Vector2 PlayerBumpVelocity = { -NormalX * pushforce, -NormalY * pushforce };
+
+		Vector2 OldPlayerPos = p.GetPosition();
+		p.GetPosition() = CheckMapCollosion(p.GetPosition(), p.radius, PlayerBumpVelocity, m1);
+
+		float movedX = p.GetPosition().x - OldPlayerPos.x;
+		float movedY = p.GetPosition().y - OldPlayerPos.y;
 		float actualMovedDis = sqrt((movedX * movedX) + (movedY * movedY));
 		//Moveable distance check
 		float EnemyForce = pushforce + (pushforce - actualMovedDis);

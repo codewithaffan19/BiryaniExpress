@@ -6,10 +6,20 @@
 class InputManager;
 class Map;
 
-enum WeaponType {
-    WEAPON_SPOON,WEAPON_CHAPPAL
+enum ItemID {
+    ITEM_EMPTY = 0,
+    ITEM_SPOON = 1,
+    ITEM_CHAPPAL = 2,
+    ITEM_BIRYANI = 3,
+    ITEM_DRUMBLE = 4,
+    ITEM_AFC = 5,
+    ITEM_MIKE=6,
+    ITEM_CLINIX=7,
 };
 
+struct InventorySlot {
+    int id = ITEM_EMPTY;
+};
 
 class Player{
 public:
@@ -24,16 +34,21 @@ public:
 
     Vector2 GetDirection() const;
     Vector2 GetCameraPlane() const;
-    WeaponType ActivateWeapon()const;
+
     float weaponbobtimer;
     float moveSpeed;
     float radius;
     Vector2 position;
-    std::vector<WeaponType>Inventory;
     int currentWeaponIndex;
     int hitmessagetimer;
     Texture2D handTex;
+    int GetActiveWeapon()const;
     Vector2 GetPosition() const;
+    void SwitchWeapon();
+    bool PickUpItem(int newItem);
+    InventorySlot MissionPouch[3];
+    InventorySlot WeaponPouch[2];
+    int CurrentWeaponIndex = 0;
 private:
     Vector2 direction;
     Vector2 cameraPlane;

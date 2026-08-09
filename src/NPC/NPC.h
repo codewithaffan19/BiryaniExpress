@@ -2,24 +2,22 @@
 
 #include "raylib.h"
 #include <string>
-
+#include <cmath>
+#include "../Player/Player.h"
 class NPC
 {
 public:
-
     NPC();
-
     // Load NPC sprite sheet
     bool Load(
         const std::string& name,
         const std::string& texturePath,
         Vector2 position
     );
-
     void Unload();
 
     // Update NPC state
-    void Update(Vector2 playerPos);
+    void Update(Vector2 playerPos,Player&p);
 
     // Draw NPC
     void Draw(
@@ -40,7 +38,8 @@ public:
 
     bool IsNear() const;
     bool IsInteracting() const;
-
+    float radius;
+    int myItem;
 private:
 
     std::string name;

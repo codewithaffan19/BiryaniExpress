@@ -111,6 +111,7 @@ void Game::Initialize()
     npcs.clear();
 
     NPC afc;
+    afc.myItem = ITEM_AFC;
     if (!afc.Load(
         "AFC Waiter",
         "../assets/textures/AFC_waiter.png",
@@ -121,6 +122,7 @@ void Game::Initialize()
     npcs.push_back(afc);
 
     NPC mike;
+    mike.myItem = ITEM_MIKE;
     if (!mike.Load(
         "MIKE Waiter",
         "../assets/textures/MIKE_waiter.png",
@@ -131,6 +133,7 @@ void Game::Initialize()
     npcs.push_back(mike);
 
     NPC clinex;
+    clinex.myItem = ITEM_CLINIX;
     if (!clinex.Load(
         "CLINEX Waiter",
         "../assets/textures/CLINEX_waiter.png",
@@ -141,6 +144,7 @@ void Game::Initialize()
     npcs.push_back(clinex);
 
     NPC drumble;
+    drumble.myItem = ITEM_DRUMBLE;
     if (!drumble.Load(
         "DRUMBLE Waiter",
         "../assets/textures/DRUMBLE_waiter.png",
@@ -222,9 +226,10 @@ void Game::Update()
             CheckPlayerEnemyCollision(player, enemies[i],map);
             CheckSpoonCollosion(player, enemies[i]);
         }
-
+        for (int i = 0; i < npcs.size(); i++) {
+            CheckPlayerNPCCollision(player, npcs[i], map);
+        }
     }
-
     // ==========================================
 // UPDATE NPCs
 // ==========================================
@@ -233,7 +238,7 @@ void Game::Update()
 
     for (NPC& npc : npcs)
     {
-        npc.Update(playerPos);
+        npc.Update(playerPos,player);
     }
 
     Vector2 targetDoor =
@@ -253,6 +258,7 @@ void Game::Update()
     if (input.IsKeyPressed(KEY_ESCAPE))
         running = false;
 }
+
 
 void Game::Draw()
 {

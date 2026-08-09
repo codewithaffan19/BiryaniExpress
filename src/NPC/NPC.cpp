@@ -2,6 +2,9 @@
 
 #include "raylib.h"
 #include <cmath>
+#include <string>
+#include "../Player/Player.h"
+#include <iostream>
 
 // ============================================================
 // CONSTRUCTOR
@@ -9,6 +12,7 @@
 
 NPC::NPC()
 {
+    radius = 0.25f;
 }
 
 // ============================================================
@@ -151,7 +155,7 @@ void NPC::Unload()
 // UPDATE
 // ============================================================
 
-void NPC::Update(Vector2 playerPos)
+void NPC::Update(Vector2 playerPos,Player&p)
 {
     float dt = GetFrameTime();
 
@@ -195,7 +199,7 @@ void NPC::Update(Vector2 playerPos)
 
         // Frame 4
         currentFrame = 3;
-
+        
         if (interactionTimer >= interactionDuration)
         {
             interacting = false;
@@ -230,6 +234,13 @@ void NPC::Update(Vector2 playerPos)
         if (IsKeyPressed(KEY_E))
         {
             StartInteraction();
+            bool f=p.PickUpItem(myItem);
+            if (f) {
+                std::cout << "Item picked up successfully\n";
+            }
+            else{
+                std::cout << "No empty space\n";
+            }
         }
 
         return;
