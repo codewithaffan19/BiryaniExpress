@@ -15,7 +15,8 @@ class Renderer
 public:
 
     Renderer();
-
+    void DrawHud(Player&p);
+    void DrawInventoryHUD(Player& p);
     void Draw(
         Vector2 playerPos,
         Vector2 playerDir,

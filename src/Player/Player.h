@@ -34,7 +34,8 @@ public:
 
     Vector2 GetDirection() const;
     Vector2 GetCameraPlane() const;
-
+    int health=85;
+    int maxhealth = 100;
     float weaponbobtimer;
     float moveSpeed;
     float radius;

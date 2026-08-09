@@ -331,9 +331,10 @@ void Game::Draw()
 
     renderer.DrawFade();
 
-    DrawFPS(20, 20);
+   // DrawFPS(20, 20);
 
     EndDrawing();
+
 }
 
 void Game::Shutdown()

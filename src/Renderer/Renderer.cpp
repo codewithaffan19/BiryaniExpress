@@ -152,6 +152,85 @@ void Renderer::DrawMarketRoof(Vector2 playerDir)
         );
     }
 }
+
+void Renderer::DrawHud(Player& p) {
+    int barX = 20;
+    int barY = 20;
+    int MaxBarWidth = 320;
+    int barHeight = 46;
+    int bazel=4;
+    float healthPercentage = (float) p.health / (float)p.maxhealth;
+    if (healthPercentage < 0.0f) {
+        healthPercentage = 0.0f;
+    }
+    int currentwidth = healthPercentage * MaxBarWidth;
+    //Layer1 Dark outer shadow
+    DrawRectangleRounded({ (float)barX - 2,(float)barY - 2,(float)MaxBarWidth + 4,(float)barHeight + 4 }, 0.15f, 4, BLACK);
+   //Layer2 Metallic outer bazel
+    DrawRectangleRounded({ (float)barX,(float)barY ,(float)MaxBarWidth,(float)barHeight }, 0.15f, 4, GRAY);
+    //Layer3 DarkInnerTrough
+    int innerX = barX + bazel;
+    int innerY = barY + bazel;
+    int innerW = MaxBarWidth - (bazel * 2);
+    int innerH = barHeight - (bazel * 2);
+    DrawRectangleRounded({ (float)innerX,(float)innerY,(float)innerW,(float)innerH }, 0.1f, 4, DARKGRAY);
+    //Layer4 heart icon
+    int IconBoxWidth = 42;
+    DrawRectangle(innerX, innerY, IconBoxWidth, innerH, MAROON);
+    DrawRectangleLines(innerX, innerY, IconBoxWidth, innerH, BLACK);
+    //Layer5
+    int BarX = innerX + IconBoxWidth + 4;
+    int BarY = innerY + 4;
+    int MaxBarW = innerW - IconBoxWidth - 8;
+    int BarH = innerH - 8;
+    int CurrentbarW = (int)(MaxBarW * healthPercentage);
+    DrawRectangle(BarX, BarY, MaxBarW, BarH, BLACK);
+    if (CurrentbarW > 0) {
+        DrawRectangle(BarX, BarY, CurrentbarW, BarH, RED);
+
+        // Optional Retro 3D Highlight Line (Top edge of red bar)
+        DrawRectangle(BarX, BarY, CurrentbarW, 3, MAROON);
+    }
+    float size = 22;
+    float r = size * 0.28f;
+    float x = BarX - 35;
+    float y = BarY + 5;
+    // Two lobes (top of the heart)
+    DrawCircleV({ x + r, y + r }, r, RED);
+    DrawCircleV({ x + size - r, y + r }, r, RED);
+
+    // Bottom point (triangle)
+    Vector2 v1 = { x, y + r };
+    Vector2 v2 = { x + size, y + r };
+    Vector2 v3 = { x + size / 2, y + size };
+
+    DrawTriangle(v1, v3, v2, RED);
+    //Layer 6
+    const char* healthStr = TextFormat("HEALTH %i%%", (int)(healthPercentage * 100));
+    DrawText(healthStr, barX + 60, barY + 15, 20, WHITE);
+}
+
+void Renderer::DrawInventoryHUD(Player& p) {
+    int slotSize = 70;
+    int slotGap = 12;
+    int slotX = Config::SCREEN_WIDTH - slotSize - 20;
+    int startY = 20;
+
+    for (int i = 0; i < 2; i++) {
+        int slotY = startY + i * (slotSize + slotGap);
+            bool isSelected = (i == p.currentWeaponIndex);
+            Color BgColor = isSelected ? Fade(SKYBLUE, 0.4f) : Fade(BLACK, 0.4f);
+            DrawRectangle(slotX, slotY, slotSize, slotSize, BgColor);
+
+            Color BorderColor = isSelected ? YELLOW : GRAY;
+
+            DrawRectangleLinesEx({ (float)slotX,(float)slotY,(float)slotSize,(float)slotSize }, isSelected ? 3.0f : 2.0f, BorderColor);
+      
+            DrawText(TextFormat("%d", i), slotX + 6, slotY + 6, 14, WHITE);
+    }
+
+}
+
 void Renderer::DrawStreetFloor(Vector2 playerPos, Vector2 playerDir, Vector2 cameraPlane)
 {
 
@@ -902,6 +981,8 @@ void Renderer::Draw(
             GREEN
         );
     }
+    DrawHud(player);
+    DrawInventoryHUD(player);
 }
 void Renderer::DrawDoorMarker(
     Vector2 playerPos,

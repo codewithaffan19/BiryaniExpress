@@ -14,7 +14,8 @@ Player::Player()
     radius = 0.25f;
     currentWeaponIndex = 0;
     hitmessagetimer = 0;
-
+    WeaponPouch[0].id = ITEM_SPOON;
+    WeaponPouch[1].id = ITEM_CHAPPAL;
 }
 int Player::GetActiveWeapon()const {
     return WeaponPouch[currentWeaponIndex].id;
@@ -51,6 +52,7 @@ bool Player::PickUpItem(int newItem) {
 
         return false;
     }   
+
     return false;
 }
 void Player::Update(
@@ -59,13 +61,12 @@ void Player::Update(
     Map& map)
 {
     //Inventory
-    if (IsKeyDown(KEY_ONE)&&WeaponPouch[0].id!=ITEM_EMPTY) {
+    if (IsKeyPressed(KEY_ONE)&&WeaponPouch[0].id!=ITEM_EMPTY) {
         SwitchWeapon();
     }
-    if (IsKeyDown(KEY_TWO)&& WeaponPouch[0].id != ITEM_EMPTY) {
+    else if (IsKeyPressed(KEY_TWO)&& WeaponPouch[1].id != ITEM_EMPTY) {
         SwitchWeapon();
     }
-
 
     bool isWalking = IsKeyDown(KEY_W) || IsKeyDown(KEY_A) || IsKeyDown(KEY_S) || IsKeyDown(KEY_D);
     if (isWalking) {
