@@ -2,7 +2,6 @@
 
 #include "raylib.h"
 #include <string>
-#include <cmath>
 
 class NPC
 {
@@ -22,7 +21,7 @@ public:
     // Update NPC state
     void Update(Vector2 playerPos);
 
-    // Draw NPC using raycasting projection + Z-buffer
+    // Draw NPC
     void Draw(
         Vector2 playerPos,
         Vector2 playerDir,
@@ -50,9 +49,15 @@ private:
 
     Vector2 position = { 0, 0 };
 
-    // ------------------------------------------------
-    // Animation
-    // ------------------------------------------------
+    // ========================================================
+    // NPC TYPE
+    // ========================================================
+
+    bool isJack = false;
+
+    // ========================================================
+    // NORMAL NPC ANIMATION
+    // ========================================================
 
     int currentFrame = 0;
     int totalFrames = 4;
@@ -64,23 +69,62 @@ private:
 
     float idleFrameTime = 0.45f;
 
-    // ------------------------------------------------
-    // Interaction
-    // ------------------------------------------------
+    // ========================================================
+    // JACK ANIMATION
+    // ========================================================
+
+    int jackFrame = 0;
+
+    int jackInteractionStage = 0;
+
+    bool jackAnimating = false;
+
+    float jackAnimationTimer = 0.0f;
+
+    float jackFrameTime = 1.0f;
+
+    // ========================================================
+    // JACK AUDIO
+    // ========================================================
+
+    Sound jackDialogue1{};
+    Sound jackDialogue2{};
+    Sound jackDialogue3{};
+
+    bool jackAudioLoaded = false;
+
+    // ========================================================
+    // INTERACTION
+    // ========================================================
 
     float interactionDistance = 2.0f;
 
     bool playerIsNear = false;
     bool interacting = false;
-    bool isFountain = false;
-    void SetFountain(bool value);
+
     float interactionTimer = 0.0f;
 
-    float interactionDuration = 0.7f;
+    float interactionDuration = 1.5f;
+
+    // ========================================================
+    // NORMAL NPC FUNCTIONS
+    // ========================================================
 
     void UpdateIdleAnimation(float dt);
 
     void StartInteraction();
+
+    // ========================================================
+    // JACK FUNCTIONS
+    // ========================================================
+
+    void UpdateJack(float dt);
+
+    void StartJackInteraction();
+
+    // ========================================================
+    // DRAW
+    // ========================================================
 
     void DrawSprite(
         Vector2 playerPos,

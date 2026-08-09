@@ -1,15 +1,16 @@
 #include "NPC.h"
-#include<algorithm>
+
+#include "raylib.h"
 #include <cmath>
-#include <string>
+
+// ============================================================
+// CONSTRUCTOR
+// ============================================================
 
 NPC::NPC()
 {
 }
-void NPC::SetFountain(bool value)
-{
-    isFountain = value;
-}
+
 // ============================================================
 // LOAD
 // ============================================================
@@ -22,38 +23,100 @@ bool NPC::Load(
     name = npcName;
     position = npcPosition;
 
-    // Automatically identify fountain
-    isFountain = (name == "Fountain");
+    // --------------------------------------------------------
+    // Identify Jack
+    // --------------------------------------------------------
 
-    spriteSheet = LoadTexture(texturePath.c_str());
+    isJack =
+        (name == "Jack" ||
+            name == "JACK");
+    // ========================================================
+// JACK AUDIO
+// ========================================================
+
+    if (isJack)
+    {
+        jackDialogue1 =
+            LoadSound("../assets/audio/jack_dialogue_1.wav");
+
+        jackDialogue2 =
+            LoadSound("../assets/audio/jack_dialogue_2.wav");
+
+        jackDialogue3 =
+            LoadSound("../assets/audio/jack_dialogue_3.wav");
+
+        jackAudioLoaded =
+            (jackDialogue1.frameCount > 0 &&
+                jackDialogue2.frameCount > 0 &&
+                jackDialogue3.frameCount > 0);
+    }
+    // --------------------------------------------------------
+    // Load sprite sheet
+    // --------------------------------------------------------
+
+    spriteSheet =
+        LoadTexture(texturePath.c_str());
 
     if (spriteSheet.id == 0)
     {
         return false;
     }
 
-    // We expect one horizontal sprite sheet:
-    //
-    // | FRAME 0 | FRAME 1 | FRAME 2 | FRAME 3 |
-    //
-
-    frameWidth =
-        (float)spriteSheet.width / totalFrames;
-
-    frameHeight =
-        (float)spriteSheet.height;
-
     SetTextureFilter(
         spriteSheet,
         TEXTURE_FILTER_POINT
     );
 
+    // --------------------------------------------------------
+    // NORMAL NPCS
+    // 1 row x 4 columns
+    // --------------------------------------------------------
+
+    if (!isJack)
+    {
+        totalFrames = 4;
+
+        frameWidth =
+            (float)spriteSheet.width / 4.0f;
+
+        frameHeight =
+            (float)spriteSheet.height;
+    }
+
+    // --------------------------------------------------------
+    // JACK
+    // 4 columns x 2 rows
+    // --------------------------------------------------------
+
+    else
+    {
+        totalFrames = 8;
+
+        frameWidth =
+            (float)spriteSheet.width / 4.0f;
+
+        frameHeight =
+            (float)spriteSheet.height / 2.0f;
+    }
+
+    // --------------------------------------------------------
+    // Reset animation
+    // --------------------------------------------------------
+
     currentFrame = 0;
+
     animationTimer = 0.0f;
 
     playerIsNear = false;
     interacting = false;
+
     interactionTimer = 0.0f;
+
+    // Jack reset
+    jackFrame = 0;
+    jackInteractionStage = 0;
+    jackAnimating = false;
+    jackAnimationTimer = 0.0f;
 
     return true;
 }
@@ -69,6 +132,19 @@ void NPC::Unload()
         UnloadTexture(spriteSheet);
         spriteSheet.id = 0;
     }
+
+    // ========================================================
+    // JACK AUDIO
+    // ========================================================
+
+    if (isJack && jackAudioLoaded)
+    {
+        UnloadSound(jackDialogue1);
+        UnloadSound(jackDialogue2);
+        UnloadSound(jackDialogue3);
+
+        jackAudioLoaded = false;
+    }
 }
 
 // ============================================================
@@ -80,7 +156,7 @@ void NPC::Update(Vector2 playerPos)
     float dt = GetFrameTime();
 
     // --------------------------------------------------------
-    // Calculate distance from player
+    // Distance from player
     // --------------------------------------------------------
 
     float dx =
@@ -95,38 +171,62 @@ void NPC::Update(Vector2 playerPos)
     playerIsNear =
         distance <= interactionDistance;
 
+    // ========================================================
+    // JACK
+    // ========================================================
+
+    if (isJack)
+    {
+        UpdateJack(dt);
+        return;
+    }
+
+    // ========================================================
+    // NORMAL NPCS
+    // ========================================================
+
     // --------------------------------------------------------
-    // INTERACTION ANIMATION
+    // Currently doing normal E interaction
     // --------------------------------------------------------
 
     if (interacting)
     {
         interactionTimer += dt;
 
-        // Frame 3 = interaction animation
+        // Frame 4
         currentFrame = 3;
 
         if (interactionTimer >= interactionDuration)
         {
             interacting = false;
+
             interactionTimer = 0.0f;
-            animationTimer = 0.0f;
-            currentFrame = 0;
+
+            // Go back to frame 3 while player remains near
+            if (playerIsNear)
+            {
+                currentFrame = 2;
+            }
+            else
+            {
+                currentFrame = 0;
+                animationTimer = 0.0f;
+            }
         }
 
         return;
     }
 
     // --------------------------------------------------------
-    // PLAYER IS NEAR
+    // Player near normal NPC
     // --------------------------------------------------------
 
     if (playerIsNear)
     {
-        // Frame 2 = player nearby
+        // Frame 3 while player is near
         currentFrame = 2;
 
-        // Press E to interact
+        // Press E
         if (IsKeyPressed(KEY_E))
         {
             StartInteraction();
@@ -136,14 +236,14 @@ void NPC::Update(Vector2 playerPos)
     }
 
     // --------------------------------------------------------
-    // NORMAL IDLE ANIMATION
+    // Player far away
     // --------------------------------------------------------
 
     UpdateIdleAnimation(dt);
 }
 
 // ============================================================
-// IDLE ANIMATION
+// NORMAL NPC IDLE ANIMATION
 // ============================================================
 
 void NPC::UpdateIdleAnimation(float dt)
@@ -154,15 +254,21 @@ void NPC::UpdateIdleAnimation(float dt)
     {
         animationTimer = 0.0f;
 
+        // Frames 1 and 2
+        // Internally they are 0 and 1.
         if (currentFrame == 0)
+        {
             currentFrame = 1;
+        }
         else
+        {
             currentFrame = 0;
+        }
     }
 }
 
 // ============================================================
-// START INTERACTION
+// NORMAL NPC INTERACTION
 // ============================================================
 
 void NPC::StartInteraction()
@@ -171,10 +277,244 @@ void NPC::StartInteraction()
 
     interactionTimer = 0.0f;
 
-    // Frame 3
+    // Frame 4
     currentFrame = 3;
 }
 
+// ============================================================
+// JACK UPDATE
+// ============================================================
+
+// ============================================================
+// JACK UPDATE
+// ============================================================
+
+void NPC::UpdateJack(float dt)
+{
+    // --------------------------------------------------------
+    // PLAYER IS FAR AWAY
+    // --------------------------------------------------------
+
+    if (!playerIsNear)
+    {
+        // Completely reset Jack when player walks away
+        jackFrame = 0;
+        jackInteractionStage = 0;
+        jackAnimating = false;
+        jackAnimationTimer = 0.0f;
+
+        return;
+    }
+
+    // --------------------------------------------------------
+    // JACK IS CURRENTLY ANIMATING
+    // --------------------------------------------------------
+
+    if (jackAnimating)
+    {
+        jackAnimationTimer += dt;
+
+        if (jackAnimationTimer >= jackFrameTime)
+        {
+            jackAnimationTimer = 0.0f;
+
+            // =================================================
+            // SECOND E ANIMATION
+            //
+            // Frame sequence:
+            //
+            // 2 -> 3 -> 4
+            //
+            // Row 1 image 3
+            // Row 1 image 4
+            // Row 2 image 1
+            //
+            // STOP at frame 4.
+            // DO NOT continue to frame 5.
+            // =================================================
+
+            if (jackInteractionStage == 2)
+            {
+                jackFrame++;
+
+                if (jackFrame > 4)
+                {
+                    // Stay on Row 2 Image 1
+                    jackFrame = 4;
+
+                    // STOP animation
+                    jackAnimating = false;
+
+                    jackAnimationTimer = 0.0f;
+                }
+
+                return;
+            }
+
+            // =================================================
+            // THIRD E ANIMATION
+            //
+            // Frame sequence:
+            //
+            // 5 -> 6 -> 7
+            //
+            // Row 2 image 2
+            // Row 2 image 3
+            // Row 2 image 4
+            //
+            // After frame 7:
+            // RESET TO FRAME 0.
+            // =================================================
+
+            if (jackInteractionStage == 3)
+            {
+                jackFrame++;
+
+                if (jackFrame >= 8)
+                {
+                    // Reset Jack completely
+                    jackFrame = 0;
+
+                    jackInteractionStage = 0;
+
+                    jackAnimating = false;
+
+                    jackAnimationTimer = 0.0f;
+                }
+
+                return;
+            }
+        }
+
+        return;
+    }
+
+    // --------------------------------------------------------
+    // WAITING FOR E
+    // --------------------------------------------------------
+
+    if (IsKeyPressed(KEY_E))
+    {
+        StartJackInteraction();
+    }
+}
+
+// ============================================================
+// JACK INTERACTION
+// ============================================================
+
+void NPC::StartJackInteraction()
+{
+    // ========================================================
+    // FIRST E
+    //
+    // Frame 1 -> Frame 2
+    //
+    // Internal:
+    // 0 -> 1
+    // ========================================================
+
+    if (jackInteractionStage == 0)
+    {
+        jackFrame = 1;
+
+        jackInteractionStage = 1;
+
+        jackAnimating = false;
+
+        jackAnimationTimer = 0.0f;
+
+        // Play dialogue 1
+        if (jackAudioLoaded)
+        {
+            PlaySound(jackDialogue1);
+        }
+
+        return;
+    }
+
+    // ========================================================
+    // SECOND E
+    //
+    // Row 1:
+    //
+    // Frame 3
+    // Frame 4
+    //
+    // Row 2:
+    //
+    // Frame 1
+    //
+    // Internal:
+    // 2 -> 3 -> 4
+    // ========================================================
+
+    if (jackInteractionStage == 1)
+    {
+        jackFrame = 2;
+
+        jackInteractionStage = 2;
+
+        jackAnimating = true;
+
+        jackAnimationTimer = 0.0f;
+
+        // Play dialogue 2
+        if (jackAudioLoaded)
+        {
+            PlaySound(jackDialogue2);
+        }
+
+        return;
+    }
+
+    // ========================================================
+    // THIRD E
+    //
+    // Row 2:
+    //
+    // Frame 2
+    // Frame 3
+    // Frame 4
+    //
+    // Internal:
+    // 5 -> 6 -> 7
+    //
+    // After frame 7:
+    // RESET TO FRAME 0
+    // ========================================================
+
+    if (jackInteractionStage == 2)
+    {
+        jackFrame = 5;
+
+        jackInteractionStage = 3;
+
+        jackAnimating = true;
+
+        jackAnimationTimer = 0.0f;
+
+        // Play dialogue 3
+        if (jackAudioLoaded)
+        {
+            PlaySound(jackDialogue3);
+        }
+
+        return;
+    }
+
+    // ========================================================
+    // SAFETY RESET
+    // ========================================================
+
+    jackFrame = 0;
+
+    jackInteractionStage = 0;
+
+    jackAnimating = false;
+
+    jackAnimationTimer = 0.0f;
+}
 // ============================================================
 // POSITION
 // ============================================================
@@ -199,6 +539,9 @@ bool NPC::IsNear() const
 
 bool NPC::IsInteracting() const
 {
+    if (isJack)
+        return jackAnimating;
+
     return interacting;
 }
 
@@ -230,7 +573,7 @@ void NPC::Draw(
     Vector2 playerPos,
     Vector2 playerDir,
     Vector2 cameraPlane,
-    const float* zBuffer,
+    const float Zbuffer[],
     int screenWidth,
     int screenHeight
 ) const
@@ -242,7 +585,7 @@ void NPC::Draw(
         playerPos,
         playerDir,
         cameraPlane,
-        zBuffer,
+        Zbuffer,
         screenWidth,
         screenHeight
     );
@@ -309,22 +652,26 @@ void NPC::DrawSprite(
             (1.0f + transformX / transformY)
             );
 
-    // --------------------------------------------------------
-    // Sprite size
-    // --------------------------------------------------------
+    // ========================================================
+    // SPRITE SIZE
+    // ========================================================
 
-    float spriteScale =
-        isFountain ? 0.30f : 0.55f;
+    float spriteScale = 0.55f;
 
     int spriteHeight =
         abs(
             (int)(
-                (screenHeight / transformY) * spriteScale
+                (screenHeight / transformY) *
+                spriteScale
                 )
         );
 
+    // Keep original proportions
+    float aspectRatio =
+        frameWidth / frameHeight;
+
     int spriteWidth =
-        spriteHeight;
+        (int)(spriteHeight * aspectRatio);
 
     // --------------------------------------------------------
     // Vertical position
@@ -343,6 +690,11 @@ void NPC::DrawSprite(
         screenHeight / 2 +
         verticalOffset;
 
+    if (drawStartY < 0)
+        drawStartY = 0;
+
+    if (drawEndY >= screenHeight)
+        drawEndY = screenHeight - 1;
 
     // --------------------------------------------------------
     // Horizontal position
@@ -362,16 +714,51 @@ void NPC::DrawSprite(
     if (drawEndX >= screenWidth)
         drawEndX = screenWidth - 1;
 
+    // Completely outside screen
+    if (drawStartX >= screenWidth ||
+        drawEndX < 0)
+    {
+        return;
+    }
+
+    // ========================================================
+    // SELECT FRAME
+    // ========================================================
+
+    int frameToDraw;
+
+    if (isJack)
+    {
+        // Jack uses 0-7
+        frameToDraw = jackFrame;
+    }
+    else
+    {
+        // Normal NPC uses 0-3
+        frameToDraw = currentFrame;
+    }
+
     // --------------------------------------------------------
-    // Current animation frame
+    // Frame position
     // --------------------------------------------------------
 
     float frameOffsetX =
-        currentFrame * frameWidth;
+        (frameToDraw % 4) *
+        frameWidth;
 
-    // --------------------------------------------------------
-    // Draw vertical stripes
-    // --------------------------------------------------------
+    float frameOffsetY = 0.0f;
+
+    // Jack has two rows
+    if (isJack)
+    {
+        frameOffsetY =
+            (frameToDraw / 4) *
+            frameHeight;
+    }
+
+    // ========================================================
+    // DRAW STRIPE BY STRIPE
+    // ========================================================
 
     for (int stripe = drawStartX;
         stripe < drawEndX;
@@ -379,14 +766,20 @@ void NPC::DrawSprite(
     {
         if (stripe < 0 ||
             stripe >= screenWidth)
+        {
             continue;
+        }
 
         // ----------------------------------------------------
-        // Z-BUFFER
+        // Z BUFFER
         // ----------------------------------------------------
 
         if (transformY >= zBuffer[stripe])
             continue;
+
+        // ----------------------------------------------------
+        // Texture X
+        // ----------------------------------------------------
 
         int trueStartX =
             -spriteWidth / 2 +
@@ -406,19 +799,19 @@ void NPC::DrawSprite(
             texX = (int)frameWidth - 1;
 
         // ----------------------------------------------------
-        // Source frame
+        // Source rectangle
         // ----------------------------------------------------
 
         Rectangle source =
         {
             frameOffsetX + (float)texX,
-            0.0f,
+            frameOffsetY,
             1.0f,
             frameHeight
         };
 
         // ----------------------------------------------------
-        // Destination
+        // Destination rectangle
         // ----------------------------------------------------
 
         Rectangle destination =
@@ -426,7 +819,7 @@ void NPC::DrawSprite(
             (float)stripe,
             (float)drawStartY,
             1.0f,
-            (float)spriteHeight
+            (float)(drawEndY - drawStartY)
         };
 
         DrawTexturePro(

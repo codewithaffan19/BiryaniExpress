@@ -105,10 +105,14 @@ void TextureManager::Load()
 
 
     //==========================
-    // Floor
-    //==========================
+// Floor
+//==========================
 
-    floorimg = LoadImage("../assets/textures/floor.png");
+    floorimg =
+        LoadImage("../assets/textures/floor.png");
+
+    floor2Img =
+        LoadImage("../assets/textures/floor2.png");
 
     //==========================
     // Sky
@@ -185,6 +189,19 @@ void TextureManager::Load()
 
     fountainSheet =
         LoadTexture("../assets/textures/fountain.png");
+    //==========================
+// Welcome Wall
+//==========================
+
+    tiles[31] =
+        LoadTexture("../assets/textures/wall_welcome.png");
+
+    SetTextureFilter(
+        tiles[31],
+        TEXTURE_FILTER_POINT
+    );
+
+    tileNames[31] = "WallWelcome";
 
     SetTextureFilter(
         fountainSheet,
@@ -235,6 +252,10 @@ void TextureManager::Unload()
 
     if (floorimg.data != nullptr)
         UnloadImage(floorimg);
+
+    if (floor2Img.data != nullptr)
+        UnloadImage(floor2Img);
+
     if (marketFloorImg.data != nullptr)
         UnloadImage(marketFloorImg);
     if (skyTex.id != 0)

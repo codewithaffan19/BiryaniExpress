@@ -23,6 +23,20 @@ void Game::Initialize()
         "BiryaniExpress"
     );
 
+    // ============================================================
+    // AUDIO
+    // ============================================================
+
+    InitAudioDevice();
+
+    if (!IsAudioDeviceReady())
+    {
+        TraceLog(
+            LOG_ERROR,
+            "Failed to initialize audio device!"
+        );
+    }
+
     renderer.LoadTextures();
     editor.SetTextureManager(&renderer.textures);
 
@@ -120,7 +134,7 @@ void Game::Initialize()
     if (!clinex.Load(
         "CLINEX Waiter",
         "../assets/textures/CLINEX_waiter.png",
-        { 18.5f, 3.5f }))
+        { 19.5f, 3.5f }))
     {
         TraceLog(LOG_ERROR, "Failed to load CLINEX Waiter");
     }
@@ -135,6 +149,24 @@ void Game::Initialize()
         TraceLog(LOG_ERROR, "Failed to load DRUMBLE Waiter");
     }
     npcs.push_back(drumble);
+
+
+    //==========
+    //Jack
+    //=========
+
+    NPC jack;
+
+    if (!jack.Load(
+        "Jack",
+        "../assets/textures/jack.png",
+        { 22.5f, 3.5f }))
+    {
+        TraceLog(LOG_ERROR, "Failed to load Jack");
+    }
+
+    npcs.push_back(jack);
+
 }
 void Game::CheckSpoonCollosion(Player& p, Enemy& E)
 {
@@ -332,6 +364,30 @@ void Game::Draw()
 
 void Game::Shutdown()
 {
+    // ============================================================
+    // UNLOAD NPCs
+    // ============================================================
+
+    for (NPC& npc : npcs)
+    {
+        npc.Unload();
+    }
+
+    npcs.clear();
+
+    // ============================================================
+    // CLOSE AUDIO
+    // ============================================================
+
+    if (IsAudioDeviceReady())
+    {
+        CloseAudioDevice();
+    }
+
+    // ============================================================
+    // CLOSE WINDOW
+    // ============================================================
+
     CloseWindow();
 }
 
