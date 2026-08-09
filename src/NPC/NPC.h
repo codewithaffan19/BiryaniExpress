@@ -3,24 +3,21 @@
 #include "raylib.h"
 #include <string>
 #include <cmath>
-
+#include "../Player/Player.h"
 class NPC
 {
 public:
-
     NPC();
-
     // Load NPC sprite sheet
     bool Load(
         const std::string& name,
         const std::string& texturePath,
         Vector2 position
     );
-
     void Unload();
 
     // Update NPC state
-    void Update(Vector2 playerPos);
+    void Update(Vector2 playerPos,Player&p);
 
     // Draw NPC using raycasting projection + Z-buffer
     void Draw(
@@ -41,7 +38,8 @@ public:
 
     bool IsNear() const;
     bool IsInteracting() const;
-
+    float radius;
+    int myItem;
 private:
 
     std::string name;
@@ -75,7 +73,6 @@ private:
     bool isFountain = false;
     void SetFountain(bool value);
     float interactionTimer = 0.0f;
-
     float interactionDuration = 0.7f;
 
     void UpdateIdleAnimation(float dt);

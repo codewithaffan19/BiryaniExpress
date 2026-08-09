@@ -30,7 +30,7 @@ void Game::Initialize()
     SetTargetFPS(Config::TARGET_FPS);
 
     // Hand
-    Image hand = LoadImage("../assets/textures/hand.png");
+    Image hand = LoadImage("../../assets/textures/hand.png");
     ImageColorReplace(&hand, MAGENTA, BLANK);
 
     player.handTex = LoadTextureFromImage(hand);
@@ -45,35 +45,35 @@ void Game::Initialize()
 
     Enemy BurgerBoy;
     BurgerBoy.spriteSheet =
-        LoadTexture("../assets/textures/Boy.png");
+        LoadTexture("../../assets/textures/Boy.png");
     BurgerBoy.totalframes = 4;
     BurgerBoy.moveSpeed = 0.8f;
     BurgerBoy.position = { 13.0f, 14.0f };
 
     Enemy AngryUncle;
     AngryUncle.spriteSheet =
-        LoadTexture("../assets/textures/uncle.png");
+        LoadTexture("../../assets/textures/uncle.png");
     AngryUncle.position = { 7.0f, 10.0f };
     AngryUncle.totalframes = 5;
     AngryUncle.moveSpeed = 0.7f;
 
     Enemy AngryUncle2;
     AngryUncle2.spriteSheet =
-        LoadTexture("../assets/textures/uncle.png");
+        LoadTexture("../../assets/textures/uncle.png");
     AngryUncle2.position = { 17.0f, 16.0f };
     AngryUncle2.totalframes = 5;
     AngryUncle2.moveSpeed = 0.7f;
 
     Enemy Thief;
     Thief.spriteSheet =
-        LoadTexture("../assets/textures/Chor.png");
+        LoadTexture("../../assets/textures/Chor.png");
     Thief.position = { 1.0f, 7.0f };
     Thief.totalframes = 2;
     Thief.moveSpeed = 0.9f;
 
     Enemy Thief2;
     Thief2.spriteSheet =
-        LoadTexture("../assets/textures/Chor2.png");
+        LoadTexture("../../assets/textures/Chor2.png");
     Thief2.position = { 14.0f, 16.0f };
     Thief2.totalframes = 2;
     Thief2.moveSpeed = 0.9f;
@@ -88,7 +88,7 @@ void Game::Initialize()
     // MAP
     // ==========================================
 
-    map.LoadMap("../assets/maps/test.txt");
+    map.LoadMap("../../assets/maps/test.txt");
 
     // ==========================================
     // NPCs
@@ -97,9 +97,10 @@ void Game::Initialize()
     npcs.clear();
 
     NPC afc;
+    afc.myItem = ITEM_AFC;
     if (!afc.Load(
         "AFC Waiter",
-        "../assets/textures/AFC_waiter.png",
+        "../../assets/textures/AFC_waiter.png",
         { 13.5f, 1.5f }))
     {
         TraceLog(LOG_ERROR, "Failed to load AFC Waiter");
@@ -107,9 +108,10 @@ void Game::Initialize()
     npcs.push_back(afc);
 
     NPC mike;
+    mike.myItem = ITEM_MIKE;
     if (!mike.Load(
         "MIKE Waiter",
-        "../assets/textures/MIKE_waiter.png",
+        "../../assets/textures/MIKE_waiter.png",
         { 13.5f, 3.5f }))
     {
         TraceLog(LOG_ERROR, "Failed to load MIKE Waiter");
@@ -117,9 +119,10 @@ void Game::Initialize()
     npcs.push_back(mike);
 
     NPC clinex;
+    clinex.myItem = ITEM_CLINIX;
     if (!clinex.Load(
         "CLINEX Waiter",
-        "../assets/textures/CLINEX_waiter.png",
+        "../../assets/textures/CLINEX_waiter.png",
         { 18.5f, 3.5f }))
     {
         TraceLog(LOG_ERROR, "Failed to load CLINEX Waiter");
@@ -127,9 +130,10 @@ void Game::Initialize()
     npcs.push_back(clinex);
 
     NPC drumble;
+    drumble.myItem = ITEM_DRUMBLE;
     if (!drumble.Load(
         "DRUMBLE Waiter",
-        "../assets/textures/DRUMBLE_waiter.png",
+        "../../assets/textures/DRUMBLE_waiter.png",
         { 17.5f, 1.5f }))
     {
         TraceLog(LOG_ERROR, "Failed to load DRUMBLE Waiter");
@@ -190,9 +194,10 @@ void Game::Update()
             CheckPlayerEnemyCollision(player, enemies[i],map);
             CheckSpoonCollosion(player, enemies[i]);
         }
-
+        for (int i = 0; i < npcs.size(); i++) {
+            CheckPlayerNPCCollision(player, npcs[i], map);
+        }
     }
-
     // ==========================================
 // UPDATE NPCs
 // ==========================================
@@ -201,7 +206,7 @@ void Game::Update()
 
     for (NPC& npc : npcs)
     {
-        npc.Update(playerPos);
+        npc.Update(playerPos,player);
     }
 
     Vector2 targetDoor =
@@ -221,6 +226,7 @@ void Game::Update()
     if (input.IsKeyPressed(KEY_ESCAPE))
         running = false;
 }
+
 
 void Game::Draw()
 {

@@ -12,31 +12,60 @@ Player::Player()
     cameraPlane = { 0.0f,0.66f };
     moveSpeed = 3.0f;
     radius = 0.25f;
-    Inventory.push_back(WEAPON_SPOON);
     currentWeaponIndex = 0;
     hitmessagetimer = 0;
+
 }
-WeaponType Player::ActivateWeapon()const {
-    if (Inventory.empty())
-        return WEAPON_SPOON;
-    return Inventory[currentWeaponIndex];
+int Player::GetActiveWeapon()const {
+    return WeaponPouch[currentWeaponIndex].id;
+}
+void Player::SwitchWeapon(){
+    int nextWeapon;
+    if (currentWeaponIndex == 0)
+        nextWeapon = 1;
+    else
+        nextWeapon = 0;
+    if (WeaponPouch[nextWeapon].id != ITEM_EMPTY) {
+        currentWeaponIndex = nextWeapon;
+    }
 }
 
+bool Player::PickUpItem(int newItem) {
+
+    if (newItem == ITEM_BIRYANI || newItem == ITEM_DRUMBLE || newItem == ITEM_AFC) {
+        for (int i = 0; i < 3; i++) {
+            if (MissionPouch[i].id == ITEM_EMPTY){
+                MissionPouch[i].id = newItem;
+                return true;
+        }
+        }
+        return false;
+    }
+    if (newItem == ITEM_CHAPPAL || newItem == ITEM_SPOON) {
+        for (int i = 0; i < 2; i++) {
+            if (WeaponPouch[i].id == ITEM_EMPTY) {
+                WeaponPouch[i].id = newItem;
+                return true;
+            }
+        }
+
+        return false;
+    }   
+    return false;
+}
 void Player::Update(
     float dt,
     InputManager& input,
     Map& map)
 {
     //Inventory
-    if (IsKeyDown(KEY_ONE)&&Inventory.size()>=1) {
-        currentWeaponIndex = 0;
+    if (IsKeyDown(KEY_ONE)&&WeaponPouch[0].id!=ITEM_EMPTY) {
+        SwitchWeapon();
     }
-    if (IsKeyDown(KEY_TWO)&&Inventory.size()>=2) {
-        currentWeaponIndex = 1;
+    if (IsKeyDown(KEY_TWO)&& WeaponPouch[0].id != ITEM_EMPTY) {
+        SwitchWeapon();
     }
-    if (IsKeyDown(KEY_THREE)&&Inventory.size()>=3) {
-        currentWeaponIndex = 2;
-    }
+
 
     bool isWalking = IsKeyDown(KEY_W) || IsKeyDown(KEY_A) || IsKeyDown(KEY_S) || IsKeyDown(KEY_D);
     if (isWalking) {

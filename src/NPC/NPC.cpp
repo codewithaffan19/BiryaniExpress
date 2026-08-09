@@ -2,9 +2,11 @@
 #include<algorithm>
 #include <cmath>
 #include <string>
-
+#include "../Player/Player.h"
+#include <iostream>
 NPC::NPC()
 {
+    radius = 0.25f;
 }
 void NPC::SetFountain(bool value)
 {
@@ -75,7 +77,7 @@ void NPC::Unload()
 // UPDATE
 // ============================================================
 
-void NPC::Update(Vector2 playerPos)
+void NPC::Update(Vector2 playerPos,Player&p)
 {
     float dt = GetFrameTime();
 
@@ -105,13 +107,13 @@ void NPC::Update(Vector2 playerPos)
 
         // Frame 3 = interaction animation
         currentFrame = 3;
-
+        
         if (interactionTimer >= interactionDuration)
         {
             interacting = false;
             interactionTimer = 0.0f;
             animationTimer = 0.0f;
-            currentFrame = 0;
+            currentFrame = 2;
         }
 
         return;
@@ -130,6 +132,13 @@ void NPC::Update(Vector2 playerPos)
         if (IsKeyPressed(KEY_E))
         {
             StartInteraction();
+            bool f=p.PickUpItem(myItem);
+            if (f) {
+                std::cout << "Item picked up successfully\n";
+            }
+            else{
+                std::cout << "No empty space\n";
+            }
         }
 
         return;
