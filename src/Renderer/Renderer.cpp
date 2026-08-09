@@ -1,4 +1,4 @@
-#include "Renderer.h"
+﻿#include "Renderer.h"
 #include "../World/Map.h"
 #include <cmath>
 #include "../Renderer/TextureManager.h"
@@ -233,69 +233,395 @@ void Renderer::DrawInventoryHUD(Player& p) {
 
 void Renderer::DrawStreetFloor(Vector2 playerPos, Vector2 playerDir, Vector2 cameraPlane)
 {
+    // Row 2, columns 2-9
+    if (row == 2 && col >= 2 && col <= 9)
+        return true;
 
-    if (textures.floorimg.width <= 0 || textures.floorimg.height <= 0)
+    // Rows 3-7, column 9
+    if (col == 9 && row >= 3 && row <= 7)
+        return true;
+
+    // INDEX 6 -> DESIGN ROW 7
+    if (row == 7 && col >= 2 && col <= 24)
+        return true;
+
+    return false;
+}
+static bool IsFloor2Cell(int row, int col)
+{
+    // Row 3, columns 2-8
+    if (row == 3 && col >= 2 && col <= 8)
+        return true;
+
+    // Rows 4-6, column 8
+    if (col == 8 && row >= 4 && row <= 6)
+        return true;
+
+    // INDEX 7 -> DESIGN ROW 8
+    if (row == 8 && col >= 2 && col <= 24)
+        return true;
+
+    return false;
+}
+static bool IsFloorRotateLeftCell(int row, int col)
+{
+    // LEFT ROTATION
+    // Index column 7, rows 3-5
+    // Design column 8, rows 4-6
+
+    if (col == 8 &&
+        row >= 4 && row <= 6)
     {
-        return;
+        return true;
     }
-    // We loop through the bottom half of the screen (from the center horizon to the bottom edge)
-    for (int y = Config::SCREEN_HEIGHT / 2 + 1; y < Config::SCREEN_HEIGHT; ++y)
+
+    return false;
+}
+
+static bool IsFloorRotateRightCell(int row, int col)
+{
+    // RIGHT ROTATION
+    // Index column 8, rows 2-5
+    // Design column 9, rows 3-6
+
+    if (col == 9 &&
+        row >= 3 && row <= 6)
     {
-        // Calculate the ray directions for the leftmost (x=0) and rightmost (x=width) pixels of this specific row
-        float rayDirX0 = playerDir.x - cameraPlane.x;
-        float rayDirY0 = playerDir.y - cameraPlane.y;
-        float rayDirX1 = playerDir.x + cameraPlane.x;
-        float rayDirY1 = playerDir.y + cameraPlane.y;
+        return true;
+    }
 
-        // 'p' is the current Y position compared to the center of the screen (the horizon)
-        int p = y - Config::SCREEN_HEIGHT / 2;
+    return false;
+}
+void Renderer::DrawWideFloor(
+    Vector2 playerPos,
+    Vector2 playerDir,
+    Vector2 cameraPlane,
+    Map& map)
+{
+    if (textures.floorimg.data == nullptr)
+        return;
 
-        // Vertical position of the camera (simulating the height of the player's eyes)
-        float posZ = 0.5f * Config::SCREEN_HEIGHT;
+    if (textures.floor2Img.data == nullptr)
+        return;
 
-        // Horizontal distance from the camera to the floor for this specific row
-        float rowDistance = posZ / p;
+    // ==========================================
+    // FLOOR RENDERING
+    // ==========================================
 
-        // Calculate the "Step Vector" (How much we move in the 2D map for every 1 pixel we move right on the screen)
-        float floorStepX = rowDistance * (rayDirX1 - rayDirX0) / Config::SCREEN_WIDTH;
-        float floorStepY = rowDistance * (rayDirY1 - rayDirY0) / Config::SCREEN_WIDTH;
+    for (int y = Config::SCREEN_HEIGHT / 2 + 1;
+        y < Config::SCREEN_HEIGHT;
+        ++y)
+    {
+        float rayDirX0 =
+            playerDir.x - cameraPlane.x;
 
-        // Real world coordinates of the leftmost pixel in this row. 
-        // We will add the Step Vector to this as we loop across the screen.
-        float floorX = playerPos.x + rowDistance * rayDirX0;
-        float floorY = playerPos.y + rowDistance * rayDirY0;
+        float rayDirY0 =
+            playerDir.y - cameraPlane.y;
 
-        // Now, loop across every horizontal pixel in this specific row
-        for (int x = 0; x < Config::SCREEN_WIDTH; ++x)
+        float rayDirX1 =
+            playerDir.x + cameraPlane.x;
+
+        float rayDirY1 =
+            playerDir.y + cameraPlane.y;
+
+        int p =
+            y - Config::SCREEN_HEIGHT / 2;
+
+        float posZ =
+            0.5f * Config::SCREEN_HEIGHT;
+
+        float rowDistance =
+            posZ / p;
+
+        float floorStepX =
+            rowDistance *
+            (rayDirX1 - rayDirX0) /
+            Config::SCREEN_WIDTH;
+
+        float floorStepY =
+            rowDistance *
+            (rayDirY1 - rayDirY0) /
+            Config::SCREEN_WIDTH;
+
+        float floorX =
+            playerPos.x +
+            rowDistance * rayDirX0;
+
+        float floorY =
+            playerPos.y +
+            rowDistance * rayDirY0;
+
+        // ==========================================
+        // DRAW EACH FLOOR PIXEL
+        // ==========================================
+
+        for (int x = 0;
+            x < Config::SCREEN_WIDTH;
+            ++x)
         {
-            // Calculate the exact grid cell the floor coordinate is in
-            int cellX = (int)(floorX);
-            int cellY = (int)(floorY);
+            // ==========================================
+            // WORLD CELL
+            // ==========================================
 
-            // Get the exact texture coordinates based on the fractional part of the floor coordinates
-            // Note: Replace 'textures.floorImg.width' with your actual width if you aren't using the TextureManager dynamically here
-            int texWidth = textures.floorimg.width;
-            int texHeight = textures.floorimg.height;
+            int cellX = (int)floorX;
+            int cellY = (int)floorY;
 
-            // The bitwise AND (&) creates a perfect repeating/tiling effect!
-            int tx = (int)(texWidth * (floorX - cellX)) & (texWidth - 1);
-            int ty = (int)(texHeight * (floorY - cellY)) & (texHeight - 1);
+            // ==========================================
+            // COORDINATE CONVERSION
+            //
+            // Actual map/world coordinates are 0-based.
+            // Your floor-design coordinates are 1-based.
+            //
+            // Example:
+            //
+            // World (0,0) -> Design (1,1)
+            // World (1,1) -> Design (2,2)
+            // ==========================================
 
-            // Move our real-world position over by one Step Vector for the next pixel
+            int designRow = cellY + 1;
+            int designCol = cellX + 1;
+
+            // ==========================================
+            // DEFAULT FLOOR
+            // ==========================================
+
+            Color color = DARKGRAY;
+
+            // ==========================================
+// POSITION INSIDE CURRENT TILE
+// ==========================================
+
+            float u =
+                floorX - cellX;
+
+            float v =
+                floorY - cellY;
+
+
+            // ==========================================
+            // ROTATED FLOOR CELLS
+            // ==========================================
+            //
+            // Check this FIRST because some rotated
+            // cells are not part of IsFloor1Cell().
+            //
+            // Pink area:
+            // Rows 2-5
+            // Columns 9-10
+            // ==========================================
+
+            // ==========================================
+// ROTATED FLOOR CELLS
+// ==========================================
+
+            if (IsFloorRotateLeftCell(designRow, designCol))
+            {
+                int texWidth =
+                    textures.floorimg.width;
+
+                int texHeight =
+                    textures.floorimg.height;
+
+                // ==========================================
+                // 90 DEGREE LEFT ROTATION
+                // ==========================================
+
+                int tx =
+                    (int)(texWidth * (1.0f - v));
+
+                int ty =
+                    (int)(texHeight * u);
+
+                // Safety
+                if (tx < 0)
+                    tx = 0;
+
+                if (ty < 0)
+                    ty = 0;
+
+                if (tx >= texWidth)
+                    tx = texWidth - 1;
+
+                if (ty >= texHeight)
+                    ty = texHeight - 1;
+
+                color =
+                    GetImageColor(
+                        textures.floorimg,
+                        tx,
+                        ty
+                    );
+            }
+
+            // ==========================================
+            // ROTATE RIGHT
+            // ==========================================
+
+            else if (IsFloorRotateRightCell(designRow, designCol))
+            {
+                int texWidth =
+                    textures.floorimg.width;
+
+                int texHeight =
+                    textures.floorimg.height;
+
+                // ==========================================
+                // 90 DEGREE RIGHT ROTATION
+                // ==========================================
+
+                int tx =
+                    (int)(texWidth * v);
+
+                int ty =
+                    (int)(texHeight * (1.0f - u));
+
+                // Safety
+                if (tx < 0)
+                    tx = 0;
+
+                if (ty < 0)
+                    ty = 0;
+
+                if (tx >= texWidth)
+                    tx = texWidth - 1;
+
+                if (ty >= texHeight)
+                    ty = texHeight - 1;
+
+                color =
+                    GetImageColor(
+                        textures.floorimg,
+                        tx,
+                        ty
+                    );
+            }
+
+            // ==========================================
+            // NORMAL FLOOR 1
+            // ==========================================
+
+            else if (IsFloor1Cell(designRow, designCol))
+            {
+                int texWidth =
+                    textures.floorimg.width;
+
+                int texHeight =
+                    textures.floorimg.height;
+
+                int tx =
+                    (int)(texWidth * u);
+
+                int ty =
+                    (int)(texHeight * v);
+
+                // Safety
+                if (tx < 0)
+                    tx = 0;
+
+                if (ty < 0)
+                    ty = 0;
+
+                if (tx >= texWidth)
+                    tx = texWidth - 1;
+
+                if (ty >= texHeight)
+                    ty = texHeight - 1;
+
+                color =
+                    GetImageColor(
+                        textures.floorimg,
+                        tx,
+                        ty
+                    );
+            }
+
+            // ==========================================
+            // NORMAL FLOOR 2
+            // ==========================================
+
+            else if (IsFloor2Cell(designRow, designCol))
+            {
+                int texWidth =
+                    textures.floor2Img.width;
+
+                int texHeight =
+                    textures.floor2Img.height;
+
+                int tx =
+                    (int)(texWidth * u);
+
+                int ty =
+                    (int)(texHeight * v);
+
+                // Safety
+                if (tx < 0)
+                    tx = 0;
+
+                if (ty < 0)
+                    ty = 0;
+
+                if (tx >= texWidth)
+                    tx = texWidth - 1;
+
+                if (ty >= texHeight)
+                    ty = texHeight - 1;
+
+                color =
+                    GetImageColor(
+                        textures.floor2Img,
+                        tx,
+                        ty
+                    );
+            }
+
+            // ==========================================
+            // NO FLOOR
+            // ==========================================
+
+            else
+            {
+                color = DARKGRAY;
+            }
+
+            
+            // ==========================================
+            // NEXT WORLD POSITION
+            // ==========================================
+
             floorX += floorStepX;
             floorY += floorStepY;
 
-            // 1. Get the exact pixel color from our CPU Image
-            Color color = GetImageColor(textures.floorimg, tx, ty);
+            // ==========================================
+            // FLOOR BUFFER
+            // ==========================================
 
-            int arrayIndex = y * Config::SCREEN_WIDTH + x;
-            floorBuffer[arrayIndex] = color;
+            int arrayIndex =
+                y * Config::SCREEN_WIDTH + x;
+
+            floorBuffer[arrayIndex] =
+                color;
         }
     }
-    UpdateTexture(floorTexture, floorBuffer);
 
-    // Draw the entire floor to the screen in a single command!
-    DrawTexture(floorTexture, 0, 0, WHITE);
+    // ==========================================
+    // UPLOAD FLOOR BUFFER TO GPU
+    // ==========================================
+
+    UpdateTexture(
+        floorTexture,
+        floorBuffer
+    );
+
+    // ==========================================
+    // DRAW FLOOR
+    // ==========================================
+
+    DrawTexture(
+        floorTexture,
+        0,
+        0,
+        WHITE
+    );
 }
 void Renderer::DrawMarketFloor(Vector2 playerPos, Vector2 playerDir, Vector2 cameraPlane)
 {
@@ -401,7 +727,7 @@ void Renderer::DrawWallColumn(
     }
 
     // NEW TEXTURED WALL
-    if (tile >= 2 && tile <= 30)
+    if (tile >= 2 && tile <= 31)
     {
         Texture2D* tex = &textures.tiles[tile];
 
@@ -423,7 +749,7 @@ void Renderer::DrawWallColumn(
         // ==========================================
 
         if (
-            (tile >= 10 && tile <= 14) ||
+            (tile >= 2 && tile <= 14) ||
             tile == 22 ||
             tile == 23 ||
             tile == 24 ||
@@ -520,10 +846,11 @@ void Renderer::Draw(
     {
         DrawSky(playerDir);
 
-        DrawStreetFloor(
+        DrawWideFloor(
             playerPos,
             playerDir,
-            cameraPlane
+            cameraPlane,
+            map
         );
     }
 

@@ -77,10 +77,11 @@ private:
         Vector2 cameraPlane
     );
 
-    void DrawStreetFloor(
+    void DrawWideFloor(
         Vector2 playerPos,
         Vector2 playerDir,
-        Vector2 cameraPlane
+        Vector2 cameraPlane,
+        Map& map
     );
 
     void DrawMarketFloor(

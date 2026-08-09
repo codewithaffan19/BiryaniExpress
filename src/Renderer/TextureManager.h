@@ -20,6 +20,7 @@ public:
     Texture2D marketRoofTex;
 
     Image floorimg;
+    Image floor2Img;
     Image marketFloorImg;
 
     std::string tileNames[MAX_TILES];

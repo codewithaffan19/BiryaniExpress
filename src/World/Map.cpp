@@ -203,4 +203,8 @@ void Map::SaveMap(const std::string& file)
 
     TraceLog(LOG_INFO, "Map Saved!");
 }
+static bool IsSolidTile(int tile)
+{
+    return tile >= 1 && tile <= 30;
+}
 
