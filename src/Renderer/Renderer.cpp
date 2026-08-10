@@ -7,27 +7,67 @@ enum { STILL, CHASE, INTERROGATE, DEAD };
 Renderer::Renderer()
 {
 }
-
+TextureManager::Partition Renderer::GetCurrentPartition() const
+{
+    return textures.GetCurrentPartition();
+}
 
 void Renderer::LoadTextures()
 {
-    textures.Load();
-    int totalframes = Config::SCREEN_HEIGHT * Config::SCREEN_WIDTH;
-    floorBuffer = new Color[totalframes];
+    // ==========================================
+    // COMMON ASSETS
+    // ==========================================
 
-    for (int i = 0; i < totalframes; i++) {
+    textures.LoadCommonAssets();
+
+    // ==========================================
+    // START WITH STREET ONLY
+    // ==========================================
+
+    textures.LoadStreetAssets();
+
+    // ==========================================
+    // FLOOR BUFFER
+    // ==========================================
+
+    int totalFrames =
+        Config::SCREEN_HEIGHT *
+        Config::SCREEN_WIDTH;
+
+    floorBuffer = new Color[totalFrames];
+
+    for (int i = 0; i < totalFrames; i++)
+    {
         floorBuffer[i] = BLANK;
     }
-    Image blankImg = GenImageColor(Config::SCREEN_WIDTH, Config::SCREEN_HEIGHT, BLANK);
-    floorTexture = LoadTextureFromImage(blankImg);
+
+    Image blankImg =
+        GenImageColor(
+            Config::SCREEN_WIDTH,
+            Config::SCREEN_HEIGHT,
+            BLANK
+        );
+
+    floorTexture =
+        LoadTextureFromImage(blankImg);
+
     UnloadImage(blankImg);
-
-
 }
-
 void Renderer::UnloadTextures()
 {
     textures.Unload();
+
+    if (floorBuffer != nullptr)
+    {
+        delete[] floorBuffer;
+        floorBuffer = nullptr;
+    }
+
+    if (floorTexture.id != 0)
+    {
+        UnloadTexture(floorTexture);
+        floorTexture.id = 0;
+    }
 }
 
 void Renderer::DrawSky(Vector2 playerDir)
@@ -86,6 +126,72 @@ void Renderer::DrawSky(Vector2 playerDir)
             src2,
             dst2,
             { 0,0 },
+            0,
+            WHITE
+        );
+    }
+}
+void Renderer::DrawNeonNightSky(Vector2 playerDir)
+{
+    if (textures.nightSkyTex.id == 0)
+        return;
+
+    float angle =
+        atan2f(playerDir.y, playerDir.x);
+
+    float u =
+        (angle / (2.0f * PI) + 0.5f) *
+        textures.nightSkyTex.width;
+
+    Rectangle src =
+    {
+        u,
+        0,
+        (float)Config::SCREEN_WIDTH,
+        (float)textures.nightSkyTex.height
+    };
+
+    Rectangle dst =
+    {
+        0,
+        0,
+        (float)Config::SCREEN_WIDTH,
+        (float)(Config::SCREEN_HEIGHT / 2)
+    };
+
+    DrawTexturePro(
+        textures.nightSkyTex,
+        src,
+        dst,
+        { 0, 0 },
+        0,
+        WHITE
+    );
+
+    if (src.x + src.width > textures.nightSkyTex.width)
+    {
+        Rectangle src2 =
+        {
+            0,
+            0,
+            src.x + src.width -
+                textures.nightSkyTex.width,
+            (float)textures.nightSkyTex.height
+        };
+
+        Rectangle dst2 =
+        {
+            textures.nightSkyTex.width - src.x,
+            0,
+            src2.width,
+            (float)(Config::SCREEN_HEIGHT / 2)
+        };
+
+        DrawTexturePro(
+            textures.nightSkyTex,
+            src2,
+            dst2,
+            { 0, 0 },
             0,
             WHITE
         );
@@ -229,23 +335,22 @@ void Renderer::DrawInventoryHUD(Player& p) {
     }
     DrawText("Press 1 to toggle", slotX-40, startY-15, 14, WHITE);
 }
+static bool IsFloor1Cell(int row, int col)
+{
+    // Row 2, columns 2-9
+    if (row == 2 && col >= 2 && col <= 9)
+        return true;
 
-//void Renderer::DrawFloor(Vector2 playerPos, Vector2 playerDir, Vector2 cameraPlane)
-//{
-//    // Row 2, columns 2-9
-//    if (row == 2 && col >= 2 && col <= 9)
-//        return true;
-//
-//    // Rows 3-7, column 9
-//    if (col == 9 && row >= 3 && row <= 7)
-//        return true;
-//
-//    // INDEX 6 -> DESIGN ROW 7
-//    if (row == 7 && col >= 2 && col <= 24)
-//        return true;
-//
-//    return false;
-//}
+    // Rows 3-7, column 9
+    if (col == 9 && row >= 3 && row <= 7)
+        return true;
+
+    // Row 7, columns 2-24
+    if (row == 7 && col >= 2 && col <= 24)
+        return true;
+
+    return false;
+}
 static bool IsFloor2Cell(int row, int col)
 {
     // Row 3, columns 2-8
@@ -688,6 +793,154 @@ void Renderer::DrawMarketFloor(Vector2 playerPos, Vector2 playerDir, Vector2 cam
     // Draw the entire floor to the screen in a single command!
     DrawTexture(floorTexture, 0, 0, WHITE);
 }
+void Renderer::DrawNeonNightFloor(
+    Vector2 playerPos,
+    Vector2 playerDir,
+    Vector2 cameraPlane)
+{
+    if (textures.nightFloorImg.width <= 0 ||
+        textures.nightFloorImg.height <= 0)
+    {
+        return;
+    }
+
+    // ==========================================
+    // NEON NIGHT FLOOR
+    // ==========================================
+
+    for (int y = Config::SCREEN_HEIGHT / 2 + 1;
+        y < Config::SCREEN_HEIGHT;
+        ++y)
+    {
+        float rayDirX0 =
+            playerDir.x - cameraPlane.x;
+
+        float rayDirY0 =
+            playerDir.y - cameraPlane.y;
+
+        float rayDirX1 =
+            playerDir.x + cameraPlane.x;
+
+        float rayDirY1 =
+            playerDir.y + cameraPlane.y;
+
+        int p =
+            y - Config::SCREEN_HEIGHT / 2;
+
+        float posZ =
+            0.5f * Config::SCREEN_HEIGHT;
+
+        float rowDistance =
+            posZ / p;
+
+        float floorStepX =
+            rowDistance *
+            (rayDirX1 - rayDirX0) /
+            Config::SCREEN_WIDTH;
+
+        float floorStepY =
+            rowDistance *
+            (rayDirY1 - rayDirY0) /
+            Config::SCREEN_WIDTH;
+
+        float floorX =
+            playerPos.x +
+            rowDistance * rayDirX0;
+
+        float floorY =
+            playerPos.y +
+            rowDistance * rayDirY0;
+
+        // ==========================================
+        // EACH FLOOR PIXEL
+        // ==========================================
+
+        for (int x = 0;
+            x < Config::SCREEN_WIDTH;
+            ++x)
+        {
+            int cellX =
+                (int)floorX;
+
+            int cellY =
+                (int)floorY;
+
+            float u =
+                floorX - cellX;
+
+            float v =
+                floorY - cellY;
+
+            int texWidth =
+                textures.nightFloorImg.width;
+
+            int texHeight =
+                textures.nightFloorImg.height;
+
+            int tx =
+                (int)(texWidth * u);
+
+            int ty =
+                (int)(texHeight * v);
+
+            // ==========================================
+            // SAFETY
+            // ==========================================
+
+            if (tx < 0)
+                tx = 0;
+
+            if (ty < 0)
+                ty = 0;
+
+            if (tx >= texWidth)
+                tx = texWidth - 1;
+
+            if (ty >= texHeight)
+                ty = texHeight - 1;
+
+            Color color =
+                GetImageColor(
+                    textures.nightFloorImg,
+                    tx,
+                    ty
+                );
+
+            // ==========================================
+            // NEXT WORLD POSITION
+            // ==========================================
+
+            floorX += floorStepX;
+            floorY += floorStepY;
+
+            // ==========================================
+            // FLOOR BUFFER
+            // ==========================================
+
+            int arrayIndex =
+                y * Config::SCREEN_WIDTH + x;
+
+            floorBuffer[arrayIndex] =
+                color;
+        }
+    }
+
+    // ==========================================
+    // UPLOAD TO GPU
+    // ==========================================
+
+    UpdateTexture(
+        floorTexture,
+        floorBuffer
+    );
+
+    DrawTexture(
+        floorTexture,
+        0,
+        0,
+        WHITE
+    );
+}
 
 void Renderer::DrawWallColumn(
     int screenX,
@@ -696,7 +949,8 @@ void Renderer::DrawWallColumn(
     int tile,
     float wallX,
     float rayDirX,
-    float rayDirY)
+    float rayDirY,
+    bool nearDoor)
 {
     if (distance < 0.1f)
         distance = 0.1f;
@@ -726,7 +980,7 @@ void Renderer::DrawWallColumn(
     }
 
     // NEW TEXTURED WALL
-    if (tile >= 2 && tile <= 31)
+    if (tile >= 2 && tile <= 41)
     {
         Texture2D* tex = &textures.tiles[tile];
 
@@ -736,10 +990,13 @@ void Renderer::DrawWallColumn(
 
         if (tile == 20 || tile == 21)
         {
-            if (distance < 1.5f)
+            if (nearDoor)
             {
-                if (textures.tileAnim[tile].id != 0)
-                    tex = &textures.tileAnim[tile];
+                tex = &textures.tiles[21];
+            }
+            else
+            {
+                tex = &textures.tiles[20];
             }
         }
 
@@ -818,8 +1075,9 @@ void Renderer::Draw(
     Map& map,
     const std::vector<Enemy>& enemies,
     const std::vector<NPC>& npcs,
-    Player& player,
-    bool insideMarket)
+    Player player,
+    bool insideMarket,
+    bool nearDoor)
 {
     // ==========================================
     // Z-BUFFER
@@ -831,7 +1089,21 @@ void Renderer::Draw(
     // SKY / ROOF + FLOOR
     // ==========================================
 
-    if (insideMarket)
+    TextureManager::Partition partition =
+        GetCurrentPartition();
+
+    if (partition == TextureManager::Partition::Street)
+    {
+        DrawSky(playerDir);
+
+        DrawWideFloor(
+            playerPos,
+            playerDir,
+            cameraPlane,
+            map
+        );
+    }
+    else if (partition == TextureManager::Partition::Market)
     {
         DrawMarketRoof(playerDir);
 
@@ -841,15 +1113,14 @@ void Renderer::Draw(
             cameraPlane
         );
     }
-    else
+    else if (partition == TextureManager::Partition::NeonNight)
     {
-        DrawSky(playerDir);
+        DrawNeonNightSky(playerDir);
 
-        DrawWideFloor(
+        DrawNeonNightFloor(
             playerPos,
             playerDir,
-            cameraPlane,
-            map
+            cameraPlane
         );
     }
 
@@ -885,7 +1156,8 @@ void Renderer::Draw(
             hit.tile,
             hit.wallX,
             rayDir.x,
-            rayDir.y
+            rayDir.y,
+            nearDoor
         );
 
         Zbuffer[x] = hit.distance;

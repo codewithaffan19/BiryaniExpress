@@ -39,9 +39,11 @@ private:
 
     bool editorMode = false;
     bool insideMarket = false;
-
+    bool insideNeon = false;
     bool teleportPending = false;
 
     Vector2 outsideDoor = { 8.5f, 2.5f };
     Vector2 insideDoor = { 11.5f, 2.5f };
+    Vector2 outsideNeonDoor = { 22.5f, 6.5f };
+    Vector2 insideNeonDoor = { 22.5f, 9.5f };
 };

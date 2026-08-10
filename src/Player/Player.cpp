@@ -79,8 +79,6 @@ void Player::Update(
     if (IsKeyPressed(KEY_ONE)&&WeaponPouch[0].id!=ITEM_EMPTY) {
         SwitchWeapon();
     }
-    
-    
 
     bool isWalking = IsKeyDown(KEY_W) || IsKeyDown(KEY_A) || IsKeyDown(KEY_S) || IsKeyDown(KEY_D);
     if (isWalking) {

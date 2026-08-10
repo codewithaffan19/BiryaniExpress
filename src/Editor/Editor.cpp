@@ -1,6 +1,26 @@
 #include "Editor.h"
 #include "../World/Map.h"
+#include "../Renderer/TextureManager.h"
 #include<fstream>
+static std::vector<int> GetPartitionTiles(
+    TextureManager* textures,
+    TextureManager::Partition partition)
+{
+    std::vector<int> result;
+
+    if (!textures)
+        return result;
+
+    for (int i = 0; i < TextureManager::MAX_TILES; i++)
+    {
+        if (textures->IsTileInPartition(i, partition))
+        {
+            result.push_back(i);
+        }
+    }
+
+    return result;
+}
 const int SIDEBAR_WIDTH = 220;
 Editor::Editor()
 {
@@ -29,7 +49,11 @@ void Editor::Update(Map& map)
         if (scrollOffset < 0)
             scrollOffset = 0;
 
-        int maxScroll = TextureManager::MAX_TILES - VISIBLE_ITEMS;
+        std::vector<int> partitionTiles =
+            GetPartitionTiles(textures, currentPartition);
+
+        int maxScroll =
+            (int)partitionTiles.size() - VISIBLE_ITEMS;
 
         if (maxScroll < 0)
             maxScroll = 0;
@@ -77,17 +101,28 @@ void Editor::Update(Map& map)
     }
 
     //----------------------------------
-    // Sidebar Selection
+// Partition Tabs
+//----------------------------------
+
+    HandlePartitionSelection(mouse);
+
+    //----------------------------------
+    // Partition Tile Selection
     //----------------------------------
 
-    int y = 55;
+    std::vector<int> partitionTiles =
+        GetPartitionTiles(textures, currentPartition);
+
+    int y = 105;
 
     for (int i = 0; i < VISIBLE_ITEMS; i++)
     {
-        int tileIndex = i + scrollOffset;
+        int listIndex = i + scrollOffset;
 
-        if (tileIndex >= TextureManager::MAX_TILES)
+        if (listIndex >= (int)partitionTiles.size())
             break;
+
+        int tileIndex = partitionTiles[listIndex];
 
         Rectangle item =
         {
@@ -217,18 +252,32 @@ void Editor::Draw(Map& map)
         }
     }
 
-    DrawRectangle(0, 0, SIDEBAR_WIDTH, GetScreenHeight(), LIGHTGRAY);
+    DrawRectangle(
+        0,
+        0,
+        SIDEBAR_WIDTH,
+        GetScreenHeight(),
+        LIGHTGRAY
+    );
 
     DrawText("EDITOR", 20, 15, 24, BLACK);
 
-    int y = 55;
+    DrawPartitionTabs();
+
+
+    std::vector<int> partitionTiles =
+        GetPartitionTiles(textures, currentPartition);
+
+    int y = 105;
 
     for (int i = 0; i < VISIBLE_ITEMS; i++)
     {
-        int tileIndex = i + scrollOffset;
+        int listIndex = i + scrollOffset;
 
-        if (tileIndex >= TextureManager::MAX_TILES)
+        if (listIndex >= (int)partitionTiles.size())
             break;
+
+        int tileIndex = partitionTiles[listIndex];
         Rectangle item =
         {
             10,
@@ -283,5 +332,91 @@ void Editor::SaveShortcut(Map& map)
     {
         map.SaveMap("../assets/maps/test.txt");
     }
+}
+void Editor::HandlePartitionSelection(Vector2 mouse)
+{
+    Rectangle streetButton =
+    {
+        10, 50,
+        60, 32
+    };
+
+    Rectangle marketButton =
+    {
+        75, 50,
+        60, 32
+    };
+
+    Rectangle nightButton =
+    {
+        140, 50,
+        65, 32
+    };
+
+    if (CheckCollisionPointRec(mouse, streetButton) &&
+        IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
+    {
+        currentPartition = TextureManager::Partition::Street;
+        scrollOffset = 0;
+    }
+
+    if (CheckCollisionPointRec(mouse, marketButton) &&
+        IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
+    {
+        currentPartition = TextureManager::Partition::Market;
+        scrollOffset = 0;
+    }
+
+    if (CheckCollisionPointRec(mouse, nightButton) &&
+        IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
+    {
+        currentPartition = TextureManager::Partition::NeonNight;
+        scrollOffset = 0;
+    }
+}
+void Editor::DrawPartitionTabs()
+{
+    Rectangle streetButton =
+    {
+        10, 50,
+        60, 32
+    };
+
+    Rectangle marketButton =
+    {
+        75, 50,
+        60, 32
+    };
+
+    Rectangle nightButton =
+    {
+        140, 50,
+        65, 32
+    };
+
+    Color streetColor = LIGHTGRAY;
+    Color marketColor = LIGHTGRAY;
+    Color nightColor = LIGHTGRAY;
+
+    if (currentPartition == TextureManager::Partition::Street)
+        streetColor = SKYBLUE;
+
+    if (currentPartition == TextureManager::Partition::Market)
+        marketColor = SKYBLUE;
+
+    if (currentPartition == TextureManager::Partition::NeonNight)
+        nightColor = SKYBLUE;
+
+    DrawRectangleRec(streetButton, streetColor);
+    DrawRectangleRec(marketButton, marketColor);
+    DrawRectangleRec(nightButton, nightColor);
+
+    DrawRectangleLinesEx(streetButton, 1, BLACK);
+    DrawRectangleLinesEx(marketButton, 1, BLACK);
+    DrawRectangleLinesEx(nightButton, 1, BLACK);
+
+    DrawText("ST", 30, 59, 16, BLACK);
+    DrawText("MK", 93, 59, 16, BLACK);
+    DrawText("NN", 155, 59, 16, BLACK);
 }
 

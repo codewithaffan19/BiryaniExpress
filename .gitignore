@@ -1,7 +1,8 @@
 # Visual Studio
 .vs/
 .vscode/
-
+echo "assets.zip" >> .gitignore
+echo "src.zip" >> .gitignore
 # Build folders
 Debug/
 Release/

@@ -24,8 +24,9 @@ public:
         Map& map,
         const std::vector<Enemy>& enemies,
         const std::vector<NPC>& npcs,
-        Player& player,
-        bool insideMarket
+        Player player,
+        bool insideMarket,
+        bool nearDoor
     );
 
     TextureManager textures;
@@ -53,7 +54,7 @@ public:
 private:
 
     float fadeAlpha = 0.0f;
-
+    TextureManager::Partition GetCurrentPartition() const;
     bool fadingIn = false;
     bool fadingOut = false;
 
@@ -66,8 +67,8 @@ private:
         int tile,
         float wallX,
         float rayDirX,
-        float rayDirY
-    );
+        float rayDirY,
+        bool nearDoor);
 
     void DrawSky(Vector2 playerDir);
 
@@ -89,6 +90,13 @@ private:
         Vector2 playerDir,
         Vector2 cameraPlane
     );
+    void DrawNeonNightFloor(
+        Vector2 playerPos,
+        Vector2 playerDir,
+        Vector2 cameraPlane
+    );
+
+    void DrawNeonNightSky(Vector2 playerDir);
     void DrawFountain(
         Vector2 fountainPos,
         Vector2 playerPos,
