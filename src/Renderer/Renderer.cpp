@@ -215,9 +215,9 @@ void Renderer::DrawInventoryHUD(Player& p) {
     int slotGap = 12;
     int slotX = Config::SCREEN_WIDTH - slotSize - 20;
     int startY = 20;
-
+    int slotY;
     for (int i = 0; i < 2; i++) {
-        int slotY = startY + i * (slotSize + slotGap);
+        slotY = startY + i * (slotSize + slotGap)+5;
             bool isSelected = (i == p.currentWeaponIndex);
             Color BgColor = isSelected ? Fade(SKYBLUE, 0.4f) : Fade(BLACK, 0.4f);
             DrawRectangle(slotX, slotY, slotSize, slotSize, BgColor);
@@ -225,28 +225,27 @@ void Renderer::DrawInventoryHUD(Player& p) {
             Color BorderColor = isSelected ? YELLOW : GRAY;
 
             DrawRectangleLinesEx({ (float)slotX,(float)slotY,(float)slotSize,(float)slotSize }, isSelected ? 3.0f : 2.0f, BorderColor);
-      
-            DrawText(TextFormat("%d", i), slotX + 6, slotY + 6, 14, WHITE);
+   
     }
-
+    DrawText("Press 1 to toggle", slotX-40, startY-15, 14, WHITE);
 }
 
-void Renderer::DrawStreetFloor(Vector2 playerPos, Vector2 playerDir, Vector2 cameraPlane)
-{
-    // Row 2, columns 2-9
-    if (row == 2 && col >= 2 && col <= 9)
-        return true;
-
-    // Rows 3-7, column 9
-    if (col == 9 && row >= 3 && row <= 7)
-        return true;
-
-    // INDEX 6 -> DESIGN ROW 7
-    if (row == 7 && col >= 2 && col <= 24)
-        return true;
-
-    return false;
-}
+//void Renderer::DrawFloor(Vector2 playerPos, Vector2 playerDir, Vector2 cameraPlane)
+//{
+//    // Row 2, columns 2-9
+//    if (row == 2 && col >= 2 && col <= 9)
+//        return true;
+//
+//    // Rows 3-7, column 9
+//    if (col == 9 && row >= 3 && row <= 7)
+//        return true;
+//
+//    // INDEX 6 -> DESIGN ROW 7
+//    if (row == 7 && col >= 2 && col <= 24)
+//        return true;
+//
+//    return false;
+//}
 static bool IsFloor2Cell(int row, int col)
 {
     // Row 3, columns 2-8
@@ -500,40 +499,40 @@ void Renderer::DrawWideFloor(
             // NORMAL FLOOR 1
             // ==========================================
 
-            else if (IsFloor1Cell(designRow, designCol))
-            {
-                int texWidth =
-                    textures.floorimg.width;
+            //else if (IsFloor1Cell(designRow, designCol))
+            //{
+            //    int texWidth =
+            //        textures.floorimg.width;
 
-                int texHeight =
-                    textures.floorimg.height;
+            //    int texHeight =
+            //        textures.floorimg.height;
 
-                int tx =
-                    (int)(texWidth * u);
+            //    int tx =
+            //        (int)(texWidth * u);
 
-                int ty =
-                    (int)(texHeight * v);
+            //    int ty =
+            //        (int)(texHeight * v);
 
-                // Safety
-                if (tx < 0)
-                    tx = 0;
+            //    // Safety
+            //    if (tx < 0)
+            //        tx = 0;
 
-                if (ty < 0)
-                    ty = 0;
+            //    if (ty < 0)
+            //        ty = 0;
 
-                if (tx >= texWidth)
-                    tx = texWidth - 1;
+            //    if (tx >= texWidth)
+            //        tx = texWidth - 1;
 
-                if (ty >= texHeight)
-                    ty = texHeight - 1;
+            //    if (ty >= texHeight)
+            //        ty = texHeight - 1;
 
-                color =
-                    GetImageColor(
-                        textures.floorimg,
-                        tx,
-                        ty
-                    );
-            }
+            //    color =
+            //        GetImageColor(
+            //            textures.floorimg,
+            //            tx,
+            //            ty
+            //        );
+            //}
 
             // ==========================================
             // NORMAL FLOOR 2
@@ -819,7 +818,7 @@ void Renderer::Draw(
     Map& map,
     const std::vector<Enemy>& enemies,
     const std::vector<NPC>& npcs,
-    Player player,
+    Player& player,
     bool insideMarket)
 {
     // ==========================================
@@ -1195,10 +1194,10 @@ void Renderer::Draw(
     // PHASE 4: PLAYER HAND
     // ==========================================
 
-    Texture2D& weaponTex = player.handTex;
-
-    if (weaponTex.id != 0)
+    int weapon = player.GetActiveWeapon();
+    if (weapon != 0)
     {
+        Texture2D& weaponTex = player.currentTex;
         float scale =
             (Config::SCREEN_HEIGHT * 0.55f) /
             weaponTex.height;

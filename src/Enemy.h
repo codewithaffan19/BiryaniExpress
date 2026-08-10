@@ -28,6 +28,10 @@ public:
 	static const int MAX_BUBBLES = 12; 
 	Bubble bubbles[MAX_BUBBLES];
 	bool hasPopped = false;
+	float attackRange = 1.0f;
+	float attackCooldown = 1.0f;
+	float attackDamage = 15;
+	float currentAttackTimer = 0.0f;
 	Enemy();
-	void update(Player P, Map& m1);
+	void update(Player& P, Map& m1);
 };

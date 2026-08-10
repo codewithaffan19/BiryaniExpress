@@ -24,7 +24,7 @@ public:
         Map& map,
         const std::vector<Enemy>& enemies,
         const std::vector<NPC>& npcs,
-        Player player,
+        Player& player,
         bool insideMarket
     );
 
