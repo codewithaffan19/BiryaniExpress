@@ -321,9 +321,9 @@ void Renderer::DrawInventoryHUD(Player& p) {
     int slotGap = 12;
     int slotX = Config::SCREEN_WIDTH - slotSize - 20;
     int startY = 20;
-
+    int slotY;
     for (int i = 0; i < 2; i++) {
-        int slotY = startY + i * (slotSize + slotGap);
+        slotY = startY + i * (slotSize + slotGap)+5;
             bool isSelected = (i == p.currentWeaponIndex);
             Color BgColor = isSelected ? Fade(SKYBLUE, 0.4f) : Fade(BLACK, 0.4f);
             DrawRectangle(slotX, slotY, slotSize, slotSize, BgColor);
@@ -331,10 +331,9 @@ void Renderer::DrawInventoryHUD(Player& p) {
             Color BorderColor = isSelected ? YELLOW : GRAY;
 
             DrawRectangleLinesEx({ (float)slotX,(float)slotY,(float)slotSize,(float)slotSize }, isSelected ? 3.0f : 2.0f, BorderColor);
-      
-            DrawText(TextFormat("%d", i), slotX + 6, slotY + 6, 14, WHITE);
+   
     }
-
+    DrawText("Press 1 to toggle", slotX-40, startY-15, 14, WHITE);
 }
 static bool IsFloor1Cell(int row, int col)
 {
@@ -605,40 +604,40 @@ void Renderer::DrawWideFloor(
             // NORMAL FLOOR 1
             // ==========================================
 
-            else if (IsFloor1Cell(designRow, designCol))
-            {
-                int texWidth =
-                    textures.floorimg.width;
+            //else if (IsFloor1Cell(designRow, designCol))
+            //{
+            //    int texWidth =
+            //        textures.floorimg.width;
 
-                int texHeight =
-                    textures.floorimg.height;
+            //    int texHeight =
+            //        textures.floorimg.height;
 
-                int tx =
-                    (int)(texWidth * u);
+            //    int tx =
+            //        (int)(texWidth * u);
 
-                int ty =
-                    (int)(texHeight * v);
+            //    int ty =
+            //        (int)(texHeight * v);
 
-                // Safety
-                if (tx < 0)
-                    tx = 0;
+            //    // Safety
+            //    if (tx < 0)
+            //        tx = 0;
 
-                if (ty < 0)
-                    ty = 0;
+            //    if (ty < 0)
+            //        ty = 0;
 
-                if (tx >= texWidth)
-                    tx = texWidth - 1;
+            //    if (tx >= texWidth)
+            //        tx = texWidth - 1;
 
-                if (ty >= texHeight)
-                    ty = texHeight - 1;
+            //    if (ty >= texHeight)
+            //        ty = texHeight - 1;
 
-                color =
-                    GetImageColor(
-                        textures.floorimg,
-                        tx,
-                        ty
-                    );
-            }
+            //    color =
+            //        GetImageColor(
+            //            textures.floorimg,
+            //            tx,
+            //            ty
+            //        );
+            //}
 
             // ==========================================
             // NORMAL FLOOR 2
@@ -1467,10 +1466,10 @@ void Renderer::Draw(
     // PHASE 4: PLAYER HAND
     // ==========================================
 
-    Texture2D& weaponTex = player.handTex;
-
-    if (weaponTex.id != 0)
+    int weapon = player.GetActiveWeapon();
+    if (weapon != 0)
     {
+        Texture2D& weaponTex = player.currentTex;
         float scale =
             (Config::SCREEN_HEIGHT * 0.55f) /
             weaponTex.height;

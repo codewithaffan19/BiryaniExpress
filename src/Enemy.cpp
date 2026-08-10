@@ -4,7 +4,7 @@
 #include "raymath.h"
 #include "../src/World/Collision.h"
 
-enum { STILL, CHASE,INTERROGATE,DEAD };
+enum { STILL, CHASE,INTERROGATE,DEAD,ATTACK };
 
 Enemy::Enemy() {
 	position = { 5.5f,5.5f };
@@ -19,7 +19,7 @@ Enemy::Enemy() {
 	health = 100;
 }
 
-void Enemy::update(Player P, Map& m1) {
+void Enemy::update(Player& P, Map& m1) {
 	float deltaTime = GetFrameTime();
 	float dx = P.position.x - position.x;
 	float dy = P.position.y - position.y;
@@ -43,7 +43,6 @@ void Enemy::update(Player P, Map& m1) {
 			}
 		}
 	}
-
 	if (health <= 0) {
 		state = DEAD;
 		Velocity = { 0.0f,0.0f };
@@ -70,6 +69,9 @@ void Enemy::update(Player P, Map& m1) {
 			state = INTERROGATE;
 			WanderTimer = 0.0f;
 		}
+	}
+	else if (playerdis<=attackRange) {
+		state = ATTACK;
 	}
 	else {
 		state = CHASE;
@@ -133,6 +135,21 @@ void Enemy::update(Player P, Map& m1) {
 					if (currentframe >= totalframes)
 						currentframe = 1;
 				}
+			}
+		}
+		else if (state == ATTACK) {
+			Velocity = { 0.0f,0.0f };
+
+			currentAttackTimer -= deltaTime;
+
+			if (currentAttackTimer <= 0.0f) {
+				P.health -= attackDamage;
+				P.hitmessagetimer = 30;
+
+				if (P.health < 0) {
+					P.health = 0;
+				}
+				currentAttackTimer = attackCooldown;
 			}
 		}
 }

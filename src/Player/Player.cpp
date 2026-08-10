@@ -16,6 +16,7 @@ Player::Player()
     hitmessagetimer = 0;
     WeaponPouch[0].id = ITEM_SPOON;
     WeaponPouch[1].id = ITEM_CHAPPAL;
+
 }
 int Player::GetActiveWeapon()const {
     return WeaponPouch[currentWeaponIndex].id;
@@ -23,11 +24,21 @@ int Player::GetActiveWeapon()const {
 void Player::SwitchWeapon(){
     int nextWeapon;
     if (currentWeaponIndex == 0)
+    {
         nextWeapon = 1;
+    }
     else
+    {
         nextWeapon = 0;
+    }
     if (WeaponPouch[nextWeapon].id != ITEM_EMPTY) {
         currentWeaponIndex = nextWeapon;
+        if (currentWeaponIndex == 0) {
+            currentTex = handTex;
+        }
+        else {
+            currentTex = Weapon1Tex;
+        }
     }
 }
 
@@ -60,11 +71,12 @@ void Player::Update(
     InputManager& input,
     Map& map)
 {
+   /* if (health <= 0)
+    {
+        return;
+    }*/
     //Inventory
     if (IsKeyPressed(KEY_ONE)&&WeaponPouch[0].id!=ITEM_EMPTY) {
-        SwitchWeapon();
-    }
-    else if (IsKeyPressed(KEY_TWO)&& WeaponPouch[1].id != ITEM_EMPTY) {
         SwitchWeapon();
     }
 

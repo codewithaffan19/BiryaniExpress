@@ -43,6 +43,8 @@ public:
     int currentWeaponIndex;
     int hitmessagetimer;
     Texture2D handTex;
+    Texture2D currentTex;
+    Texture2D Weapon1Tex;
     int GetActiveWeapon()const;
     Vector2 GetPosition() const;
     void SwitchWeapon();
