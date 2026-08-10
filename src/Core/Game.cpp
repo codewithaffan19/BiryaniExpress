@@ -38,6 +38,9 @@ void Game::Initialize()
     }
 
     renderer.LoadTextures();
+    renderer.textures.SetCurrentPartition(
+        TextureManager::Partition::Street
+    );
     editor.SetTextureManager(&renderer.textures);
 
     DisableCursor();
@@ -204,6 +207,10 @@ void Game::Update()
 
     input.Update();
 
+    // ==========================================
+    // EDITOR TOGGLE
+    // ==========================================
+
     if (IsKeyPressed(KEY_TAB))
     {
         editorMode = !editorMode;
@@ -214,6 +221,10 @@ void Game::Update()
             DisableCursor();
     }
 
+    // ==========================================
+    // GAME / EDITOR UPDATE
+    // ==========================================
+
     if (editorMode)
     {
         editor.Update(map);
@@ -221,40 +232,120 @@ void Game::Update()
     else
     {
         player.Update(dt, input, map);
-        for (int i = 0; i < enemies.size(); i++) {
+
+        for (int i = 0; i < enemies.size(); i++)
+        {
             enemies[i].update(player, map);
-            CheckPlayerEnemyCollision(player, enemies[i],map);
-            CheckSpoonCollosion(player, enemies[i]);
+
+            CheckPlayerEnemyCollision(
+                player,
+                enemies[i],
+                map
+            );
+
+            CheckSpoonCollosion(
+                player,
+                enemies[i]
+            );
         }
-        for (int i = 0; i < npcs.size(); i++) {
-            CheckPlayerNPCCollision(player, npcs[i], map);
+
+        for (int i = 0; i < npcs.size(); i++)
+        {
+            CheckPlayerNPCCollision(
+                player,
+                npcs[i],
+                map
+            );
         }
     }
+
     // ==========================================
-// UPDATE NPCs
-// ==========================================
+    // UPDATE NPCs
+    // ==========================================
 
     Vector2 playerPos = player.GetPosition();
 
     for (NPC& npc : npcs)
     {
-        npc.Update(playerPos,player);
+        npc.Update(playerPos, player);
     }
 
-    Vector2 targetDoor =
-        insideMarket ? insideDoor : outsideDoor;
+    // ==========================================
+    // DOOR SYSTEM
+    // ==========================================
 
-    float dist =
-        Vector2Distance(playerPos, targetDoor);
-
-    if (dist < 1.2f)
+    if (!editorMode)
     {
-        if (IsKeyPressed(KEY_E))
+        // --------------------------------------
+        // INSIDE MARKET
+        // --------------------------------------
+
+        if (insideMarket)
         {
-            renderer.StartFadeIn();
-            teleportPending = true;
+            float dist =
+                Vector2Distance(
+                    playerPos,
+                    insideDoor
+                );
+
+            if (dist < 1.2f && IsKeyPressed(KEY_E))
+            {
+                renderer.StartFadeIn();
+                teleportPending = true;
+            }
+        }
+
+        // --------------------------------------
+        // INSIDE NEON
+        // --------------------------------------
+
+        else if (insideNeon)
+        {
+            float dist =
+                Vector2Distance(
+                    playerPos,
+                    insideNeonDoor
+                );
+
+            if (dist < 1.2f && IsKeyPressed(KEY_E))
+            {
+                renderer.StartFadeIn();
+                teleportPending = true;
+            }
+        }
+
+        // --------------------------------------
+        // OUTSIDE
+        // --------------------------------------
+
+        else
+        {
+            float marketDist =
+                Vector2Distance(
+                    playerPos,
+                    outsideDoor
+                );
+
+            float neonDist =
+                Vector2Distance(
+                    playerPos,
+                    outsideNeonDoor
+                );
+
+            if ((marketDist < 1.2f ||
+                neonDist < 1.2f) &&
+                IsKeyPressed(KEY_E))
+            {
+                renderer.StartFadeIn();
+                teleportPending = true;
+            }
         }
     }
+
+    // ==========================================
+    // ESCAPE
+    // ==========================================
+
     if (input.IsKeyPressed(KEY_ESCAPE))
         running = false;
 }
@@ -292,7 +383,44 @@ void Game::Draw()
         // ==========================================
         // 3D WORLD
         // ==========================================
+        Vector2 targetDoor;
 
+        if (insideMarket)
+        {
+            targetDoor = insideDoor;
+        }
+        else if (insideNeon)
+        {
+            targetDoor = insideNeonDoor;
+        }
+        else
+        {
+            float marketDist =
+                Vector2Distance(
+                    playerPos,
+                    outsideDoor
+                );
+
+            float neonDist =
+                Vector2Distance(
+                    playerPos,
+                    outsideNeonDoor
+                );
+
+            targetDoor =
+                (neonDist < marketDist)
+                ? outsideNeonDoor
+                : outsideDoor;
+        }
+
+        float doorDistance =
+            Vector2Distance(
+                playerPos,
+                targetDoor
+            );
+
+        bool nearDoor =
+            doorDistance < 1.2f;
         renderer.Draw(
             playerPos,
             playerDir,
@@ -301,9 +429,9 @@ void Game::Draw()
             enemies,
             npcs,
             player,
-            insideMarket
+            insideMarket,
+            nearDoor
         );
-
         // ==========================================
         // DOOR INTERACTION TEXT
         // ==========================================
@@ -320,19 +448,38 @@ void Game::Draw()
                 insideDoor
             );
 
-        if (distOutside < 1.2f ||
-            distInside < 1.2f)
+        if (insideMarket || insideNeon)
         {
-            DrawText(
-                insideMarket
-                ? "Press E to Exit"
-                : "Press E to Enter",
+            if (Vector2Distance(playerPos,
+                insideMarket ? insideDoor : insideNeonDoor) < 1.2f)
+            {
+                DrawText(
+                    "Press E to Exit",
+                    Config::SCREEN_WIDTH / 2 - 120,
+                    Config::SCREEN_HEIGHT - 80,
+                    24,
+                    YELLOW
+                );
+            }
+        }
+        else
+        {
+            float marketDist =
+                Vector2Distance(playerPos, outsideDoor);
 
-                Config::SCREEN_WIDTH / 2 - 120,
-                Config::SCREEN_HEIGHT - 80,
-                24,
-                YELLOW
-            );
+            float neonDist =
+                Vector2Distance(playerPos, outsideNeonDoor);
+
+            if (marketDist < 1.2f || neonDist < 1.2f)
+            {
+                DrawText(
+                    "Press E to Enter",
+                    Config::SCREEN_WIDTH / 2 - 120,
+                    Config::SCREEN_HEIGHT - 80,
+                    24,
+                    YELLOW
+                );
+            }
         }
     }
 
@@ -347,16 +494,77 @@ void Game::Draw()
     {
         teleportPending = false;
 
-        if (!insideMarket)
-        {
-            player.position = insideDoor;
-        }
-        else
+        // ==========================================
+        // MARKET -> OUTSIDE
+        // ==========================================
+        if (insideMarket)
         {
             player.position = outsideDoor;
+            insideMarket = false;
+
+            renderer.textures.SetCurrentPartition(
+                TextureManager::Partition::Street
+            );
         }
 
-        insideMarket = !insideMarket;
+        // ==========================================
+        // NEON -> OUTSIDE
+        // ==========================================
+        else if (insideNeon)
+        {
+            player.position = outsideNeonDoor;
+            insideNeon = false;
+
+            renderer.textures.SetCurrentPartition(
+                TextureManager::Partition::Street
+            );
+        }
+
+        // ==========================================
+        // OUTSIDE -> ENTER SOMETHING
+        // ==========================================
+        else
+        {
+            float marketDist =
+                Vector2Distance(
+                    player.position,
+                    outsideDoor
+                );
+
+            float neonDist =
+                Vector2Distance(
+                    player.position,
+                    outsideNeonDoor
+                );
+
+            // ------------------------------
+            // ENTER NEON
+            // ------------------------------
+            if (neonDist < marketDist)
+            {
+                player.position = insideNeonDoor;
+                insideNeon = true;
+                insideMarket = false;
+
+                renderer.textures.SetCurrentPartition(
+                    TextureManager::Partition::NeonNight
+                );
+            }
+
+            // ------------------------------
+            // ENTER MARKET
+            // ------------------------------
+            else
+            {
+                player.position = insideDoor;
+                insideMarket = true;
+                insideNeon = false;
+
+                renderer.textures.SetCurrentPartition(
+                    TextureManager::Partition::Market
+                );
+            }
+        }
 
         renderer.StartFadeOut();
     }
