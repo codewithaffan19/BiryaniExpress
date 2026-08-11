@@ -71,17 +71,17 @@ void Game::Initialize()
 
 
     Enemy AngryUncle;
-    AngryUncle.spriteSheet = LoadTexture("../../assets/textures/uncle.png");
-    AngryUncle.position = { 7.0f, 10.0f };
+    AngryUncle.spriteSheet = LoadTexture("../../assets/textures/Uncle2.png");
+    AngryUncle.position = { 4.0f, 2.0f };
     AngryUncle.totalframes = 5;
     AngryUncle.moveSpeed = 0.7f;
     AngryUncle.currentAttackTimer = 0.2f;
 
 
     Enemy AngryUncle2;
-    AngryUncle2.spriteSheet =LoadTexture("../../assets/textures/uncle.png");
-    AngryUncle2.position = { 17.0f, 16.0f };
-    AngryUncle2.totalframes = 5;
+    AngryUncle2.spriteSheet =LoadTexture("../../assets/textures/Uncle2.png");
+    AngryUncle2.position = { 4.0f, 2.0f };
+   AngryUncle2.totalframes = 5;
     AngryUncle2.moveSpeed = 0.7f;
     AngryUncle2.currentAttackTimer = 0.5f;
     Enemy Thief;
@@ -183,6 +183,7 @@ void Game::CheckSpoonCollosion(Player& p, Enemy& E)
 {
     if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
     {
+        float dt = GetFrameTime();
         float dx = E.position.x - p.position.x;
         float dy = E.position.y - p.position.y;
 
@@ -201,6 +202,11 @@ void Game::CheckSpoonCollosion(Player& p, Enemy& E)
             {
                 p.hitmessagetimer = 30;
                 E.health -= 20;
+
+                float knockBackForce = 4.0f;
+                E.KnockBackVelocity = { normX * knockBackForce,normY * knockBackForce };
+                E.KnockBackTimer = 0.2f;
+                E.position=KnockBack(E.position, E.KnockBackVelocity, E.KnockBackTimer, E.radius, map, dt);
             }
         }
     }
@@ -246,11 +252,11 @@ void Game::Update()
                 enemies[i],
                 map
             );
-
             CheckSpoonCollosion(
                 player,
                 enemies[i]
             );
+            CheckEnemyEnemyCollision(enemies, map);
         }
 
         for (int i = 0; i < npcs.size(); i++)

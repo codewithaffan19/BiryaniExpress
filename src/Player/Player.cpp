@@ -121,66 +121,68 @@ void Player::Update(
     //-------------------------------------------------
     // Movement
     //-------------------------------------------------
-
-    Vector2 newPos = position;
-
-    if (input.Forward())
-    {
-        newPos.x += direction.x * moveSpeed * dt;
-        newPos.y += direction.y * moveSpeed * dt;
+    if (KnockBackTimer > 0.0) {
+        position = KnockBack(position, KnockBackVelocity, KnockBackTimer, radius, map, dt);
     }
+        Vector2 newPos = position;
 
-    if (input.Backward())
-    {
-        newPos.x -= direction.x * moveSpeed * dt;
-        newPos.y -= direction.y * moveSpeed * dt;
-    }
+        if (input.Forward())
+        {
+            newPos.x += direction.x * moveSpeed * dt;
+            newPos.y += direction.y * moveSpeed * dt;
+        }
 
-    Vector2 right =
-    {
-        -direction.y,
-         direction.x
-    };
+        if (input.Backward())
+        {
+            newPos.x -= direction.x * moveSpeed * dt;
+            newPos.y -= direction.y * moveSpeed * dt;
+        }
 
-    if (input.Left())
-    {
-        newPos.x -= right.x * moveSpeed * dt;
-        newPos.y -= right.y * moveSpeed * dt;
-    }
+        Vector2 right =
+        {
+            -direction.y,
+             direction.x
+        };
 
-    if (input.Right())
-    {
-        newPos.x += right.x * moveSpeed * dt;
-        newPos.y += right.y * moveSpeed * dt;
-    }
+        if (input.Left())
+        {
+            newPos.x -= right.x * moveSpeed * dt;
+            newPos.y -= right.y * moveSpeed * dt;
+        }
 
-    //-------------------------------------------------
-    // Collision
-    //-------------------------------------------------
+        if (input.Right())
+        {
+            newPos.x += right.x * moveSpeed * dt;
+            newPos.y += right.y * moveSpeed * dt;
+        }
 
-    float radius = 0.20f;
+        //-------------------------------------------------
+        // Collision
+        //-------------------------------------------------
 
-    if (map.GetCell(
-        (int)position.y,
-        (int)(newPos.x + radius)) == 0 &&
-        map.GetCell(
+        float radius = 0.20f;
+
+        if (map.GetCell(
             (int)position.y,
-            (int)(newPos.x - radius)) == 0)
-    {
-        position.x = newPos.x;
-    }
+            (int)(newPos.x + radius)) == 0 &&
+            map.GetCell(
+                (int)position.y,
+                (int)(newPos.x - radius)) == 0)
+        {
+            position.x = newPos.x;
+        }
 
-    if (map.GetCell(
-        (int)(newPos.y + radius),
-        (int)position.x) == 0 &&
-        map.GetCell(
-            (int)(newPos.y - radius),
-            (int)position.x) == 0)
-    {
-        position.y = newPos.y;
-    }
-    if (hitmessagetimer > 0)
-        hitmessagetimer--;
+        if (map.GetCell(
+            (int)(newPos.y + radius),
+            (int)position.x) == 0 &&
+            map.GetCell(
+                (int)(newPos.y - radius),
+                (int)position.x) == 0)
+        {
+            position.y = newPos.y;
+        }
+        if (hitmessagetimer > 0)
+            hitmessagetimer--;
 }
 
 

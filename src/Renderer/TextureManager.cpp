@@ -276,7 +276,7 @@ void TextureManager::LoadStreetAssets()
         int index = i + 1;
 
         std::string path =
-            "../assets/streetassets/wall" +
+            "../../assets/streetassets/wall" +
             std::to_string(i) +
             ".png";
 
@@ -288,7 +288,7 @@ void TextureManager::LoadStreetAssets()
         );
 
         std::string animPath =
-            "../assets/streetassets/wall" +
+            "../../assets/streetassets/wall" +
             std::to_string(i) +
             "_anim.png";
 
@@ -304,7 +304,7 @@ void TextureManager::LoadStreetAssets()
 
     LoadTile(
         31,
-        "../assets/streetassets/wall_welcome.png",
+        "../../assets/streetassets/wall_welcome.png",
         "WallWelcome",
         true
     );
@@ -318,7 +318,7 @@ void TextureManager::LoadStreetAssets()
         int index = 32 + i;
 
         std::string path =
-            "../assets/streetassets/streetwall" +
+            "../../assets/streetassets/streetwall" +
             std::to_string(i + 1) +
             ".png";
 
@@ -330,7 +330,7 @@ void TextureManager::LoadStreetAssets()
         );
 
         std::string animPath =
-            "../assets/streetassets/streetwall" +
+            "../../assets/streetassets/streetwall" +
             std::to_string(i + 1) +
             "_anim.png";
 
@@ -348,7 +348,7 @@ void TextureManager::LoadStreetAssets()
     {
         floorimg =
             LoadImage(
-                "../assets/streetassets/floor.png"
+                "../../assets/streetassets/floor.png"
             );
     }
 
@@ -356,7 +356,7 @@ void TextureManager::LoadStreetAssets()
     {
         floor2Img =
             LoadImage(
-                "../assets/streetassets/floor2.png"
+                "../../assets/streetassets/floor2.png"
             );
     }
 
@@ -368,7 +368,7 @@ void TextureManager::LoadStreetAssets()
     {
         skyTex =
             LoadTexture(
-                "../assets/streetassets/sky.png"
+                "../../assets/streetassets/sky.png"
             );
 
         SetTextureFilter(
@@ -411,61 +411,61 @@ void TextureManager::LoadMarketAssets()
 
     LoadTile(
         10,
-        "../assets/marketassets/6.3cafe.png",
+        "../../assets/marketassets/6.3cafe.png",
         "Cafe"
     );
 
     LoadTile(
         11,
-        "../assets/marketassets/AFC.png",
+        "../../assets/marketassets/AFC.png",
         "AFC"
     );
 
     LoadTile(
         12,
-        "../assets/marketassets/drumble.png",
+        "../../assets/marketassets/drumble.png",
         "Drumble"
     );
 
     LoadTile(
         13,
-        "../assets/marketassets/CHIPS.png",
+        "../../assets/marketassets/CHIPS.png",
         "CHIPS"
     );
 
     LoadTile(
         14,
-        "../assets/marketassets/wall8.png",
+        "../../assets/marketassets/wall8.png",
         "Butcher"
     );
 
     LoadTile(
         15,
-        "../assets/marketassets/marketwall1.png",
+        "../../assets/marketassets/marketwall1.png",
         "MarketWall1"
     );
 
     LoadTile(
         16,
-        "../assets/marketassets/marketwall2.png",
+        "../../assets/marketassets/marketwall2.png",
         "MarketWall2"
     );
 
     LoadTile(
         17,
-        "../assets/marketassets/marketwall3.png",
+        "../../assets/marketassets/marketwall3.png",
         "MarketWall3"
     );
 
     LoadTile(
         18,
-        "../assets/marketassets/AMW.png",
+        "../../assets/marketassets/AMW.png",
         "AMW"
     );
 
     LoadTile(
         19,
-        "../assets/marketassets/SlimeLite.png",
+        "../../assets/marketassets/SlimeLite.png",
         "SlimeLite"
     );
 
@@ -475,47 +475,47 @@ void TextureManager::LoadMarketAssets()
 
     LoadAnimatedTile(
         10,
-        "../assets/marketassets/6.3cafe_anim.png"
+        "../../assets/marketassets/6.3cafe_anim.png"
     );
 
     LoadAnimatedTile(
         11,
-        "../assets/marketassets/AFC_anim.png"
+        "../../assets/marketassets/AFC_anim.png"
     );
 
     LoadAnimatedTile(
         12,
-        "../assets/marketassets/drumble_anim.png"
+        "../../assets/marketassets/drumble_anim.png"
     );
 
     LoadAnimatedTile(
         13,
-        "../assets/marketassets/CHIPS_anim.png"
+        "../../assets/marketassets/CHIPS_anim.png"
     );
 
     LoadAnimatedTile(
         14,
-        "../assets/marketassets/wall8_anim.png"
+        "../../assets/marketassets/wall8_anim.png"
     );
 
     LoadAnimatedTile(
         18,
-        "../assets/marketassets/AMW_anim.png"
+        "../../assets/marketassets/AMW_anim.png"
     );
 
     LoadAnimatedTile(
         19,
-        "../assets/marketassets/SlimeLite_anim.png"
+        "../../assets/marketassets/SlimeLite_anim.png"
     );
     LoadTile(
         20,
-        "../assets/commonassets/entranceDoor.png",
+        "../../assets/commonassets/entranceDoor.png",
         "EntranceDoor"
     );
 
     LoadTile(
         21,
-        "../assets/commonassets/exitDoor.png",
+        "../../assets/commonassets/exitDoor.png",
         "ExitDoor"
     );
     // ---------------------------------------------------------
@@ -524,57 +524,57 @@ void TextureManager::LoadMarketAssets()
 
     LoadTile(
         22,
-        "../assets/marketassets/gym.png",
+        "../../assets/marketassets/gym.png",
         "Gym"
     );
 
     LoadAnimatedTile(
         22,
-        "../assets/marketassets/gym_anim.png"
+        "../../assets/marketassets/gym_anim.png"
     );
 
     LoadTile(
         23,
-        "../assets/marketassets/mike.png",
+        "../../assets/marketassets/mike.png",
         "Mike"
     );
 
     LoadAnimatedTile(
         23,
-        "../assets/marketassets/mike_anim.png"
+        "../../assets/marketassets/mike_anim.png"
     );
 
     LoadTile(
         24,
-        "../assets/marketassets/kiko_milano.png",
+        "../../assets/marketassets/kiko_milano.png",
         "KikoMilano"
     );
 
     LoadAnimatedTile(
         24,
-        "../assets/marketassets/kiko_milano_anim.png"
+        "../../assets/marketassets/kiko_milano_anim.png"
     );
 
     LoadTile(
         25,
-        "../assets/marketassets/mehak_posh.png",
+        "../../assets/marketassets/mehak_posh.png",
         "MehakPosh"
     );
 
     LoadAnimatedTile(
         25,
-        "../assets/marketassets/mehak_posh_anim.png"
+        "../../assets/marketassets/mehak_posh_anim.png"
     );
 
     LoadTile(
         26,
-        "../assets/marketassets/clinex.png",
+        "../../assets/marketassets/clinex.png",
         "Clinex"
     );
 
     LoadAnimatedTile(
         26,
-        "../assets/marketassets/clinex_anim.png"
+        "../../assets/marketassets/clinex_anim.png"
     );
 
     // ---------------------------------------------------------
@@ -583,46 +583,46 @@ void TextureManager::LoadMarketAssets()
 
     LoadTile(
         27,
-        "../assets/marketassets/bar.png",
+        "../../assets/marketassets/bar.png",
         "Bar"
     );
 
     LoadAnimatedTile(
         27,
-        "../assets/marketassets/bar_anim.png"
+        "../../assets/marketassets/bar_anim.png"
     );
 
     LoadTile(
         28,
-        "../assets/marketassets/brolex.png",
+        "../../assets/marketassets/brolex.png",
         "Brolex"
     );
 
     LoadAnimatedTile(
         28,
-        "../assets/marketassets/brolex_anim.png"
+        "../../assets/marketassets/brolex_anim.png"
     );
 
     LoadTile(
         29,
-        "../assets/marketassets/Davidputra.png",
+        "../../assets/marketassets/Davidputra.png",
         "DavidPutra"
     );
 
     LoadAnimatedTile(
         29,
-        "../assets/marketassets/Davidputra_anim.png"
+        "../../assets/marketassets/Davidputra_anim.png"
     );
 
     LoadTile(
         30,
-        "../assets/marketassets/gamingzone.png",
+        "../../assets/marketassets/gamingzone.png",
         "GamingZone"
     );
 
     LoadAnimatedTile(
         30,
-        "../assets/marketassets/gamingzone_anim.png"
+        "../../assets/marketassets/gamingzone_anim.png"
     );
 
     // ---------------------------------------------------------
@@ -633,7 +633,7 @@ void TextureManager::LoadMarketAssets()
     {
         marketFloorImg =
             LoadImage(
-                "../assets/marketassets/marketFloor.png"
+                "../../assets/marketassets/marketFloor.png"
             );
     }
 
@@ -645,7 +645,7 @@ void TextureManager::LoadMarketAssets()
     {
         marketRoofTex =
             LoadTexture(
-                "../assets/marketassets/marketRoof.png"
+                "../../assets/marketassets/marketRoof.png"
             );
 
         SetTextureFilter(
@@ -662,7 +662,7 @@ void TextureManager::LoadMarketAssets()
     {
         fountainSheet =
             LoadTexture(
-                "../assets/marketassets/fountain.png"
+                "../../assets/marketassets/fountain.png"
             );
 
         SetTextureFilter(
@@ -684,13 +684,13 @@ void TextureManager::LoadCommonAssets()
 
     LoadTile(
         20,
-        "../assets/commonassets/entranceDoor.png",
+        "../../assets/commonassets/entranceDoor.png",
         "EntranceDoor"
     );
 
     LoadTile(
         21,
-        "../assets/commonassets/exitDoor.png",
+        "../../assets/commonassets/exitDoor.png",
         "ExitDoor"
     );
 
@@ -702,7 +702,7 @@ void TextureManager::LoadCommonAssets()
     {
         neonDoor1Tex =
             LoadTexture(
-                "../assets/commonassets/neonDoor1.png"
+                "../../assets/commonassets/neonDoor1.png"
             );
 
         if (neonDoor1Tex.id != 0)
@@ -718,7 +718,7 @@ void TextureManager::LoadCommonAssets()
     {
         neonDoor2Tex =
             LoadTexture(
-                "../assets/commonassets/neonDoor2.png"
+                "../../assets/commonassets/neonDoor2.png"
             );
 
         if (neonDoor2Tex.id != 0)
@@ -746,7 +746,7 @@ void TextureManager::LoadNeonNightAssets()
     {
         nightFloorImg =
             LoadImage(
-                "../assets/neonnightassets/nightFloor.png"
+                "../../assets/neonnightassets/nightFloor.png"
             );
     }
 
@@ -758,7 +758,7 @@ void TextureManager::LoadNeonNightAssets()
     {
         nightSkyTex =
             LoadTexture(
-                "../assets/neonnightassets/nightSky.png"
+                "../../assets/neonnightassets/nightSky.png"
             );
 
         SetTextureFilter(
