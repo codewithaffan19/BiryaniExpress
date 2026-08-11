@@ -3,9 +3,10 @@
 #include "raylib.h"
 #include "raymath.h"
 
+#include "../World/Collision.h"
+
 #include <cmath>
 #include <iostream>
-
 // ============================================================
 // CONSTRUCTOR
 // ============================================================
@@ -45,11 +46,11 @@ void Story::Initialize()
 
     guards[1].position =
     {
-        5.5f,
-        15.5f
+        4.5f,
+        16.5f
     };
 
-    guards[1].key = KEY_DOOR_2;
+    guards[1].key = KEY_DOOR_3;
 
     // ========================================================
     // GUARD 3
@@ -60,11 +61,11 @@ void Story::Initialize()
 
     guards[2].position =
     {
-        10.5f,
-        14.5f
+        8.5f,
+        15.5f
     };
 
-    guards[2].key = KEY_DOOR_3;
+    guards[2].key = KEY_DOOR_2;
 
 
     // ========================================================
@@ -424,7 +425,7 @@ void Story::Update(
         if (IsNear(
             player.GetPosition(),
             doorPositions[i],
-            1.2f))
+            2.0f))
         {
             currentDoor = i;
 
@@ -1367,13 +1368,15 @@ void Story::DrawGuard(
             );
 
     // ========================================================
-    // SIZE
-    //
-    // GUARD_SCALE controls guard size.
-    // ========================================================
+// SPRITE SIZE
+//
+// Same physical rendering scale as normal NPCs.
+//
+// NPC uses:
+//     spriteScale = 0.55f
+// ========================================================
 
-    float spriteScale =
-        GUARD_SCALE;
+    float spriteScale = 0.95f;
 
     int spriteHeight =
         abs(
@@ -1387,6 +1390,10 @@ void Story::DrawGuard(
     if (spriteHeight <= 0)
         return;
 
+    // --------------------------------------------------------
+    // Keep original sprite proportions
+    // --------------------------------------------------------
+
     float aspectRatio =
         guardFrameWidth /
         guardFrameHeight;
@@ -1399,42 +1406,21 @@ void Story::DrawGuard(
             );
 
     // ========================================================
-    // VERTICAL POSITION
-    //
-    // The OLD code centered the guard around the horizon.
-    //
-    // Now the BOTTOM of the sprite is used as the anchor.
-    //
-    // This makes the guard look like it is standing on the
-    // floor instead of floating around its center.
+    // VERTICAL POSITION — KEEP GUARD ON THE FLOOR
     // ========================================================
 
-    int groundY =
-        (screenHeight / 2) +
-        (int)
-        GUARD_FLOOR_OFFSET;
-
-    // ========================================================
-// VERTICAL POSITION
-//
-// IMPORTANT:
-// Anchor the BOTTOM of the guard to the floor.
-//
-// This prevents the guard's feet from moving when
-// the guard gets closer and the sprite becomes larger.
-// ========================================================
-
-    const float guardFloorOffset = 180.0f;
+    float groundOffset =
+        spriteHeight * 0.5f;
 
     int drawEndY =
-        (int)(
-            screenHeight / 2.0f +
-            guardFloorOffset +
-            (screenHeight * 0.15f) / transformY
-            );
+        (int)(screenHeight / 2.0f + groundOffset);
 
     int drawStartY =
         drawEndY - spriteHeight;
+
+    // --------------------------------------------------------
+    // Clamp vertically
+    // --------------------------------------------------------
 
     if (drawStartY < 0)
         drawStartY = 0;
@@ -1447,7 +1433,6 @@ void Story::DrawGuard(
     {
         return;
     }
-
     // ========================================================
     // HORIZONTAL POSITION
     // ========================================================
@@ -1572,4 +1557,73 @@ void Story::DrawGuard(
         );
     }
 
+}
+// ============================================================
+// PLAYER ↔ GUARD COLLISION
+//
+// Uses the same physical logic as NPC collision.
+//
+// Guard radius = 0.25f
+// Player radius = player.radius
+//
+// The player is pushed away from the guard.
+// The guard is also pushed slightly in the opposite direction.
+// Both movements respect the map collision system.
+// ============================================================
+
+void Story::CheckPlayerGuardCollision(
+    Player& player,
+    Map& map
+)
+{
+    for (int i = 0; i < 3; i++)
+    {
+        Guard& guard = guards[i];
+
+        float dx =
+            player.position.x - guard.position.x;
+
+        float dy =
+            player.position.y - guard.position.y;
+
+        float distance =
+            sqrtf(
+                dx * dx +
+                dy * dy
+            );
+
+        float radiusSum =
+            player.radius + guard.radius;
+
+        if (distance <= 0.0001f ||
+            distance >= radiusSum)
+        {
+            continue;
+        }
+
+        float overlap =
+            radiusSum - distance;
+
+        float normalX =
+            dx / distance;
+
+        float normalY =
+            dy / distance;
+
+        // ONLY push the PLAYER.
+        // Guard never moves.
+        Vector2 playerBumpVelocity =
+        {
+            normalX * overlap,
+            normalY * overlap
+        };
+
+        player.position =
+            CheckMapCollosion(
+                player.position,
+                player.radius,
+                playerBumpVelocity,
+                map
+            );
+    }
 }

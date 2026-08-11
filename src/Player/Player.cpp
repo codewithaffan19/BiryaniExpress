@@ -160,7 +160,6 @@ void Player::Update(
         // Collision
         //-------------------------------------------------
 
-        float radius = 0.20f;
 
         if (map.GetCell(
             (int)position.y,

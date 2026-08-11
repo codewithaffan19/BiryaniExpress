@@ -43,7 +43,8 @@ public:
         Vector2 playerDir,
         Vector2 cameraPlane,
         float Zbuffer[],
-        Vector2 markerPos
+        Vector2 markerPos,
+        Map& map
     );
 
     void StartFadeIn();

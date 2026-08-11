@@ -980,7 +980,7 @@ void Renderer::DrawWallColumn(
     }
 
     // NEW TEXTURED WALL
-    if (tile >= 2 && tile <= 46)
+    if (tile >= 2 && tile <= 61)
     {
         Texture2D* tex = &textures.tiles[tile];
 
@@ -1465,7 +1465,17 @@ void Renderer::Draw(
             Config::SCREEN_HEIGHT
         );
     }
+    // ============================================================
+// STORY WORLD
+// ============================================================
 
+    story.DrawWorld(
+        player,
+        Zbuffer,
+        GetScreenWidth(),
+        GetScreenHeight(),
+        insideNeon
+    );
     // ==========================================
     // PHASE 4: PLAYER HAND
     // ==========================================
@@ -1549,36 +1559,8 @@ void Renderer::Draw(
         );
     }
 
-    // ==========================================
-    // DOOR MARKERS
-    // ==========================================
 
-    DrawDoorMarker(
-        playerPos,
-        playerDir,
-        cameraPlane,
-        Zbuffer,
-        { 9.5f, 2.5f }
-    );
 
-    DrawDoorMarker(
-        playerPos,
-        playerDir,
-        cameraPlane,
-        Zbuffer,
-        { 24.5f, 23.5f }
-    );
-    // ============================================================
-// STORY WORLD
-// ============================================================
-
-    story.DrawWorld(
-        player,
-        Zbuffer,
-        GetScreenWidth(),
-        GetScreenHeight(),
-        insideNeon
-    );
     // ==========================================
     // HIT MESSAGE
     // ==========================================
@@ -1596,77 +1578,7 @@ void Renderer::Draw(
     DrawHud(player);
     DrawInventoryHUD(player);
 }
-void Renderer::DrawDoorMarker(
-    Vector2 playerPos,
-    Vector2 playerDir,
-    Vector2 cameraPlane,
-    float Zbuffer[],
-    Vector2 markerPos)
-{
-    Vector2 sprite =
-    {
-        markerPos.x - playerPos.x,
-        markerPos.y - playerPos.y
-    };
 
-    float invDet =
-        1.0f /
-        (cameraPlane.x * playerDir.y
-            - cameraPlane.y * playerDir.x);
-
-    float transformX =
-        invDet *
-        (playerDir.y * sprite.x
-            - playerDir.x * sprite.y);
-
-    float transformY =
-        invDet *
-        (-cameraPlane.y * sprite.x
-            + cameraPlane.x * sprite.y);
-
-    if (transformY <= 0)
-        return;
-
-    int screenX =
-        (int)((Config::SCREEN_WIDTH / 2)
-            * (1 + transformX / transformY));
-
-    float bob =
-        sinf(GetTime() * 3.0f) * 8.0f;
-
-    int markerHeight =
-        abs((int)(120 / transformY));
-
-    int markerWidth = markerHeight;
-
-    int drawY =
-        Config::SCREEN_HEIGHT / 2
-        - markerHeight
-        - 20
-        + (int)bob;
-    if (screenX < 0 || screenX >= Config::SCREEN_WIDTH)
-        return;
-
-    Color color =
-        (((int)(GetTime() * 4) % 2) == 0)
-        ? YELLOW
-        : ORANGE;
-
-    DrawTriangle(
-        {
-            (float)screenX,
-            (float)(drawY - markerHeight)
-        },
-{
-    (float)(screenX - markerWidth / 2),
-    (float)drawY
-},
-{
-    (float)(screenX + markerWidth / 2),
-    (float)drawY
-},
-color);
-}
 void Renderer::StartFadeIn()
 {
     fadingIn = true;

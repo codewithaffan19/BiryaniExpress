@@ -3,6 +3,7 @@
 #include "raylib.h"
 #include "../Player/Player.h"
 #include<string>
+#include "../World/Map.h"
 class Story
 {
 public:
@@ -66,7 +67,10 @@ public:
     Vector2 GetTeleportPosition(int doorNumber) const;
 
     bool WasPoliceSpawnTriggered() const;
-
+    void CheckPlayerGuardCollision(
+        Player& player,
+        Map& map
+    );
 private:
 
     // ============================================================
@@ -90,7 +94,7 @@ private:
         Vector2 position;
 
         StoryKey key;
-
+        float radius = 0.65f;
         // --------------------------------------------------------
         // Interaction state
         // --------------------------------------------------------
