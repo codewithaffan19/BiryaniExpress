@@ -6,7 +6,7 @@
 #include "../Renderer/Renderer.h"
 #include "../World/Map.h"
 #include "../Renderer/TextureManager.h"
-
+#include<iostream>
 #include "raymath.h"
 #include "../World/Collision.h"
 Game::Game()
@@ -47,11 +47,11 @@ void Game::Initialize()
     SetTargetFPS(Config::TARGET_FPS);
 
     // Hand
-    Image hand = LoadImage("../../assets/textures/hand.png");
+    Image hand = LoadImage("../assets/textures/hand.png");
     ImageColorReplace(&hand, MAGENTA, BLANK);
 
     player.handTex = LoadTextureFromImage(hand);
-    player.Weapon1Tex=LoadTexture("../../assets/textures/Weapon1.png");
+    player.Weapon1Tex=LoadTexture("../assets/textures/Weapon1.png");
     player.currentTex = player.handTex; 
     UnloadImage(hand);
 
@@ -63,7 +63,7 @@ void Game::Initialize()
 
     Enemy BurgerBoy;
     BurgerBoy.spriteSheet =
-        LoadTexture("../../assets/textures/Boy.png");
+        LoadTexture("../assets/textures/Boy.png");
     BurgerBoy.totalframes = 4;
     BurgerBoy.moveSpeed = 0.8f;
     BurgerBoy.position = { 13.0f, 14.0f };
@@ -71,7 +71,7 @@ void Game::Initialize()
 
 
     Enemy AngryUncle;
-    AngryUncle.spriteSheet = LoadTexture("../../assets/textures/uncle.png");
+    AngryUncle.spriteSheet = LoadTexture("../assets/textures/uncle.png");
     AngryUncle.position = { 7.0f, 10.0f };
     AngryUncle.totalframes = 5;
     AngryUncle.moveSpeed = 0.7f;
@@ -79,20 +79,20 @@ void Game::Initialize()
 
 
     Enemy AngryUncle2;
-    AngryUncle2.spriteSheet =LoadTexture("../../assets/textures/uncle.png");
+    AngryUncle2.spriteSheet =LoadTexture("../assets/textures/uncle.png");
     AngryUncle2.position = { 17.0f, 16.0f };
     AngryUncle2.totalframes = 5;
     AngryUncle2.moveSpeed = 0.7f;
     AngryUncle2.currentAttackTimer = 0.5f;
     Enemy Thief;
-    Thief.spriteSheet =LoadTexture("../../assets/textures/Chor.png");
+    Thief.spriteSheet =LoadTexture("../assets/textures/Chor.png");
     Thief.position = { 1.0f, 7.0f };
     Thief.totalframes = 2;
     Thief.moveSpeed = 0.9f;
     Thief.currentAttackTimer = 0.7f;
 
     Enemy Thief2;
-    Thief2.spriteSheet =LoadTexture("../../assets/textures/Chor2.png");
+    Thief2.spriteSheet =LoadTexture("../assets/textures/Chor2.png");
     Thief2.position = { 14.0f, 16.0f };
     Thief2.totalframes = 2;
     Thief2.moveSpeed = 0.9f;
@@ -109,7 +109,7 @@ void Game::Initialize()
     // MAP
     // ==========================================
 
-    map.LoadMap("../../assets/maps/test.txt");
+    map.LoadMap("../assets/maps/test.txt");
 
     // ==========================================
     // NPCs
@@ -121,7 +121,7 @@ void Game::Initialize()
     afc.myItem = ITEM_AFC;
     if (!afc.Load(
         "AFC Waiter",
-        "../../assets/textures/AFC_waiter.png",
+        "../assets/textures/AFC_waiter.png",
         { 13.5f, 1.5f }))
     {
         TraceLog(LOG_ERROR, "Failed to load AFC Waiter");
@@ -132,7 +132,7 @@ void Game::Initialize()
     mike.myItem = ITEM_MIKE;
     if (!mike.Load(
         "MIKE Waiter",
-        "../../assets/textures/MIKE_waiter.png",
+        "../assets/textures/MIKE_waiter.png",
         { 13.5f, 3.5f }))
     {
         TraceLog(LOG_ERROR, "Failed to load MIKE Waiter");
@@ -143,7 +143,7 @@ void Game::Initialize()
     clinex.myItem = ITEM_CLINIX;
     if (!clinex.Load(
         "CLINEX Waiter",
-        "../../assets/textures/CLINEX_waiter.png",
+        "../assets/textures/CLINEX_waiter.png",
         { 19.5f, 3.5f }))
     {
         TraceLog(LOG_ERROR, "Failed to load CLINEX Waiter");
@@ -154,7 +154,7 @@ void Game::Initialize()
     drumble.myItem = ITEM_DRUMBLE;
     if (!drumble.Load(
         "DRUMBLE Waiter",
-        "../../assets/textures/DRUMBLE_waiter.png",
+        "../assets/textures/DRUMBLE_waiter.png",
         { 17.5f, 1.5f }))
     {
         TraceLog(LOG_ERROR, "Failed to load DRUMBLE Waiter");
@@ -170,13 +170,18 @@ void Game::Initialize()
 
     if (!jack.Load(
         "Jack",
-        "../../assets/textures/jack.png",
+        "../assets/textures/jack.png",
         { 22.5f, 3.5f }))
     {
         TraceLog(LOG_ERROR, "Failed to load Jack");
     }
 
     npcs.push_back(jack);
+    // ==========================================
+// STORY
+// ==========================================
+
+    story.Initialize();
 
 }
 void Game::CheckSpoonCollosion(Player& p, Enemy& E)
@@ -235,7 +240,10 @@ void Game::Update()
     }
     else
     {
-        player.Update(dt, input, map);
+        if (!story.IsPlayerLocked())
+        {
+            player.Update(dt, input, map);
+        }
 
         for (int i = 0; i < enemies.size(); i++)
         {
@@ -268,7 +276,85 @@ void Game::Update()
     // ==========================================
 
     Vector2 playerPos = player.GetPosition();
+    story.Update(
+        player,
+        insideNeon
+    );
+    // ============================================================
+// STORY DOORS
+// ============================================================
 
+    if (!editorMode && insideNeon)
+    {
+        // ========================================================
+        // DOOR 1
+        // Row 22, Column 12
+        // ========================================================
+
+        if (!story.IsDoorOpened(1) &&
+            Vector2Distance(
+                player.GetPosition(),
+                { 11.5f, 21.5f }
+            ) < 1.2f)
+        {
+            if (IsKeyPressed(KEY_E))
+            {
+                if (story.TryUseDoor(1))
+                {
+                    player.position =
+                        story.GetTeleportPosition(1);
+
+                    std::cout
+                        << "Player teleported through Door 1.\n";
+                }
+            }
+        }
+
+        // ========================================================
+        // DOOR 2
+        // Row 22, Column 15
+        // ========================================================
+
+        if (!story.IsDoorOpened(2) &&
+            Vector2Distance(
+                player.GetPosition(),
+                { 14.5f, 21.5f }
+            ) < 1.2f)
+        {
+            if (IsKeyPressed(KEY_E))
+            {
+                if (story.TryUseDoor(2))
+                {
+                    std::cout
+                        << "Police will spawn here later.\n";
+                }
+            }
+        }
+
+        // ========================================================
+        // DOOR 3
+        // Row 23, Column 17
+        // ========================================================
+
+        if (!story.IsDoorOpened(3) &&
+            Vector2Distance(
+                player.GetPosition(),
+                { 16.5f, 22.5f }
+            ) < 1.2f)
+        {
+            if (IsKeyPressed(KEY_E))
+            {
+                if (story.TryUseDoor(3))
+                {
+                    player.position =
+                        story.GetTeleportPosition(3);
+
+                    std::cout
+                        << "Player teleported through Door 3.\n";
+                }
+            }
+        }
+    }
     for (NPC& npc : npcs)
     {
         npc.Update(playerPos, player);
@@ -300,22 +386,16 @@ void Game::Update()
         }
 
         // --------------------------------------
-        // INSIDE NEON
-        // --------------------------------------
+// INSIDE NEON
+//
+// Player cannot leave Neon through
+// the entrance door.
+// Story controls the three doors.
+// --------------------------------------
 
         else if (insideNeon)
         {
-            float dist =
-                Vector2Distance(
-                    playerPos,
-                    insideNeonDoor
-                );
-
-            if (dist < 1.2f && IsKeyPressed(KEY_E))
-            {
-                renderer.StartFadeIn();
-                teleportPending = true;
-            }
+            // Intentionally empty.
         }
 
         // --------------------------------------
@@ -434,8 +514,11 @@ void Game::Draw()
             npcs,
             player,
             insideMarket,
-            nearDoor
+            nearDoor,
+            story,
+            insideNeon
         );
+        story.DrawUI();
         // ==========================================
         // DOOR INTERACTION TEXT
         // ==========================================
@@ -452,10 +535,12 @@ void Game::Draw()
                 insideDoor
             );
 
-        if (insideMarket || insideNeon)
+        if (insideMarket)
         {
-            if (Vector2Distance(playerPos,
-                insideMarket ? insideDoor : insideNeonDoor) < 1.2f)
+            if (Vector2Distance(
+                playerPos,
+                insideDoor
+            ) < 1.2f)
             {
                 DrawText(
                     "Press E to Exit",
@@ -593,7 +678,11 @@ void Game::Shutdown()
     }
 
     npcs.clear();
+    // ============================================================
+// UNLOAD STORY
+// ============================================================
 
+    story.Unload();
     // ============================================================
     // CLOSE AUDIO
     // ============================================================

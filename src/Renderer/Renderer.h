@@ -9,7 +9,7 @@
 #include "../Player/Player.h"
 #include "../Renderer/TextureManager.h"
 #include "../NPC/NPC.h"
-
+#include "../Story/Story.h"
 class Renderer
 {
 public:
@@ -22,11 +22,13 @@ public:
         Vector2 playerDir,
         Vector2 cameraPlane,
         Map& map,
-        const std::vector<Enemy>& enemies,
-        const std::vector<NPC>& npcs,
-        Player player,
+        std::vector<Enemy>& enemies,
+        std::vector<NPC>& npcs,
+        Player& player,
         bool insideMarket,
-        bool nearDoor
+        bool nearDoor,
+        Story& story,
+        bool insideNeon
     );
 
     TextureManager textures;

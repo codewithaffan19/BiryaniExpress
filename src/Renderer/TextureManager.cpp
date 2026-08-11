@@ -18,16 +18,6 @@ TextureManager::TextureManager()
     }
 
     // ---------------------------------------------------------
-    // COMMON DOORS
-    //
-    // 20 = EntranceDoor
-    // 21 = ExitDoor
-    //
-    // Doors are deliberately not assigned to Street or Market.
-    // IsTileInPartition() already treats them as common.
-    // ---------------------------------------------------------
-
-    // ---------------------------------------------------------
     // MARKET
     //
     // 10 - 19
@@ -45,28 +35,41 @@ TextureManager::TextureManager()
     }
 
     // ---------------------------------------------------------
-    // STREET
-    //
-    // 2 - 9
-    // 31
-    // 32 - 41
-    //
-    // These are already Street because of the default above.
-    // ---------------------------------------------------------
-
-    // ---------------------------------------------------------
-    // NEON NIGHT
-    //
-    // Currently empty.
-    // We will assign NeonNight tile numbers when its assets
-    // are added.
+    // BASIC TILE NAMES
     // ---------------------------------------------------------
 
     tileNames[0] = "Empty";
     tileNames[1] = "RedWall";
 
+    // ---------------------------------------------------------
+    // COMMON STREET -> MARKET DOORS
+    //
+    // 20 = EntranceDoor
+    // 21 = ExitDoor
+    //
+    // KEEP THESE.
+    // ---------------------------------------------------------
+
     tileNames[20] = "EntranceDoor";
     tileNames[21] = "ExitDoor";
+
+    // ---------------------------------------------------------
+    // COMMON KEY / PARTITION DOORS
+    //
+    // 42 = Door1
+    // 43 = Door2
+    // 44 = Door3
+    // 45 = NeonDoor
+    //
+    // These are normal single-frame tiles.
+    // No animation.
+    // ---------------------------------------------------------
+
+    tileNames[42] = "Door1";
+    tileNames[43] = "Door2";
+    tileNames[44] = "Door3";
+    tileNames[45] = "NeonDoor";
+
     LoadCommonAssets();
 }
 // =============================================================
@@ -169,8 +172,15 @@ bool TextureManager::IsTileInPartition(
         return false;
 
     // Common assets are available in every partition.
-    if (tile == 20 || tile == 21)
+    if (tile == 20 ||
+        tile == 21 ||
+        tile == 42 ||
+        tile == 43 ||
+        tile == 44 ||
+        tile == 45)
+    {
         return true;
+    }
 
     return tilePartitions[tile] == partition;
 }
@@ -507,17 +517,6 @@ void TextureManager::LoadMarketAssets()
         19,
         "../assets/marketassets/SlimeLite_anim.png"
     );
-    LoadTile(
-        20,
-        "../assets/commonassets/entranceDoor.png",
-        "EntranceDoor"
-    );
-
-    LoadTile(
-        21,
-        "../assets/commonassets/exitDoor.png",
-        "ExitDoor"
-    );
     // ---------------------------------------------------------
     // Extra Shops
     // ---------------------------------------------------------
@@ -647,13 +646,13 @@ void TextureManager::LoadMarketAssets()
             LoadTexture(
                 "../assets/marketassets/marketRoof.png"
             );
-
+     
         SetTextureFilter(
             marketRoofTex,
             TEXTURE_FILTER_BILINEAR
         );
     }
-
+    
     // ---------------------------------------------------------
     // Fountain
     // ---------------------------------------------------------
@@ -679,7 +678,7 @@ void TextureManager::LoadMarketAssets()
 void TextureManager::LoadCommonAssets()
 {
     // =========================================================
-    // COMMON DOORS
+    // COMMON STREET -> MARKET DOORS
     // =========================================================
 
     LoadTile(
@@ -695,40 +694,42 @@ void TextureManager::LoadCommonAssets()
     );
 
     // =========================================================
-    // NEON NIGHT DOORS
+    // KEY LOGIC DOORS
     // =========================================================
 
-    if (neonDoor1Tex.id == 0)
-    {
-        neonDoor1Tex =
-            LoadTexture(
-                "../assets/commonassets/neonDoor1.png"
-            );
+    LoadTile(
+        42,
+        "../assets/commonassets/door1.png",
+        "Door1"
+    );
 
-        if (neonDoor1Tex.id != 0)
-        {
-            SetTextureFilter(
-                neonDoor1Tex,
-                TEXTURE_FILTER_POINT
-            );
-        }
-    }
+    LoadTile(
+        43,
+        "../assets/commonassets/door2.png",
+        "Door2"
+    );
 
-    if (neonDoor2Tex.id == 0)
-    {
-        neonDoor2Tex =
-            LoadTexture(
-                "../assets/commonassets/neonDoor2.png"
-            );
+    LoadTile(
+        44,
+        "../assets/commonassets/door3.png",
+        "Door3"
+    );
 
-        if (neonDoor2Tex.id != 0)
-        {
-            SetTextureFilter(
-                neonDoor2Tex,
-                TEXTURE_FILTER_POINT
-            );
-        }
-    }
+    // =========================================================
+    // STREET <-> NEON NIGHT DOOR
+    // =========================================================
+
+    LoadTile(
+        45,
+        "../assets/commonassets/neonDoor.png",
+        "NeonDoor"
+    );
+    LoadTile(
+        46,
+        "../assets/commonassets/marketdoor.png",
+        "NeonDoor"
+    );
+
 }
 // =============================================================
 // NEON NIGHT ASSETS
@@ -929,25 +930,20 @@ void TextureManager::Unload()
     UnloadMarketAssets();
     UnloadNeonNightAssets();
 
-    // Doors 20 and 21 remain untouched because
-    // they are common assets.
-    //
-    // They will eventually have their own common loading.
-    if (neonDoor1Tex.id != 0)
-    {
-        UnloadTexture(neonDoor1Tex);
-        neonDoor1Tex.id = 0;
-    }
+    // ---------------------------------------------------------
+    // Common doors
+    // ---------------------------------------------------------
 
-    if (neonDoor2Tex.id != 0)
-    {
-        UnloadTexture(neonDoor2Tex);
-        neonDoor2Tex.id = 0;
-    }
+    UnloadTile(20);
+    UnloadTile(21);
+
+    UnloadTile(42);
+    UnloadTile(43);
+    UnloadTile(44);
+    UnloadTile(45);
+    UnloadTile(46);
     currentPartition = Partition::Street;
-
 }
-
 // =============================================================
 // FOUNTAIN ANIMATION
 // =============================================================

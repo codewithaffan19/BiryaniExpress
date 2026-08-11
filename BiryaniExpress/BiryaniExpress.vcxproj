@@ -151,6 +151,7 @@
     <ClCompile Include="..\src\Player\Player.cpp" />
     <ClCompile Include="..\src\Renderer\Renderer.cpp" />
     <ClCompile Include="..\src\Renderer\TextureManager.cpp" />
+    <ClCompile Include="..\src\Story\Story.cpp" />
     <ClCompile Include="..\src\World\Collision.cpp" />
     <ClCompile Include="..\src\World\Map.cpp" />
   </ItemGroup>
@@ -164,6 +165,7 @@
     <ClInclude Include="..\src\Player\Player.h" />
     <ClInclude Include="..\src\Renderer\Renderer.h" />
     <ClInclude Include="..\src\Renderer\TextureManager.h" />
+    <ClInclude Include="..\src\Story\Story.h" />
     <ClInclude Include="..\src\World\Collision.h" />
     <ClInclude Include="..\src\World\Map.h" />
   </ItemGroup>

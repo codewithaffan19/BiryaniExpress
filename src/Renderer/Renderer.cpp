@@ -601,43 +601,43 @@ void Renderer::DrawWideFloor(
             }
 
             // ==========================================
-            // NORMAL FLOOR 1
-            // ==========================================
+// NORMAL FLOOR 1
+// ==========================================
 
-            //else if (IsFloor1Cell(designRow, designCol))
-            //{
-            //    int texWidth =
-            //        textures.floorimg.width;
+            else if (IsFloor1Cell(designRow, designCol))
+            {
+                int texWidth =
+                    textures.floorimg.width;
 
-            //    int texHeight =
-            //        textures.floorimg.height;
+                int texHeight =
+                    textures.floorimg.height;
 
-            //    int tx =
-            //        (int)(texWidth * u);
+                int tx =
+                    (int)(texWidth * u);
 
-            //    int ty =
-            //        (int)(texHeight * v);
+                int ty =
+                    (int)(texHeight * v);
 
-            //    // Safety
-            //    if (tx < 0)
-            //        tx = 0;
+                // Safety
+                if (tx < 0)
+                    tx = 0;
 
-            //    if (ty < 0)
-            //        ty = 0;
+                if (ty < 0)
+                    ty = 0;
 
-            //    if (tx >= texWidth)
-            //        tx = texWidth - 1;
+                if (tx >= texWidth)
+                    tx = texWidth - 1;
 
-            //    if (ty >= texHeight)
-            //        ty = texHeight - 1;
+                if (ty >= texHeight)
+                    ty = texHeight - 1;
 
-            //    color =
-            //        GetImageColor(
-            //            textures.floorimg,
-            //            tx,
-            //            ty
-            //        );
-            //}
+                color =
+                    GetImageColor(
+                        textures.floorimg,
+                        tx,
+                        ty
+                    );
+            }
 
             // ==========================================
             // NORMAL FLOOR 2
@@ -980,7 +980,7 @@ void Renderer::DrawWallColumn(
     }
 
     // NEW TEXTURED WALL
-    if (tile >= 2 && tile <= 41)
+    if (tile >= 2 && tile <= 46)
     {
         Texture2D* tex = &textures.tiles[tile];
 
@@ -1073,11 +1073,13 @@ void Renderer::Draw(
     Vector2 playerDir,
     Vector2 cameraPlane,
     Map& map,
-    const std::vector<Enemy>& enemies,
-    const std::vector<NPC>& npcs,
-    Player player,
+    std::vector<Enemy>& enemies,
+    std::vector<NPC>& npcs,
+    Player& player,
     bool insideMarket,
-    bool nearDoor)
+    bool nearDoor,
+    Story& story,
+    bool insideNeon)
 {
     // ==========================================
     // Z-BUFFER
@@ -1432,6 +1434,7 @@ void Renderer::Draw(
             );
         }
     }
+
     // ==========================================
 // PHASE 2.5: MARKET FOUNTAIN
 // ==========================================
@@ -1564,7 +1567,17 @@ void Renderer::Draw(
         Zbuffer,
         { 24.5f, 23.5f }
     );
+    // ============================================================
+// STORY WORLD
+// ============================================================
 
+    story.DrawWorld(
+        player,
+        Zbuffer,
+        GetScreenWidth(),
+        GetScreenHeight(),
+        insideNeon
+    );
     // ==========================================
     // HIT MESSAGE
     // ==========================================

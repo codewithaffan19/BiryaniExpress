@@ -9,7 +9,7 @@
 #include "../Editor/Editor.h"
 #include "../Enemy.h"
 #include "../NPC/NPC.h"
-
+#include "../Story/Story.h"
 class Game
 {
 public:
@@ -36,7 +36,7 @@ private:
 
     std::vector<Enemy> enemies;
     std::vector<NPC> npcs;
-
+    Story story;
     bool editorMode = false;
     bool insideMarket = false;
     bool insideNeon = false;
@@ -45,5 +45,5 @@ private:
     Vector2 outsideDoor = { 8.5f, 2.5f };
     Vector2 insideDoor = { 11.5f, 2.5f };
     Vector2 outsideNeonDoor = { 22.5f, 6.5f };
-    Vector2 insideNeonDoor = { 22.5f, 9.5f };
+    Vector2 insideNeonDoor = { 22.5f, 10.5f };
 };
