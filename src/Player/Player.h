@@ -45,6 +45,8 @@ public:
     Texture2D handTex;
     Texture2D currentTex;
     Texture2D Weapon1Tex;
+    Vector2 KnockBackVelocity = { 0.0f,0.0f };
+    float KnockBackTimer=0.0f;
     int GetActiveWeapon()const;
     Vector2 GetPosition() const;
     void SwitchWeapon();

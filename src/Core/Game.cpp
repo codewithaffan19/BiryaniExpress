@@ -188,6 +188,7 @@ void Game::CheckSpoonCollosion(Player& p, Enemy& E)
 {
     if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
     {
+        float dt = GetFrameTime();
         float dx = E.position.x - p.position.x;
         float dy = E.position.y - p.position.y;
 
@@ -206,6 +207,11 @@ void Game::CheckSpoonCollosion(Player& p, Enemy& E)
             {
                 p.hitmessagetimer = 30;
                 E.health -= 20;
+
+                float knockBackForce = 4.0f;
+                E.KnockBackVelocity = { normX * knockBackForce,normY * knockBackForce };
+                E.KnockBackTimer = 0.2f;
+                E.position=KnockBack(E.position, E.KnockBackVelocity, E.KnockBackTimer, E.radius, map, dt);
             }
         }
     }
@@ -254,11 +260,11 @@ void Game::Update()
                 enemies[i],
                 map
             );
-
             CheckSpoonCollosion(
                 player,
                 enemies[i]
             );
+            CheckEnemyEnemyCollision(enemies, map);
         }
 
         for (int i = 0; i < npcs.size(); i++)

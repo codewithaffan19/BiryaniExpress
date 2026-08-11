@@ -1282,11 +1282,12 @@ void Renderer::Draw(
             enemies[i].totalframes;
 
         float frameHeight =
-            (float)enemies[i].spriteSheet.height;
+            (float)enemies[i].spriteSheet.height/enemies[i].totalframes;
 
-        float frameOffsetX =
-            enemies[i].currentframe *
-            frameWidth;
+        int currentframe = frameWidth / enemies[i].totalframes;
+        int frameOffsetX = currentframe * frameWidth;
+        int frameOffsetY = currentframe * frameHeight;
+        
 
         // --------------------------------------
         // Draw enemy stripe-by-stripe
@@ -1331,7 +1332,7 @@ void Renderer::Draw(
             Rectangle sourceRec =
             {
                 frameOffsetX + (float)texX,
-                0.0f,
+                frameOffsetY,
                 1.0f,
                 frameHeight
             };

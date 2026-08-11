@@ -18,6 +18,9 @@ public:
 	Texture2D spriteSheet;
 	int currentframe;
 	int totalframes;
+	int rows = 2;
+	int columns = 5;
+	float hitReactionTimer;
 	Vector2 WanderDir = { 0.0f,0.0f };
 	float WanderTimer;
 	float frametimer;
