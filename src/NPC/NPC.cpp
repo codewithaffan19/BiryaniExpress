@@ -237,6 +237,7 @@ void NPC::Update(Vector2 playerPos,Player&p)
             bool f=p.PickUpItem(myItem);
             if (f) {
                 std::cout << "Item picked up successfully\n";
+
             }
             else{
                 std::cout << "No empty space\n";

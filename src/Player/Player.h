@@ -53,7 +53,8 @@ public:
     bool PickUpItem(int newItem);
     InventorySlot MissionPouch[3];
     InventorySlot WeaponPouch[2];
-    int CurrentWeaponIndex = 0;
+    int MissionCount[2] = { 0,0 };
+    int MissionTarget[2] = { 1,1 };
 private:
     Vector2 direction;
     Vector2 cameraPlane;

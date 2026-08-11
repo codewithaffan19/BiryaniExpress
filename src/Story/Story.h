@@ -2,6 +2,8 @@
 
 #include "raylib.h"
 #include "../Player/Player.h"
+#include "../World/Map.h"
+#include "../World/Collision.h"
 #include<string>
 #include "../World/Map.h"
 class Story
@@ -88,7 +90,7 @@ private:
     // ============================================================
     // GUARD
     // ============================================================
-
+    
     struct Guard
     {
         Vector2 position;
@@ -134,6 +136,8 @@ private:
 
         Texture2D texture{};
     };
+    Map m1;
+    void CheckGuradCollosion(Guard& G1, Player& p,Map&m1);
 
     // ============================================================
     // THREE GUARDS

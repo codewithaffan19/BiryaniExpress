@@ -2,6 +2,7 @@
 #include "../World/Map.h"
 #include <cmath>
 #include "../Renderer/TextureManager.h"
+#include <iostream>
 //Enemy states
 enum { STILL, CHASE, INTERROGATE, DEAD };
 Renderer::Renderer()
@@ -19,6 +20,11 @@ void Renderer::LoadTextures()
     // ==========================================
 
     textures.LoadCommonAssets();
+
+    Missionpouch[0] = LoadTexture("../assets/textures/Crumble.png");
+    Missionpouch[1] = LoadTexture("../assets/textures/Afc.png");
+    Weaponpouch[1] = LoadTexture("../assets/textures/Chakla.png");
+    Weaponpouch[2] = LoadTexture("../assets/textures/MountainView.png");
 
     // ==========================================
     // START WITH STREET ONLY
@@ -322,19 +328,59 @@ void Renderer::DrawInventoryHUD(Player& p) {
     int slotX = Config::SCREEN_WIDTH - slotSize - 20;
     int startY = 20;
     int slotY;
-    for (int i = 0; i < 2; i++) {
-        slotY = startY + i * (slotSize + slotGap)+5;
-            bool isSelected = (i == p.currentWeaponIndex);
-            Color BgColor = isSelected ? Fade(SKYBLUE, 0.4f) : Fade(BLACK, 0.4f);
-            DrawRectangle(slotX, slotY, slotSize, slotSize, BgColor);
+    for (int i = 0; i < 3; i++) {
+        slotY = startY + i * (slotSize + slotGap) + 5;
+        bool isSelected = (i == p.currentWeaponIndex);
+        Color BgColor = isSelected ? Fade(SKYBLUE, 0.4f) : Fade(BLACK, 0.4f);
 
-            Color BorderColor = isSelected ? YELLOW : GRAY;
+        Rectangle dest = { (float)slotX, (float)slotY, (float)slotSize, (float)slotSize };
 
-            DrawRectangleLinesEx({ (float)slotX,(float)slotY,(float)slotSize,(float)slotSize }, isSelected ? 3.0f : 2.0f, BorderColor);
-   
+        DrawRectangle(slotX, slotY, slotSize, slotSize, BgColor);
+
+        Texture2D tex = Weaponpouch[i]; 
+        Rectangle source = { 0, 0, (float)tex.width, (float)tex.height };
+        DrawTexturePro(tex, source, dest, { 0, 0 }, 0.0f, WHITE);
+
+        Color BorderColor = isSelected ? YELLOW : GRAY;
+        DrawRectangleLinesEx({ (float)slotX,(float)slotY,(float)slotSize,(float)slotSize },
+            isSelected ? 3.0f : 2.0f, BorderColor);
     }
     DrawText("Press 1 to toggle", slotX-40, startY-15, 14, WHITE);
+    slotX = 30;
+    startY = 120;
+    slotGap = 12;
+
+      for (int i = 0; i < 2; i++) {
+            slotY = startY + i * (slotSize + slotGap) + 5;
+
+            bool hasItem;
+            if (p.MissionCount[i] > 0) {
+                hasItem = true;
+               
+            }
+            else {
+                hasItem = false;
+
+            }
+            Color BgColor =hasItem? Fade(YELLOW, 0.4f): Fade(BLACK, 0.4f);
+            Rectangle dest = { (float)slotX, (float)slotY, (float)slotSize, (float)slotSize };
+
+            DrawRectangle(slotX, slotY, slotSize, slotSize, BgColor);
+
+            Texture2D tex = Missionpouch[i];
+            Rectangle source = { 0, 0, (float)tex.width, (float)tex.height };
+            DrawTexturePro(tex, source, dest, { 0, 0 }, 0.0f, WHITE);
+
+            Color BorderColor = hasItem ? YELLOW : GRAY;
+            DrawRectangleLinesEx({ (float)slotX,(float)slotY,(float)slotSize,(float)slotSize },
+                hasItem ? 3.0f : 2.0f, BorderColor);
+
+            const char* counterText = TextFormat("%d/%d", p.MissionCount[i], p.MissionTarget[i]);
+            DrawText(counterText, slotX + 4, slotY + slotSize - 16, 14, WHITE);
+        }
 }
+
+
 static bool IsFloor1Cell(int row, int col)
 {
     // Row 2, columns 2-9

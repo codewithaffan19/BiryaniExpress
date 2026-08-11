@@ -27,10 +27,13 @@ void Player::SwitchWeapon(){
     {
         nextWeapon = 1;
     }
-    else
-    {
+    else if(currentWeaponIndex==1) {
+        nextWeapon = 2;
+    }
+    else {
         nextWeapon = 0;
     }
+    currentWeaponIndex = nextWeapon;
     if (WeaponPouch[nextWeapon].id != ITEM_EMPTY) {
         currentWeaponIndex = nextWeapon;
         if (currentWeaponIndex == 0) {
@@ -43,15 +46,18 @@ void Player::SwitchWeapon(){
 }
 
 bool Player::PickUpItem(int newItem) {
-
+    int index=0;
     if (newItem == ITEM_BIRYANI || newItem == ITEM_DRUMBLE || newItem == ITEM_AFC) {
-        for (int i = 0; i < 3; i++) {
-            if (MissionPouch[i].id == ITEM_EMPTY){
-                MissionPouch[i].id = newItem;
-                return true;
+        if (newItem == ITEM_DRUMBLE) index = 0;
+        else if (newItem == ITEM_AFC) index = 1;
+
+        MissionPouch[index].id = newItem;
+        MissionCount[index]++;
+        if (MissionCount[index] > MissionTarget[index]) {
+            MissionCount[index] = MissionTarget[index];
+            return false;
         }
-        }
-        return false;
+        return true;
     }
     if (newItem == ITEM_CHAPPAL || newItem == ITEM_SPOON) {
         for (int i = 0; i < 2; i++) {
@@ -60,7 +66,6 @@ bool Player::PickUpItem(int newItem) {
                 return true;
             }
         }
-
         return false;
     }   
 

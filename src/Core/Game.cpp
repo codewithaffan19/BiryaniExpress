@@ -63,7 +63,7 @@ void Game::Initialize()
 
     Enemy BurgerBoy;
     BurgerBoy.spriteSheet =
-        LoadTexture("../../assets/textures/Boy.png");
+        LoadTexture("../assets/textures/Boy.png");
     BurgerBoy.totalframes = 4;
     BurgerBoy.moveSpeed = 0.8f;
     BurgerBoy.position = { 13.0f, 14.0f };
@@ -71,7 +71,7 @@ void Game::Initialize()
 
 
     Enemy AngryUncle;
-    AngryUncle.spriteSheet = LoadTexture("../../assets/textures/uncle.png");
+    AngryUncle.spriteSheet = LoadTexture("../assets/textures/uncle.png");
     AngryUncle.position = { 7.0f, 10.0f };
     AngryUncle.totalframes = 5;
     AngryUncle.moveSpeed = 0.7f;
@@ -79,20 +79,20 @@ void Game::Initialize()
 
 
     Enemy AngryUncle2;
-    AngryUncle2.spriteSheet =LoadTexture("../../assets/textures/uncle.png");
+    AngryUncle2.spriteSheet =LoadTexture("../assets/textures/uncle.png");
     AngryUncle2.position = { 17.0f, 16.0f };
     AngryUncle2.totalframes = 5;
     AngryUncle2.moveSpeed = 0.7f;
     AngryUncle2.currentAttackTimer = 0.5f;
     Enemy Thief;
-    Thief.spriteSheet =LoadTexture("../../assets/textures/Chor.png");
+    Thief.spriteSheet =LoadTexture("../assets/textures/Chor.png");
     Thief.position = { 1.0f, 7.0f };
     Thief.totalframes = 2;
     Thief.moveSpeed = 0.9f;
     Thief.currentAttackTimer = 0.7f;
 
     Enemy Thief2;
-    Thief2.spriteSheet =LoadTexture("../../assets/textures/Chor2.png");
+    Thief2.spriteSheet =LoadTexture("../assets/textures/Chor2.png");
     Thief2.position = { 14.0f, 16.0f };
     Thief2.totalframes = 2;
     Thief2.moveSpeed = 0.9f;
