@@ -9,6 +9,12 @@
 #include<iostream>
 #include "raymath.h"
 #include "../World/Collision.h"
+static bool HasAFCAndDrumble(const Player& player)
+{
+    return
+        player.MissionCount[0] >= player.MissionTarget[0] &&
+        player.MissionCount[1] >= player.MissionTarget[1];
+}
 Game::Game()
 {
     running = true;
@@ -221,7 +227,7 @@ void Game::Update()
     float dt = GetFrameTime();
 
     input.Update();
-
+    storyRestrictionWarning = false;
     // ==========================================
     // EDITOR TOGGLE
     // ==========================================
@@ -291,76 +297,126 @@ void Game::Update()
         insideNeon
     );
     // ============================================================
-// STORY DOORS
-// ============================================================
+    // STORY DOORS
+    // ============================================================
 
-    if (!editorMode && insideNeon)
+    if (!editorMode)
     {
         // ========================================================
-        // DOOR 1
-        // Row 22, Column 12
+        // INSIDE NEON
+        //
+        // Neon is one-way.
+        // Player cannot leave Neon through the entrance.
         // ========================================================
 
-        if (!story.IsDoorOpened(1) &&
-            Vector2Distance(
-                player.GetPosition(),
-                { 11.5f, 21.5f }
-            ) < 1.2f)
+        if (insideNeon)
         {
-            if (IsKeyPressed(KEY_E))
-            {
-                if (story.TryUseDoor(1))
-                {
-                    player.position =
-                        story.GetTeleportPosition(1);
+            // Intentionally empty.
+            // Story controls Neon exit.
+        }
 
-                    std::cout
-                        << "Player teleported through Door 1.\n";
+        // ========================================================
+        // INSIDE MARKET
+        //
+        // Player MUST collect:
+        // Drumble = MissionCount[0]
+        // AFC     = MissionCount[1]
+        //
+        // before leaving Market.
+        // ========================================================
+
+        else if (insideMarket)
+        {
+            float dist =
+                Vector2Distance(
+                    player.GetPosition(),
+                    insideDoor
+                );
+
+            if (dist < 1.2f && IsKeyPressed(KEY_E))
+            {
+                if (HasAFCAndDrumble(player))
+                {
+                    // ------------------------------------------
+                    // MARKET EXIT ALLOWED
+                    // ------------------------------------------
+
+                    renderer.StartFadeIn();
+                    teleportPending = true;
+                }
+                else
+                {
+                    // ------------------------------------------
+                    // MARKET EXIT BLOCKED
+                    // ------------------------------------------
+
+                    storyRestrictionWarning = true;
                 }
             }
         }
 
         // ========================================================
-        // DOOR 2
-        // Row 22, Column 15
+        // OUTSIDE / STREET
+        //
+        // Market can be entered normally.
+        //
+        // Neon requires AFC + Drumble first.
         // ========================================================
 
-        if (!story.IsDoorOpened(2) &&
-            Vector2Distance(
-                player.GetPosition(),
-                { 14.5f, 21.5f }
-            ) < 1.2f)
+        else
         {
+            float marketDist =
+                Vector2Distance(
+                    player.GetPosition(),
+                    outsideDoor
+                );
+
+            float neonDist =
+                Vector2Distance(
+                    player.GetPosition(),
+                    outsideNeonDoor
+                );
+
+            // ====================================================
+            // PLAYER PRESSED E NEAR A DOOR
+            // ====================================================
+
             if (IsKeyPressed(KEY_E))
             {
-                if (story.TryUseDoor(2))
+                // ----------------------------------------------
+                // NEON DOOR
+                // ----------------------------------------------
+
+                if (neonDist < 1.2f)
                 {
-                    std::cout
-                        << "Police will spawn here later.\n";
+                    if (HasAFCAndDrumble(player))
+                    {
+                        // --------------------------------------
+                        // NEON ENTRY ALLOWED
+                        // --------------------------------------
+
+                        renderer.StartFadeIn();
+                        teleportPending = true;
+                    }
+                    else
+                    {
+                        // --------------------------------------
+                        // NEON ENTRY BLOCKED
+                        // --------------------------------------
+
+                        storyRestrictionWarning = true;
+                    }
                 }
-            }
-        }
 
-        // ========================================================
-        // DOOR 3
-        // Row 23, Column 17
-        // ========================================================
+                // ----------------------------------------------
+                // MARKET DOOR
+                // ----------------------------------------------
 
-        if (!story.IsDoorOpened(3) &&
-            Vector2Distance(
-                player.GetPosition(),
-                { 16.5f, 22.5f }
-            ) < 1.2f)
-        {
-            if (IsKeyPressed(KEY_E))
-            {
-                if (story.TryUseDoor(3))
+                else if (marketDist < 1.2f)
                 {
-                    player.position =
-                        story.GetTeleportPosition(3);
-
-                    std::cout
-                        << "Player teleported through Door 3.\n";
+                    // Market entry is always allowed.
+                    renderer.StartFadeIn();
+                    teleportPending = true;
                 }
             }
         }
@@ -370,71 +426,6 @@ void Game::Update()
         npc.Update(playerPos, player);
     }
 
-    // ==========================================
-    // DOOR SYSTEM
-    // ==========================================
-
-    if (!editorMode)
-    {
-        // --------------------------------------
-        // INSIDE MARKET
-        // --------------------------------------
-
-        if (insideMarket)
-        {
-            float dist =
-                Vector2Distance(
-                    playerPos,
-                    insideDoor
-                );
-
-            if (dist < 1.2f && IsKeyPressed(KEY_E))
-            {
-                renderer.StartFadeIn();
-                teleportPending = true;
-            }
-        }
-
-        // --------------------------------------
-// INSIDE NEON
-//
-// Player cannot leave Neon through
-// the entrance door.
-// Story controls the three doors.
-// --------------------------------------
-
-        else if (insideNeon)
-        {
-            // Intentionally empty.
-        }
-
-        // --------------------------------------
-        // OUTSIDE
-        // --------------------------------------
-
-        else
-        {
-            float marketDist =
-                Vector2Distance(
-                    playerPos,
-                    outsideDoor
-                );
-
-            float neonDist =
-                Vector2Distance(
-                    playerPos,
-                    outsideNeonDoor
-                );
-
-            if ((marketDist < 1.2f ||
-                neonDist < 1.2f) &&
-                IsKeyPressed(KEY_E))
-            {
-                renderer.StartFadeIn();
-                teleportPending = true;
-            }
-        }
-    }
 
     // ==========================================
     // ESCAPE
@@ -530,6 +521,38 @@ void Game::Draw()
         );
         story.DrawUI();
         // ==========================================
+// STORY RESTRICTION WARNING
+// ==========================================
+
+        if (storyRestrictionWarning)
+        {
+            const char* warningText;
+
+            if (insideMarket)
+            {
+                warningText =
+                    "Collect AFC and Drumble first.";
+            }
+            else
+            {
+                warningText =
+                    "Go to Market and collect AFC and Drumble first.";
+            }
+
+            int fontSize = 28;
+
+            int textWidth =
+                MeasureText(warningText, fontSize);
+
+            DrawText(
+                warningText,
+                Config::SCREEN_WIDTH / 2 - textWidth / 2,
+                Config::SCREEN_HEIGHT - 130,
+                fontSize,
+                YELLOW
+            );
+        }
+        // ==========================================
         // DOOR INTERACTION TEXT
         // ==========================================
 
@@ -552,32 +575,83 @@ void Game::Draw()
                 insideDoor
             ) < 1.2f)
             {
-                DrawText(
-                    "Press E to Exit",
-                    Config::SCREEN_WIDTH / 2 - 120,
-                    Config::SCREEN_HEIGHT - 80,
-                    24,
-                    YELLOW
-                );
+                if (HasAFCAndDrumble(player))
+                {
+                    DrawText(
+                        "Press E to Exit",
+                        Config::SCREEN_WIDTH / 2 - 120,
+                        Config::SCREEN_HEIGHT - 80,
+                        24,
+                        YELLOW
+                    );
+                }
+                else
+                {
+                    DrawText(
+                        "AFC + Drumble required",
+                        Config::SCREEN_WIDTH / 2 - 145,
+                        Config::SCREEN_HEIGHT - 80,
+                        24,
+                        YELLOW
+                    );
+                }
             }
         }
         else
         {
             float marketDist =
-                Vector2Distance(playerPos, outsideDoor);
+                Vector2Distance(
+                    playerPos,
+                    outsideDoor
+                );
 
             float neonDist =
-                Vector2Distance(playerPos, outsideNeonDoor);
+                Vector2Distance(
+                    playerPos,
+                    outsideNeonDoor
+                );
 
-            if (marketDist < 1.2f || neonDist < 1.2f)
+            // ==========================================
+            // MARKET DOOR
+            // ==========================================
+
+            if (marketDist < 1.2f)
             {
                 DrawText(
-                    "Press E to Enter",
-                    Config::SCREEN_WIDTH / 2 - 120,
+                    "Press E to Enter Market",
+                    Config::SCREEN_WIDTH / 2 - 140,
                     Config::SCREEN_HEIGHT - 80,
                     24,
                     YELLOW
                 );
+            }
+
+            // ==========================================
+            // NEON DOOR
+            // ==========================================
+
+            else if (neonDist < 1.2f)
+            {
+                if (HasAFCAndDrumble(player))
+                {
+                    DrawText(
+                        "Press E to Enter Neon",
+                        Config::SCREEN_WIDTH / 2 - 135,
+                        Config::SCREEN_HEIGHT - 80,
+                        24,
+                        YELLOW
+                    );
+                }
+                else
+                {
+                    DrawText(
+                        "AFC + Drumble required",
+                        Config::SCREEN_WIDTH / 2 - 145,
+                        Config::SCREEN_HEIGHT - 80,
+                        24,
+                        YELLOW
+                    );
+                }
             }
         }
     }
@@ -593,9 +667,10 @@ void Game::Draw()
     {
         teleportPending = false;
 
-        // ==========================================
+        // ========================================================
         // MARKET -> OUTSIDE
-        // ==========================================
+        // ========================================================
+
         if (insideMarket)
         {
             player.position = outsideDoor;
@@ -606,22 +681,10 @@ void Game::Draw()
             );
         }
 
-        // ==========================================
-        // NEON -> OUTSIDE
-        // ==========================================
-        else if (insideNeon)
-        {
-            player.position = outsideNeonDoor;
-            insideNeon = false;
-
-            renderer.textures.SetCurrentPartition(
-                TextureManager::Partition::Street
-            );
-        }
-
-        // ==========================================
+        // ========================================================
         // OUTSIDE -> ENTER SOMETHING
-        // ==========================================
+        // ========================================================
+
         else
         {
             float marketDist =
@@ -636,12 +699,14 @@ void Game::Draw()
                     outsideNeonDoor
                 );
 
-            // ------------------------------
+            // ====================================================
             // ENTER NEON
-            // ------------------------------
+            // ====================================================
+
             if (neonDist < marketDist)
             {
                 player.position = insideNeonDoor;
+
                 insideNeon = true;
                 insideMarket = false;
 
@@ -650,12 +715,14 @@ void Game::Draw()
                 );
             }
 
-            // ------------------------------
+            // ====================================================
             // ENTER MARKET
-            // ------------------------------
+            // ====================================================
+
             else
             {
                 player.position = insideDoor;
+
                 insideMarket = true;
                 insideNeon = false;
 
