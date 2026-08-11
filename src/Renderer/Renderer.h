@@ -59,7 +59,8 @@ private:
     TextureManager::Partition GetCurrentPartition() const;
     bool fadingIn = false;
     bool fadingOut = false;
-
+    Texture2D Missionpouch[2];
+    Texture2D Weaponpouch[3];
     float cloudOffset = 0.0f;
 
     void DrawWallColumn(

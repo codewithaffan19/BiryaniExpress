@@ -193,6 +193,31 @@ void Story::Initialize()
     LoadStoryTextures();
 
 }
+void Story::CheckGuradCollosion(Guard& G1, Player& p, Map& m1) {
+    float dx = p.position.x - G1.position.x;
+    float dy = p.position.y - G1.position.y;
+    float dis = sqrt((dx * dx) + (dy * dy));
+    float radiiSum = p.radius + G1.radius;
+    if (dis > 0.001f&&dis<radiiSum) {
+        float overlap = radiiSum - dis;
+        float Push = overlap / 2.0f;
+        float NormalX = dx / dis;
+        float NormalY = dy / dis;
+        Vector2 PlayerBumpVelocity = { -NormalX * Push, -NormalY * Push };
+
+        Vector2 OldPlayerPos = G1.position;
+        G1.position = CheckMapCollosion(G1.position, G1.radius, PlayerBumpVelocity, m1);
+
+        float movedX = G1.position.x - OldPlayerPos.x;
+        float movedY = G1.position.y - OldPlayerPos.y;
+        float actualMovedDis = sqrt((movedX * movedX) + (movedY * movedY));
+        //Moveable distance check
+        float EnemyForce = Push + (Push - actualMovedDis);
+
+        Vector2 EnemyBumpVelocity = { NormalX * EnemyForce, NormalY * EnemyForce };
+        p.position = CheckMapCollosion(p.position, p.radius, EnemyBumpVelocity, m1);
+    }
+}
 
 // ============================================================
 // LOAD STORY TEXTURES
@@ -208,7 +233,7 @@ void Story::LoadStoryTextures()
 
     guards[0].texture =
         LoadTexture(
-            "../assets/textures/guard1.png"
+            "../../assets/textures/guard1.png"
         );
 
     if (guards[0].texture.id == 0)
@@ -225,7 +250,7 @@ void Story::LoadStoryTextures()
 
     guards[1].texture =
         LoadTexture(
-            "../assets/textures/guard2.png"
+            "../../assets/textures/guard2.png"
         );
 
     if (guards[1].texture.id == 0)
@@ -242,7 +267,7 @@ void Story::LoadStoryTextures()
 
     guards[2].texture =
         LoadTexture(
-            "../assets/textures/guard3.png"
+            "../../assets/textures/guard3.png"
         );
 
     if (guards[2].texture.id == 0)
@@ -388,7 +413,7 @@ void Story::Update(
         // ----------------------------------------------------
         // Near guard?
         // ----------------------------------------------------
-
+        CheckGuradCollosion(guards[i], player, m1);
         if (IsNear(
             player.GetPosition(),
             guards[i].position,
@@ -403,6 +428,7 @@ void Story::Update(
                 return;
             }
         }
+
     }
 
     // ========================================================
@@ -639,7 +665,7 @@ void Story::StartGuardInteraction(
 
         std::cout
             << "Guard finished interaction.\n";
-
+        
         return;
     }
 
@@ -750,7 +776,7 @@ void Story::UpdateGuardInteraction(
                 guardIndex
             );
         }
-
+        
         return;
     }
 

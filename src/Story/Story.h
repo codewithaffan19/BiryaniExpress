@@ -2,6 +2,8 @@
 
 #include "raylib.h"
 #include "../Player/Player.h"
+#include "../World/Map.h"
+#include "../World/Collision.h"
 #include<string>
 class Story
 {
@@ -66,7 +68,6 @@ public:
     Vector2 GetTeleportPosition(int doorNumber) const;
 
     bool WasPoliceSpawnTriggered() const;
-
 private:
 
     // ============================================================
@@ -84,13 +85,13 @@ private:
     // ============================================================
     // GUARD
     // ============================================================
-
+    
     struct Guard
     {
         Vector2 position;
 
         StoryKey key;
-
+        float radius=0.25;
         // --------------------------------------------------------
         // Interaction state
         // --------------------------------------------------------
@@ -130,6 +131,8 @@ private:
 
         Texture2D texture{};
     };
+    Map m1;
+    void CheckGuradCollosion(Guard& G1, Player& p,Map&m1);
 
     // ============================================================
     // THREE GUARDS

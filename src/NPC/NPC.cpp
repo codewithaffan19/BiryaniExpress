@@ -41,13 +41,13 @@ bool NPC::Load(
     if (isJack)
     {
         jackDialogue1 =
-            LoadSound("../assets/audio/jack_dialogue_1.wav");
+            LoadSound("../../assets/audio/jack_dialogue_1.wav");
 
         jackDialogue2 =
-            LoadSound("../assets/audio/jack_dialogue_2.wav");
+            LoadSound("../../assets/audio/jack_dialogue_2.wav");
 
         jackDialogue3 =
-            LoadSound("../assets/audio/jack_dialogue_3.wav");
+            LoadSound("../../assets/audio/jack_dialogue_3.wav");
 
         jackAudioLoaded =
             (jackDialogue1.frameCount > 0 &&
@@ -237,6 +237,7 @@ void NPC::Update(Vector2 playerPos,Player&p)
             bool f=p.PickUpItem(myItem);
             if (f) {
                 std::cout << "Item picked up successfully\n";
+
             }
             else{
                 std::cout << "No empty space\n";

@@ -710,19 +710,19 @@ void TextureManager::LoadCommonAssets()
 
     LoadTile(
         42,
-        "../assets/commonassets/door1.png",
+        "../../assets/commonassets/door1.png",
         "Door1"
     );
 
     LoadTile(
         43,
-        "../assets/commonassets/door2.png",
+        "../../assets/commonassets/door2.png",
         "Door2"
     );
 
     LoadTile(
         44,
-        "../assets/commonassets/door3.png",
+        "../../assets/commonassets/door3.png",
         "Door3"
     );
 
@@ -732,12 +732,12 @@ void TextureManager::LoadCommonAssets()
 
     LoadTile(
         45,
-        "../assets/commonassets/neonDoor.png",
+        "../../assets/commonassets/neonDoor.png",
         "NeonDoor"
     );
     LoadTile(
         46,
-        "../assets/commonassets/marketdoor.png",
+        "../../assets/commonassets/marketdoor.png",
         "NeonDoor"
     );
 
