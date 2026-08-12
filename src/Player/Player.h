@@ -45,6 +45,7 @@ public:
     Texture2D handTex;
     Texture2D currentTex;
     Texture2D Weapon1Tex;
+    Texture2D MikeHandTex;
     Vector2 KnockBackVelocity = { 0.0f,0.0f };
     float KnockBackTimer=0.0f;
     int GetActiveWeapon()const;
@@ -52,9 +53,11 @@ public:
     void SwitchWeapon();
     bool PickUpItem(int newItem);
     InventorySlot MissionPouch[3];
-    InventorySlot WeaponPouch[2];
+    InventorySlot WeaponPouch[3];
     int MissionCount[2] = { 0,0 };
     int MissionTarget[2] = { 1,1 };
+    int WeaponCount[3] = { 0,0,0 };
+    int WeaponTarget[3] = { 1,1,1 };
 private:
     Vector2 direction;
     Vector2 cameraPlane;

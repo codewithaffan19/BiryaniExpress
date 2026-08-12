@@ -23,7 +23,8 @@ void Renderer::LoadTextures()
 
     Missionpouch[0] = LoadTexture("../assets/textures/Crumble.png");
     Missionpouch[1] = LoadTexture("../assets/textures/Afc.png");
-    Weaponpouch[1] = LoadTexture("../assets/textures/Chakla.png");
+    Weaponpouch[0] = LoadTexture("../assets/textures/Chakla.png");
+    Weaponpouch[1] = LoadTexture("../assets/textures/mike.png");
     Weaponpouch[2] = LoadTexture("../assets/textures/MountainView.png");
 
     // ==========================================
@@ -328,20 +329,31 @@ void Renderer::DrawInventoryHUD(Player& p) {
     int slotX = Config::SCREEN_WIDTH - slotSize - 20;
     int startY = 20;
     int slotY;
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i<3; i++) {
         slotY = startY + i * (slotSize + slotGap) + 5;
         bool isSelected = (i == p.currentWeaponIndex);
         Color BgColor = isSelected ? Fade(SKYBLUE, 0.4f) : Fade(BLACK, 0.4f);
 
         Rectangle dest = { (float)slotX, (float)slotY, (float)slotSize, (float)slotSize };
-
+        Color BorderColor = GRAY;
+        
         DrawRectangle(slotX, slotY, slotSize, slotSize, BgColor);
+        if (p.WeaponPouch[i].id != ITEM_EMPTY) {
+            Texture2D tex;
+            if (p.WeaponPouch[i].id == ITEM_MIKE) {
+                tex = Weaponpouch[1];
+            }
+            else if (p.WeaponPouch[i].id == ITEM_SPOON) {
+                tex = Weaponpouch[0];
+            }
+            else if (p.WeaponPouch[i].id == ITEM_BIRYANI) {
+                tex = Weaponpouch[2];
+            }
+            Rectangle source = { 0, 0, (float)tex.width, (float)tex.height };
+            DrawTexturePro(tex, source, dest, { 0, 0 }, 0.0f, WHITE);
 
-        Texture2D tex = Weaponpouch[i]; 
-        Rectangle source = { 0, 0, (float)tex.width, (float)tex.height };
-        DrawTexturePro(tex, source, dest, { 0, 0 }, 0.0f, WHITE);
-
-        Color BorderColor = isSelected ? YELLOW : GRAY;
+            BorderColor = isSelected ? YELLOW : GRAY;
+        }
         DrawRectangleLinesEx({ (float)slotX,(float)slotY,(float)slotSize,(float)slotSize },
             isSelected ? 3.0f : 2.0f, BorderColor);
     }
@@ -1328,7 +1340,7 @@ void Renderer::Draw(
             enemies[i].totalframes;
 
         float frameHeight =
-            (float)enemies[i].spriteSheet.height/enemies[i].totalframes;
+            (float)enemies[i].spriteSheet.height / enemies[i].totalframes;
 
         int currentframe = frameWidth / enemies[i].totalframes;
         int frameOffsetX = currentframe * frameWidth;
@@ -1527,8 +1539,7 @@ void Renderer::Draw(
     // ==========================================
 
     int weapon = player.GetActiveWeapon();
-    if (weapon != 0)
-    {
+
         Texture2D& weaponTex = player.currentTex;
         float scale =
             (Config::SCREEN_HEIGHT * 0.55f) /
@@ -1603,7 +1614,6 @@ void Renderer::Draw(
             0.0f,
             WHITE
         );
-    }
 
 
 

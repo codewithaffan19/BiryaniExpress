@@ -10,6 +10,7 @@
 #include "../Enemy.h"
 #include "../NPC/NPC.h"
 #include "../Story/Story.h"
+#include "../Menu/Menu.h"
 class Game
 {
 public:
@@ -24,6 +25,9 @@ private:
     void Shutdown();
     void CheckSpoonCollosion(Player& a, Enemy& E1);
 private:
+    Menu menu;
+
+    bool gameStarted = false;
     bool running = false;
     bool storyRestrictionWarning = false;
     Player player;

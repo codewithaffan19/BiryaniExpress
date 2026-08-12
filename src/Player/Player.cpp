@@ -14,15 +14,17 @@ Player::Player()
     radius = 0.25f;
     currentWeaponIndex = 0;
     hitmessagetimer = 0;
-    WeaponPouch[0].id = ITEM_SPOON;
-    WeaponPouch[1].id = ITEM_CHAPPAL;
+    WeaponPouch[0].id = ITEM_BIRYANI;
+    WeaponPouch[1].id = ITEM_EMPTY;
+    WeaponPouch[2].id = ITEM_EMPTY;
 
 }
 int Player::GetActiveWeapon()const {
     return WeaponPouch[currentWeaponIndex].id;
 }
 void Player::SwitchWeapon(){
-    int nextWeapon;
+    int nextWeapon=0;
+    currentTex = handTex;
     if (currentWeaponIndex == 0)
     {
         nextWeapon = 1;
@@ -30,18 +32,15 @@ void Player::SwitchWeapon(){
     else if(currentWeaponIndex==1) {
         nextWeapon = 2;
     }
-    else {
+    else if (currentWeaponIndex == 2) {
         nextWeapon = 0;
     }
-    currentWeaponIndex = nextWeapon;
-    if (WeaponPouch[nextWeapon].id != ITEM_EMPTY) {
-        currentWeaponIndex = nextWeapon;
-        if (currentWeaponIndex == 0) {
-            currentTex = handTex;
-        }
-        else {
-            currentTex = Weapon1Tex;
-        }
+    currentWeaponIndex=nextWeapon;
+    if (WeaponPouch[nextWeapon].id == ITEM_EMPTY) {
+        currentTex = handTex;
+    }
+    else if(WeaponPouch[nextWeapon].id==ITEM_MIKE) {
+        currentTex = MikeHandTex;
     }
 }
 
@@ -59,14 +58,18 @@ bool Player::PickUpItem(int newItem) {
         }
         return true;
     }
-    if (newItem == ITEM_CHAPPAL || newItem == ITEM_SPOON) {
-        for (int i = 0; i < 2; i++) {
-            if (WeaponPouch[i].id == ITEM_EMPTY) {
-                WeaponPouch[i].id = newItem;
-                return true;
-            }
+    index = 0;
+    if (newItem == ITEM_MIKE || newItem == ITEM_SPOON) {
+        if (newItem == ITEM_MIKE)index = 1;
+        else if (newItem == ITEM_SPOON)index = 2;
+
+        WeaponPouch[index].id = newItem;
+        WeaponCount[index]++;
+        if (WeaponCount[index] > MissionTarget[index]) {
+            WeaponCount[index]=WeaponTarget[index];
+            return false;
         }
-        return false;
+        return true;
     }   
 
     return false;
@@ -81,6 +84,7 @@ void Player::Update(
         return;
     }*/
     //Inventory
+    
     if (IsKeyPressed(KEY_ONE)&&WeaponPouch[0].id!=ITEM_EMPTY) {
         SwitchWeapon();
     }

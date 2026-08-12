@@ -28,7 +28,23 @@ void Game::Initialize()
         Config::SCREEN_HEIGHT,
         "BiryaniExpress"
     );
+    // ============================================================
+// MENU
+// ============================================================
 
+    if (!menu.Initialize(
+        "../assets/menu/background.png"
+    ))
+    {
+        TraceLog(
+            LOG_ERROR,
+            "Failed to initialize menu!"
+        );
+    }
+
+    gameStarted = false;
+
+    EnableCursor();
     // ============================================================
     // AUDIO
     // ============================================================
@@ -49,7 +65,7 @@ void Game::Initialize()
     );
     editor.SetTextureManager(&renderer.textures);
 
-    DisableCursor();
+    EnableCursor();
     SetTargetFPS(Config::TARGET_FPS);
 
     // Hand
@@ -58,6 +74,7 @@ void Game::Initialize()
 
     player.handTex = LoadTextureFromImage(hand);
     player.Weapon1Tex=LoadTexture("../assets/textures/Weapon1.png");
+    player.MikeHandTex = LoadTexture("../assets/textures/mikehand.png");
     player.currentTex = player.handTex; 
     UnloadImage(hand);
 
@@ -225,7 +242,57 @@ void Game::CheckSpoonCollosion(Player& p, Enemy& E)
 void Game::Update()
 {
     float dt = GetFrameTime();
+    // ========================================================
+    // MAIN MENU
+    // ========================================================
 
+    if (!gameStarted)
+    {
+        Menu::Action action =
+            menu.Update();
+
+        if (action == Menu::Action::Play)
+        {
+            gameStarted = true;
+
+            DisableCursor();
+
+            TraceLog(
+                LOG_INFO,
+                "Starting game..."
+            );
+        }
+        else if (action == Menu::Action::Exit)
+        {
+            running = false;
+        }
+
+        return;
+    }
+
+
+    // ========================================================
+    // PAUSE MENU
+    // ========================================================
+
+    if (menu.IsPauseOpen())
+    {
+        Menu::Action action =
+            menu.UpdatePause();
+
+        if (action == Menu::Action::Exit)
+        {
+            running = false;
+        }
+
+        return;
+    }
+
+
+
+    // ========================================================
+    // GAME
+    // ========================================================
     input.Update();
     storyRestrictionWarning = false;
     // ==========================================
@@ -428,11 +495,16 @@ void Game::Update()
 
 
     // ==========================================
-    // ESCAPE
-    // ==========================================
+// ESCAPE / PAUSE
+// ==========================================
 
-    if (input.IsKeyPressed(KEY_ESCAPE))
-        running = false;
+    if (!editorMode &&
+        input.IsKeyPressed(KEY_ESCAPE))
+    {
+        menu.OpenPause();
+
+        return;
+    }
 }
 
 
@@ -440,8 +512,38 @@ void Game::Draw()
 {
     BeginDrawing();
 
-    ClearBackground(RAYWHITE);
+    ClearBackground(BLACK);
 
+
+    // ========================================================
+    // MAIN MENU
+    // ========================================================
+
+    if (!gameStarted)
+    {
+        menu.Draw();
+
+        EndDrawing();
+        return;
+    }
+
+
+    // ========================================================
+    // PAUSE MENU
+    // ========================================================
+
+    if (menu.IsPauseOpen())
+    {
+        menu.DrawPause();
+
+        EndDrawing();
+        return;
+    }
+
+    // ========================================================
+    // GAME
+    // ========================================================
+    ClearBackground(RAYWHITE);
     // ==========================================
     // EDITOR
     // ==========================================
@@ -745,6 +847,7 @@ void Game::Draw()
 
 void Game::Shutdown()
 {
+
     // ============================================================
     // UNLOAD NPCs
     // ============================================================
