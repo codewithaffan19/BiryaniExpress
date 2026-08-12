@@ -129,7 +129,7 @@ void CheckEnemyEnemyCollision(std::vector<Enemy>&enemies ,Map& m1) {
 	}
 }
 
-Vector2 KnockBack(Vector2 pos, Vector2& KnockBackVelocity, float KnockBackTimer, float radius, Map& m1, float dt) {
+Vector2 KnockBack(Vector2 pos, Vector2& KnockBackVelocity, float &KnockBackTimer, float radius, Map& m1, float dt) {
 	if (KnockBackTimer <= 0) {
 		return pos;
 	}

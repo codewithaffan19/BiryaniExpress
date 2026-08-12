@@ -14,7 +14,7 @@ Enemy::Enemy() {
 	state = STILL;
 	moveSpeed = 0.5f;
 	currentframe = 0;
-	framespeed = 1.0f;
+	framespeed = 0.5f;
 	frametimer = 0.0f;
 	health = 100;
 	rows = 2;
@@ -53,7 +53,7 @@ void Enemy::update(Player& P, Map& m1) {
 		if (!hasPopped) {
 			for (int i = 0; i < MAX_BUBBLES; i++) {
 				bubbles[i].active = true;
-				bubbles[i].position = position;//Enemyposition
+				bubbles[i].position = position;
 
 				bubbles[i].velocity.x = (float)GetRandomValue(-15, 15) / 10.0f;
 				bubbles[i].velocity.y = (float)GetRandomValue(-15, 15) / 10.0f;
@@ -67,10 +67,13 @@ void Enemy::update(Player& P, Map& m1) {
 	else {
 		state = CHASE;
 	}
+
 	if (KnockBackTimer > 0.0f) {
 		position = KnockBack(position, KnockBackVelocity, KnockBackTimer, radius, m1, deltaTime);
+		currentframe = (KnockBackTimer > 0.1f) ? 8 : 7;
+		TraceLog(LOG_INFO, "Knockback active, timer=%f", KnockBackTimer);
 	}
-
+	else {
 		if (hit.distance < playerdis) {
 			if (state == CHASE) {
 				state = INTERROGATE;
@@ -93,7 +96,7 @@ void Enemy::update(Player& P, Map& m1) {
 			if (frametimer >= framespeed) {
 				frametimer = 0.0f;
 				currentframe++;
-				if (currentframe >= columns - 1) {
+				if (currentframe >= columns) {
 					currentframe = 0;
 				}
 			}
@@ -140,7 +143,7 @@ void Enemy::update(Player& P, Map& m1) {
 				if (frametimer >= framespeed) {
 					frametimer = 0.0f;
 					currentframe++;
-					if (currentframe >= columns - 1)
+					if (currentframe >= columns)
 						currentframe = 0;
 				}
 			}
@@ -160,8 +163,8 @@ void Enemy::update(Player& P, Map& m1) {
 				P.health -= attackDamage;
 				P.hitmessagetimer = 30;
 				if (P.health < 0) P.health = 0;
-				float dx = LastKnownPlayerpos.x - position.x;
-				float dy = LastKnownPlayerpos.y - position.y;
+				float dx = P.position.x - position.x;
+				float dy = P.position.y - position.y;
 				float dis = sqrt((dx * dx) + (dy * dy));
 				if (dis > 0.0001) {
 					float KnockBackForce = 4.0f;
@@ -185,4 +188,5 @@ void Enemy::update(Player& P, Map& m1) {
 				state = CHASE;
 			}
 		}
+	}
 }

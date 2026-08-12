@@ -69,7 +69,7 @@ void Game::Initialize()
     SetTargetFPS(Config::TARGET_FPS);
 
     // Hand
-    Image hand = LoadImage("../assets/textures/hand.png");
+    Image hand = LoadImage("../../assets/textures/hand.png");
     ImageColorReplace(&hand, MAGENTA, BLANK);
 
     player.handTex = LoadTextureFromImage(hand);
@@ -86,53 +86,65 @@ void Game::Initialize()
 
     Enemy BurgerBoy;
     BurgerBoy.spriteSheet =
-        LoadTexture("../assets/textures/Boy.png");
+        LoadTexture("../../assets/textures/Boy.png");
     BurgerBoy.totalframes = 4;
     BurgerBoy.moveSpeed = 0.8f;
     BurgerBoy.position = { 13.0f, 14.0f };
     BurgerBoy.currentAttackTimer = 0.2f;
-
+    BurgerBoy.attackDamage = 5;
 
     Enemy AngryUncle;
-    AngryUncle.spriteSheet = LoadTexture("../assets/textures/uncle.png");
+    AngryUncle.spriteSheet = LoadTexture("../../assets/textures/uncle2.png");
     AngryUncle.position = { 7.0f, 10.0f };
     AngryUncle.totalframes = 5;
     AngryUncle.moveSpeed = 0.7f;
     AngryUncle.currentAttackTimer = 0.2f;
-
+    AngryUncle.attackDamage = 10;
 
     Enemy AngryUncle2;
-    AngryUncle2.spriteSheet =LoadTexture("../assets/textures/uncle.png");
-    AngryUncle2.position = { 17.0f, 16.0f };
+    AngryUncle2.spriteSheet =LoadTexture("../../assets/textures/uncle2.png");
+    SetTextureFilter(AngryUncle2.spriteSheet, TEXTURE_FILTER_POINT);
+    AngryUncle2.position = { 2.0f, 3.0f };
     AngryUncle2.totalframes = 5;
     AngryUncle2.moveSpeed = 0.7f;
     AngryUncle2.currentAttackTimer = 0.5f;
+    AngryUncle2.attackDamage = 7;
+
     Enemy Thief;
-    Thief.spriteSheet =LoadTexture("../assets/textures/Chor.png");
+    Thief.spriteSheet =LoadTexture("../../assets/textures/Chor.png");
     Thief.position = { 1.0f, 7.0f };
     Thief.totalframes = 2;
     Thief.moveSpeed = 0.9f;
     Thief.currentAttackTimer = 0.7f;
+    Thief.attackDamage = 15;
 
     Enemy Thief2;
-    Thief2.spriteSheet =LoadTexture("../assets/textures/Chor2.png");
+    Thief2.spriteSheet =LoadTexture("../../assets/textures/Chor2.png");
     Thief2.position = { 14.0f, 16.0f };
     Thief2.totalframes = 2;
     Thief2.moveSpeed = 0.9f;
     Thief2.currentAttackTimer=0.5f;
+    Thief2.attackDamage = 15;
 
+
+    Police.position = {1.0f,7.0f};
+    Police.totalframes = 3;
+    Police.moveSpeed = 0.8f;
+    Police.currentAttackTimer = 0.5f;
+    Police.spriteSheet = LoadTexture("../../assets/textures/Police.png");
 
     enemies.push_back(Thief);
     enemies.push_back(AngryUncle);
     enemies.push_back(Thief2);
     enemies.push_back(BurgerBoy);
     enemies.push_back(AngryUncle2);
+    enemies.push_back(Police);
 
     // ==========================================
     // MAP
     // ==========================================
 
-    map.LoadMap("../assets/maps/test.txt");
+    map.LoadMap("../../assets/maps/test.txt");
 
     // ==========================================
     // NPCs
@@ -144,7 +156,7 @@ void Game::Initialize()
     afc.myItem = ITEM_AFC;
     if (!afc.Load(
         "AFC Waiter",
-        "../assets/textures/AFC_waiter.png",
+        "../../assets/textures/AFC_waiter.png",
         { 13.5f, 1.5f }))
     {
         TraceLog(LOG_ERROR, "Failed to load AFC Waiter");
@@ -155,7 +167,7 @@ void Game::Initialize()
     mike.myItem = ITEM_MIKE;
     if (!mike.Load(
         "MIKE Waiter",
-        "../assets/textures/MIKE_waiter.png",
+        "../../assets/textures/MIKE_waiter.png",
         { 13.5f, 3.5f }))
     {
         TraceLog(LOG_ERROR, "Failed to load MIKE Waiter");
@@ -166,7 +178,7 @@ void Game::Initialize()
     clinex.myItem = ITEM_CLINIX;
     if (!clinex.Load(
         "CLINEX Waiter",
-        "../assets/textures/CLINEX_waiter.png",
+        "../../assets/textures/CLINEX_waiter.png",
         { 19.5f, 3.5f }))
     {
         TraceLog(LOG_ERROR, "Failed to load CLINEX Waiter");
@@ -177,7 +189,7 @@ void Game::Initialize()
     drumble.myItem = ITEM_DRUMBLE;
     if (!drumble.Load(
         "DRUMBLE Waiter",
-        "../assets/textures/DRUMBLE_waiter.png",
+        "../../assets/textures/DRUMBLE_waiter.png",
         { 17.5f, 1.5f }))
     {
         TraceLog(LOG_ERROR, "Failed to load DRUMBLE Waiter");
@@ -193,7 +205,7 @@ void Game::Initialize()
 
     if (!jack.Load(
         "Jack",
-        "../assets/textures/jack.png",
+        "../../assets/textures/jack.png",
         { 22.5f, 3.5f }))
     {
         TraceLog(LOG_ERROR, "Failed to load Jack");
