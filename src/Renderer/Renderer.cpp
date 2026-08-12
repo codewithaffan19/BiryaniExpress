@@ -21,10 +21,10 @@ void Renderer::LoadTextures()
 
     textures.LoadCommonAssets();
 
-    Missionpouch[0] = LoadTexture("../assets/textures/Crumble.png");
-    Missionpouch[1] = LoadTexture("../assets/textures/Afc.png");
-    Weaponpouch[1] = LoadTexture("../assets/textures/Chakla.png");
-    Weaponpouch[2] = LoadTexture("../assets/textures/MountainView.png");
+    Missionpouch[0] = LoadTexture("../../assets/textures/Crumble.png");
+    Missionpouch[1] = LoadTexture("../../assets/textures/Afc.png");
+    Weaponpouch[1] = LoadTexture("../../assets/textures/Chakla.png");
+    Weaponpouch[2] = LoadTexture("../../assets/textures/MountainView.png");
 
     // ==========================================
     // START WITH STREET ONLY
@@ -1323,18 +1323,13 @@ void Renderer::Draw(
         if (enemies[i].totalframes <= 0)
             continue;
 
-        float frameWidth =
-            (float)enemies[i].spriteSheet.width /
-            enemies[i].totalframes;
+        float frameWidth = (float)enemies[i].spriteSheet.width / enemies[i].columns;
+        float frameHeight = (float)enemies[i].spriteSheet.height / enemies[i].rows;
 
-        float frameHeight =
-            (float)enemies[i].spriteSheet.height/enemies[i].totalframes;
-
-        int currentframe = frameWidth / enemies[i].totalframes;
-        int frameOffsetX = currentframe * frameWidth;
-        int frameOffsetY = currentframe * frameHeight;
-        
-
+        int col = enemies[i].currentframe % enemies[i].columns;
+        int row = enemies[i].currentframe / enemies[i].columns;
+        int frameOffsetX = col * frameWidth;
+        int frameOffsetY = row * frameHeight;
         // --------------------------------------
         // Draw enemy stripe-by-stripe
         // --------------------------------------

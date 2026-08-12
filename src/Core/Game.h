@@ -33,7 +33,7 @@ private:
 
     InputManager input;
     Editor editor;
-
+    Enemy Police;
     std::vector<Enemy> enemies;
     std::vector<NPC> npcs;
     Story story;
