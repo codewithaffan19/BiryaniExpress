@@ -25,7 +25,7 @@ private:
     void CheckSpoonCollosion(Player& a, Enemy& E1);
 private:
     bool running = false;
-
+    bool storyRestrictionWarning = false;
     Player player;
     Map map;
 
