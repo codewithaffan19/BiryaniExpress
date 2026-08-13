@@ -135,6 +135,7 @@ private:
         // --------------------------------------------------------
 
         Texture2D texture{};
+        std::string dialogues[3];
     };
     Map m1;
     void CheckGuradCollosion(Guard& G1, Player& p,Map&m1);

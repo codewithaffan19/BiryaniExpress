@@ -15,15 +15,17 @@ public:
         const char* image2Path,
         const char* image3Path,
         const char* image4Path,
+        const char* image5Path,
 
         const char* audio1Path,
         const char* audio2Path,
         const char* audio3Path,
-        const char* audio4Path
+        const char* audio4Path,
+        const char* audio5Path
     );
 
     // Start / restart cutscene
-    void Start();
+    void Start(bool neon = false);
 
     // Update cutscene
     void Update();
@@ -46,15 +48,15 @@ private:
     // IMAGES
     // ============================================================
 
-    Texture2D images[4]{};
-    bool imagesLoaded[4]{};
+    Texture2D images[5]{};
+    bool imagesLoaded[5]{};
 
     // ============================================================
     // AUDIO
     // ============================================================
 
-    Sound sounds[4]{};
-    bool soundsLoaded[4]{};
+    Sound sounds[5]{};
+    bool soundsLoaded[5]{};
 
     // ============================================================
     // STATE
@@ -79,7 +81,11 @@ private:
     // DIALOGUE
     // ============================================================
 
-    std::string dialogue[4];
+    std::string dialogue[5];
+
+    std::string neonDialogue[5];
+
+    bool useNeonDialogue = false;
 
     int printedWords = 0;
 

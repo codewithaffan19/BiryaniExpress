@@ -28,7 +28,7 @@ Cutscene::Cutscene()
     // ========================================================
 
     dialogue[0] =
-        "Affan: 6 se maar isko, phir dobara baari le! Isko aaj bachne nahi dena.😭";
+        "Affan: 6 se maar isko, phir dobara baari le! Isko aaj bachne nahi dena.";
 
     dialogue[1] =
         "Rohaan: Chalo shart laga lo, jo haara woh sab ko Drumble aur AFC khilaye ga. Hassan: Done karo bhai!Aaj to jeet ke rahun ga, dekh lena..";
@@ -38,6 +38,20 @@ Cutscene::Cutscene()
 
     dialogue[3] =
         "Affan: Kher... ab to treat deni hi paray gi inko. Ludo bhi haar gaya aur paisay bhi gaye.";
+    neonDialogue[0] =
+        "Uncle: Beta, yahan protest ho raha hai, sab ek doosray ko maar rahe hain. Tumhein yahan nahi aana chahiye tha.";
+
+    neonDialogue[1] =
+        "Uncle: Yahan se nikalne ka sirf ek hi sahi darwaza hai. Baaki dono ghalat hain... aur asal chaabi sirf ek guard ke paas hai.";
+
+    neonDialogue[2] =
+        "Uncle: Ye apne paas rakho, hifazat ke liye. Sahi guard ko dhoondo aur sahi darwazay se yahan se nikal jao.";
+
+    neonDialogue[3] =
+        "Affan: Ye main kidhar phas gaya hoon?! Kya main sahi darwaza aur sahi chaabi dhoond paunga?";
+
+    neonDialogue[4] =
+        "Affan: Main yahan se nikal ke rahunga... jo marzi ho jaayeeeeeee!";
 }
 
 
@@ -50,27 +64,31 @@ bool Cutscene::Initialize(
     const char* image2Path,
     const char* image3Path,
     const char* image4Path,
+    const char* image5Path,
 
     const char* audio1Path,
     const char* audio2Path,
     const char* audio3Path,
-    const char* audio4Path
+    const char* audio4Path,
+    const char* audio5Path
 )
 {
-    const char* imagePaths[4] =
+    const char* imagePaths[5] =
     {
         image1Path,
         image2Path,
         image3Path,
-        image4Path
+        image4Path,
+        image5Path
     };
 
-    const char* audioPaths[4] =
+    const char* audioPaths[5] =
     {
         audio1Path,
         audio2Path,
         audio3Path,
-        audio4Path
+        audio4Path,
+        audio5Path
     };
 
 
@@ -81,7 +99,7 @@ bool Cutscene::Initialize(
     // LOAD IMAGES
     // ========================================================
 
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < 5; i++)
     {
         if (imagePaths[i] == nullptr)
         {
@@ -127,7 +145,7 @@ bool Cutscene::Initialize(
     // LOAD AUDIO
     // ========================================================
 
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < 5; i++)
     {
         if (audioPaths[i] == nullptr)
         {
@@ -171,8 +189,10 @@ bool Cutscene::Initialize(
 // START
 // ============================================================
 
-void Cutscene::Start()
+void Cutscene::Start(bool neon)
 {
+    useNeonDialogue = neon;
+
     playing = true;
     finished = false;
 
@@ -187,21 +207,10 @@ void Cutscene::Start()
 
     StopCurrentAudio();
 
-
-    // ========================================================
-    // PLAY FIRST AUDIO
-    // ========================================================
-
     if (soundsLoaded[0])
     {
         PlaySound(sounds[0]);
     }
-
-
-    TraceLog(
-        LOG_INFO,
-        "Cutscene started."
-    );
 }
 
 
@@ -212,7 +221,7 @@ void Cutscene::Start()
 void Cutscene::StopCurrentAudio()
 {
     if (currentScene >= 0 &&
-        currentScene < 4 &&
+        currentScene < 5 &&
         soundsLoaded[currentScene])
     {
         StopSound(
@@ -228,7 +237,7 @@ void Cutscene::StopCurrentAudio()
 
 void Cutscene::StartScene(int scene)
 {
-    if (scene < 0 || scene >= 4)
+    if (scene < 0 || scene >= 5)
         return;
 
 
@@ -309,13 +318,23 @@ void Cutscene::Update()
         // NEXT IMAGE
         // ====================================================
 
-        if (currentScene < 3)
+        if (useNeonDialogue)
         {
-            StartScene(
-                currentScene + 1
-            );
+            if (currentScene < 4)
+            {
+                StartScene(currentScene + 1);
 
-            return;
+                return;
+            }
+        }
+        else
+        {
+            if (currentScene < 3)
+            {
+                StartScene(currentScene + 1);
+
+                return;
+            }
         }
 
 
@@ -342,14 +361,16 @@ void Cutscene::Update()
 void Cutscene::UpdateDialogue()
 {
     if (currentScene < 0 ||
-        currentScene >= 4)
+        currentScene >= 5)
     {
         return;
     }
 
 
     const std::string& text =
-        dialogue[currentScene];
+        useNeonDialogue
+        ? neonDialogue[currentScene]
+        : dialogue[currentScene];
 
 
     if (text.empty())
@@ -608,14 +629,16 @@ void Cutscene::DrawSceneImage()
 void Cutscene::DrawDialogueBox()
 {
     if (currentScene < 0 ||
-        currentScene >= 4)
+        currentScene >= 5)
     {
         return;
     }
 
 
     const std::string& text =
-        dialogue[currentScene];
+    useNeonDialogue
+    ? neonDialogue[currentScene]
+    : dialogue[currentScene];
 
 
     if (text.empty())

@@ -1038,7 +1038,7 @@ void Renderer::DrawWallColumn(
     }
 
     // NEW TEXTURED WALL
-    if (tile >= 2 && tile <= 61)
+    if (tile >= 2 && tile <= 62)
     {
         Texture2D* tex = &textures.tiles[tile];
 
