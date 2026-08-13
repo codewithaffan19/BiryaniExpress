@@ -144,6 +144,7 @@
   <ItemGroup>
     <ClCompile Include="..\src\Core\Game.cpp" />
     <ClCompile Include="..\src\Core\InputManager.cpp" />
+    <ClCompile Include="..\src\Cutscene\Cutscene.cpp" />
     <ClCompile Include="..\src\Editor\Editor.cpp" />
     <ClCompile Include="..\src\Enemy.cpp" />
     <ClCompile Include="..\src\main.cpp" />
@@ -160,6 +161,7 @@
     <ClInclude Include="..\src\Core\Config.h" />
     <ClInclude Include="..\src\Core\Game.h" />
     <ClInclude Include="..\src\Core\InputManager.h" />
+    <ClInclude Include="..\src\Cutscene\Cutscene.h" />
     <ClInclude Include="..\src\Editor\Editor.h" />
     <ClInclude Include="..\src\Enemy.h" />
     <ClInclude Include="..\src\Menu\Menu.h" />

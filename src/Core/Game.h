@@ -11,6 +11,7 @@
 #include "../NPC/NPC.h"
 #include "../Story/Story.h"
 #include "../Menu/Menu.h"
+#include "../Cutscene/Cutscene.h"
 class Game
 {
 public:
@@ -26,7 +27,7 @@ private:
     void CheckSpoonCollosion(Player& a, Enemy& E1);
 private:
     Menu menu;
-
+    Cutscene cutscene;
     bool gameStarted = false;
     bool running = false;
     bool storyRestrictionWarning = false;

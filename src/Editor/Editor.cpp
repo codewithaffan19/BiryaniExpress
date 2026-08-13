@@ -330,7 +330,7 @@ void Editor::SaveShortcut(Map& map)
 {
     if (IsKeyPressed(KEY_S))
     {
-        map.SaveMap("../../assets/maps/test.txt");
+        map.SaveMap("../assets/maps/test.txt");
     }
 }
 void Editor::HandlePartitionSelection(Vector2 mouse)

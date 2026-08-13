@@ -54,6 +54,9 @@
     <ClCompile Include="..\src\Menu\Menu.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\Cutscene\Cutscene.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\Player\Player.h">
@@ -93,6 +96,9 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="..\src\Menu\Menu.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\Cutscene\Cutscene.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>

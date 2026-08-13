@@ -9,6 +9,7 @@
 #include<iostream>
 #include "raymath.h"
 #include "../World/Collision.h"
+#include "../Cutscene/Cutscene.h"
 static bool HasAFCAndDrumble(const Player& player)
 {
     return
@@ -58,7 +59,27 @@ void Game::Initialize()
             "Failed to initialize audio device!"
         );
     }
+    // ============================================================
+// CUTSCENE
+// ============================================================
 
+    if (!cutscene.Initialize(
+        "../assets/cutscene/image1.png",
+        "../assets/cutscene/image2.png",
+        "../assets/cutscene/image3.png",
+        "../assets/cutscene/image4.png",
+
+        "../assets/cutscene/audio1.wav",
+        "../assets/cutscene/audio2.wav",
+        "../assets/cutscene/audio3.wav",
+        "../assets/cutscene/audio4.wav"
+    ))
+    {
+        TraceLog(
+            LOG_ERROR,
+            "Failed to initialize cutscene!"
+        );
+    }
     renderer.LoadTextures();
     renderer.textures.SetCurrentPartition(
         TextureManager::Partition::Street
@@ -69,7 +90,7 @@ void Game::Initialize()
     SetTargetFPS(Config::TARGET_FPS);
 
     // Hand
-    Image hand = LoadImage("../../assets/textures/hand.png");
+    Image hand = LoadImage("../assets/textures/hand.png");
     ImageColorReplace(&hand, MAGENTA, BLANK);
 
     player.handTex = LoadTextureFromImage(hand);
@@ -169,7 +190,7 @@ void Game::Initialize()
     // MAP
     // ==========================================
 
-    map.LoadMap("../../assets/maps/test.txt");
+    map.LoadMap("../assets/maps/test.txt");
 
     // ==========================================
     // NPCs
@@ -181,7 +202,7 @@ void Game::Initialize()
     afc.myItem = ITEM_AFC;
     if (!afc.Load(
         "AFC Waiter",
-        "../../assets/textures/AFC_waiter.png",
+        "../assets/textures/AFC_waiter.png",
         { 13.5f, 1.5f }))
     {
         TraceLog(LOG_ERROR, "Failed to load AFC Waiter");
@@ -192,7 +213,7 @@ void Game::Initialize()
     mike.myItem = ITEM_MIKE;
     if (!mike.Load(
         "MIKE Waiter",
-        "../../assets/textures/MIKE_waiter.png",
+        "../assets/textures/MIKE_waiter.png",
         { 13.5f, 3.5f }))
     {
         TraceLog(LOG_ERROR, "Failed to load MIKE Waiter");
@@ -203,7 +224,7 @@ void Game::Initialize()
     clinex.myItem = ITEM_CLINIX;
     if (!clinex.Load(
         "CLINEX Waiter",
-        "../../assets/textures/CLINEX_waiter.png",
+        "../assets/textures/CLINEX_waiter.png",
         { 19.5f, 3.5f }))
     {
         TraceLog(LOG_ERROR, "Failed to load CLINEX Waiter");
@@ -214,7 +235,7 @@ void Game::Initialize()
     drumble.myItem = ITEM_DRUMBLE;
     if (!drumble.Load(
         "DRUMBLE Waiter",
-        "../../assets/textures/DRUMBLE_waiter.png",
+        "../assets/textures/DRUMBLE_waiter.png",
         { 17.5f, 1.5f }))
     {
         TraceLog(LOG_ERROR, "Failed to load DRUMBLE Waiter");
@@ -230,7 +251,7 @@ void Game::Initialize()
 
     if (!jack.Load(
         "Jack",
-        "../../assets/textures/jack.png",
+        "../assets/textures/jack.png",
         { 22.5f, 3.5f }))
     {
         TraceLog(LOG_ERROR, "Failed to load Jack");
@@ -285,18 +306,44 @@ void Game::Update()
 
     if (!gameStarted)
     {
+        // ====================================================
+        // CUTSCENE
+        // ====================================================
+
+        if (cutscene.IsPlaying())
+        {
+            cutscene.Update();
+
+            // Cutscene finished -> start actual game
+            if (cutscene.IsFinished())
+            {
+                gameStarted = true;
+
+                DisableCursor();
+
+                TraceLog(
+                    LOG_INFO,
+                    "Cutscene finished. Starting game..."
+                );
+            }
+
+            return;
+        }
+
+
         Menu::Action action =
             menu.Update();
 
+
         if (action == Menu::Action::Play)
         {
-            gameStarted = true;
+            cutscene.Start();
 
-            DisableCursor();
+            EnableCursor();
 
             TraceLog(
                 LOG_INFO,
-                "Starting game..."
+                "Starting cutscene..."
             );
         }
         else if (action == Menu::Action::Exit)
@@ -558,12 +605,25 @@ void Game::Draw()
     ClearBackground(BLACK);
 
 
-    // ========================================================
-    // MAIN MENU
-    // ========================================================
-
     if (!gameStarted)
     {
+        // ====================================================
+        // CUTSCENE
+        // ====================================================
+
+        if (cutscene.IsPlaying())
+        {
+            cutscene.Draw();
+
+            EndDrawing();
+            return;
+        }
+
+
+        // ====================================================
+        // MAIN MENU
+        // ====================================================
+
         menu.Draw();
 
         EndDrawing();
@@ -890,7 +950,7 @@ void Game::Draw()
 
 void Game::Shutdown()
 {
-
+    cutscene.Unload();
     // ============================================================
     // UNLOAD NPCs
     // ============================================================

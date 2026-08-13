@@ -233,7 +233,7 @@ void Story::LoadStoryTextures()
 
     guards[0].texture =
         LoadTexture(
-            "../../assets/textures/guard1.png"
+            "../assets/textures/guard1.png"
         );
 
     if (guards[0].texture.id == 0)
@@ -250,7 +250,7 @@ void Story::LoadStoryTextures()
 
     guards[1].texture =
         LoadTexture(
-            "../../assets/textures/guard2.png"
+            "../assets/textures/guard2.png"
         );
 
     if (guards[1].texture.id == 0)
@@ -267,7 +267,7 @@ void Story::LoadStoryTextures()
 
     guards[2].texture =
         LoadTexture(
-            "../../assets/textures/guard3.png"
+            "../assets/textures/guard3.png"
         );
 
     if (guards[2].texture.id == 0)
