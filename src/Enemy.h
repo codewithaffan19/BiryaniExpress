@@ -27,6 +27,10 @@ public:
 	Vector2 LastKnownPlayerpos;
 	bool ReachedLKP;
 	float framespeed;
+	//
+	bool Respawn;
+	float RespawnTimer = 5.0f;
+	float RespawnCheck = 0.0f;
 	float health;
 	static const int MAX_BUBBLES = 12; 
 	Bubble bubbles[MAX_BUBBLES];

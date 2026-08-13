@@ -38,10 +38,17 @@ void Player::SwitchWeapon(){
     currentWeaponIndex=nextWeapon;
     if (WeaponPouch[nextWeapon].id == ITEM_EMPTY) {
         currentTex = handTex;
+        WeaponTotalFrame = 1;
     }
     else if(WeaponPouch[nextWeapon].id==ITEM_MIKE) {
         currentTex = MikeHandTex;
+        WeaponTotalFrame = 4;
     }
+    else if (WeaponPouch[nextWeapon].id == ITEM_SPOON) {
+        currentTex = Weapon1Tex;
+        WeaponTotalFrame = 3;
+    }
+    WeaponCurrentFrame = 0;
 }
 
 bool Player::PickUpItem(int newItem) {
@@ -85,11 +92,38 @@ void Player::Update(
     }*/
     //Inventory
     
+
+    bool isWalking = IsKeyDown(KEY_W) || IsKeyDown(KEY_A) || IsKeyDown(KEY_S) || IsKeyDown(KEY_D);
     if (IsKeyPressed(KEY_ONE)&&WeaponPouch[0].id!=ITEM_EMPTY) {
         SwitchWeapon();
     }
-
-    bool isWalking = IsKeyDown(KEY_W) || IsKeyDown(KEY_A) || IsKeyDown(KEY_S) || IsKeyDown(KEY_D);
+    if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)&&WeaponTotalFrame>2) {
+        isAttacking = true;
+        WeaponCurrentFrame = 2;
+        WeaponFrameTimer = 0.0f;
+    }
+    if (isAttacking&&!isWalking) {
+        WeaponFrameTimer += dt;
+        if (WeaponFrameTimer >= WeaponFrameSpeed) {
+            WeaponFrameTimer = 0.0f;
+            WeaponCurrentFrame++;
+        }
+        if (WeaponCurrentFrame >= WeaponTotalFrame) {
+            WeaponCurrentFrame = 0;
+            isAttacking = false;
+        }
+    }
+    if (!isWalking&&WeaponTotalFrame>1&&!isAttacking)
+    {
+        idleFrameTimer += dt;
+        if (idleFrameTimer >= idleFrameSpeed) {
+            idleFrameTimer = 0.0f;
+            WeaponCurrentFrame++;
+        }
+        if (WeaponCurrentFrame > 1) {
+            WeaponCurrentFrame = 0;
+        }
+    }
     if (isWalking) {
         weaponbobtimer = dt * 10.0f;
     }
@@ -168,7 +202,6 @@ void Player::Update(
         //-------------------------------------------------
         // Collision
         //-------------------------------------------------
-
 
         if (map.GetCell(
             (int)position.y,

@@ -42,22 +42,39 @@ public:
     Vector2 position;
     int currentWeaponIndex;
     int hitmessagetimer;
+    //
     Texture2D handTex;
     Texture2D currentTex;
     Texture2D Weapon1Tex;
     Texture2D MikeHandTex;
+    
     Vector2 KnockBackVelocity = { 0.0f,0.0f };
     float KnockBackTimer=0.0f;
     int GetActiveWeapon()const;
     Vector2 GetPosition() const;
     void SwitchWeapon();
     bool PickUpItem(int newItem);
+    //
+
     InventorySlot MissionPouch[3];
     InventorySlot WeaponPouch[3];
+
+    //
     int MissionCount[2] = { 0,0 };
     int MissionTarget[2] = { 1,1 };
     int WeaponCount[3] = { 0,0,0 };
     int WeaponTarget[3] = { 1,1,1 };
+
+    //
+    int WeaponTotalFrame=1;
+    int WeaponCurrentFrame=0;
+    float WeaponFrameTimer = 0.5f;
+    float WeaponFrameSpeed=0.5f;
+    bool isAttacking;
+    float idleFrameTimer=0.0f;
+    float idleFrameSpeed=0.5f;
+    //
+    bool isPoliceTriggered=false;
 private:
     Vector2 direction;
     Vector2 cameraPlane;

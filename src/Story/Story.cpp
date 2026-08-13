@@ -4,7 +4,6 @@
 #include "raymath.h"
 
 #include "../World/Collision.h"
-
 #include <cmath>
 #include <iostream>
 // ============================================================
@@ -505,6 +504,7 @@ void Story::Update(
                     {
                         // Police event already triggered
                         // inside TryUseDoor().
+                        player.isPoliceTriggered = true;
                     }
 
                     // ----------------------------------------

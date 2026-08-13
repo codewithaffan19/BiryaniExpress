@@ -21,11 +21,11 @@ void Renderer::LoadTextures()
 
     textures.LoadCommonAssets();
 
-    Missionpouch[0] = LoadTexture("../assets/textures/Crumble.png");
-    Missionpouch[1] = LoadTexture("../assets/textures/Afc.png");
-    Weaponpouch[0] = LoadTexture("../assets/textures/Chakla.png");
-    Weaponpouch[1] = LoadTexture("../assets/textures/mike.png");
-    Weaponpouch[2] = LoadTexture("../assets/textures/MountainView.png");
+    Missionpouch[0] = LoadTexture("../../assets/textures/Crumble.png");
+    Missionpouch[1] = LoadTexture("../../assets/textures/Afc.png");
+    Weaponpouch[0] = LoadTexture("../../assets/textures/Chakla.png");
+    Weaponpouch[1] = LoadTexture("../../assets/textures/mike.png");
+    Weaponpouch[2] = LoadTexture("../../assets/textures/MountainView.png");
 
     // ==========================================
     // START WITH STREET ONLY
@@ -1493,16 +1493,6 @@ void Renderer::Draw(
 // PHASE 2.5: MARKET FOUNTAIN
 // ==========================================
 
-    if (insideMarket)
-    {
-        DrawFountain(
-            { 15.5f, 2.5f },
-            playerPos,
-            playerDir,
-            cameraPlane,
-            Zbuffer
-        );
-    }
     // ==========================================
     // PHASE 3: NPCs
     // ==========================================
@@ -1533,18 +1523,14 @@ void Renderer::Draw(
     // PHASE 4: PLAYER HAND
     // ==========================================
 
-    int weapon = player.GetActiveWeapon();
-
+   
         Texture2D& weaponTex = player.currentTex;
-        float scale =
-            (Config::SCREEN_HEIGHT * 0.55f) /
-            weaponTex.height;
+        float frameWidth = weaponTex.width / player.WeaponTotalFrame;
+        float frameHeight = weaponTex.height;
 
-        float drawWidth =
-            weaponTex.width * scale;
-
-        float drawHeight =
-            weaponTex.height * scale;
+        float scale = (Config::SCREEN_HEIGHT * 0.55f) / frameHeight;
+        float drawWidth = frameWidth * scale;
+        float drawHeight = frameHeight * scale;
 
         float bobX;
         float bobY;
@@ -1587,10 +1573,10 @@ void Renderer::Draw(
 
         Rectangle src =
         {
+            player.WeaponCurrentFrame*frameWidth,
             0.0f,
-            0.0f,
-            (float)weaponTex.width,
-            (float)weaponTex.height
+            frameWidth,
+            frameHeight
         };
 
         Rectangle dst =
@@ -1679,217 +1665,4 @@ void Renderer::StartFadeOut()
 {
     fadingOut = true;
     fadingIn = false;
-}
-void Renderer::DrawFountain(
-    Vector2 fountainPos,
-    Vector2 playerPos,
-    Vector2 playerDir,
-    Vector2 cameraPlane,
-    float Zbuffer[])
-{
-    Texture2D& sheet = textures.fountainSheet;
-
-    if (sheet.id == 0)
-        return;
-
-    // ==========================================
-    // POSITION RELATIVE TO PLAYER
-    // ==========================================
-
-    Vector2 sprite =
-    {
-        fountainPos.x - playerPos.x,
-        fountainPos.y - playerPos.y
-    };
-
-    // ==========================================
-    // CAMERA TRANSFORMATION
-    // ==========================================
-
-    float invDet =
-        1.0f /
-        (cameraPlane.x * playerDir.y -
-            cameraPlane.y * playerDir.x);
-
-    float transformX =
-        invDet *
-        (playerDir.y * sprite.x -
-            playerDir.x * sprite.y);
-
-    float transformY =
-        invDet *
-        (-cameraPlane.y * sprite.x +
-            cameraPlane.x * sprite.y);
-
-    // Behind player
-    if (transformY <= 0.0f)
-        return;
-
-    // ==========================================
-    // ANIMATION FRAME
-    // ==========================================
-
-    int currentFrame =
-        textures.GetFountainFrame();
-
-    float frameWidth =
-        (float)sheet.width / 4.0f;
-
-    float frameHeight =
-        (float)sheet.height;
-
-    float frameOffsetX =
-        currentFrame * frameWidth;
-
-    // ==========================================
-    // PROJECT SPRITE
-    // ==========================================
-
-    int spriteScreenX =
-        (int)(
-            (Config::SCREEN_WIDTH / 2.0f) *
-            (1.0f + transformX / transformY)
-            );
-
-    // Fountain size
-    int spriteHeight =
-        abs(
-            (int)(
-                Config::SCREEN_HEIGHT /
-                transformY
-                )
-        );
-
-    // Keep fountain proportional to its frame
-    float aspectRatio =
-        frameWidth / frameHeight;
-
-    int spriteWidth =
-        (int)(spriteHeight * aspectRatio);
-
-    // Make fountain a little bigger
-    spriteHeight *= 1.2f;
-    spriteWidth *= 1.2f;
-
-    // ==========================================
-    // VERTICAL POSITION
-    // ==========================================
-
-    int drawStartY =
-        -spriteHeight / 2 +
-        Config::SCREEN_HEIGHT / 2;
-
-    int drawEndY =
-        spriteHeight / 2 +
-        Config::SCREEN_HEIGHT / 2;
-
-    if (drawStartY < 0)
-        drawStartY = 0;
-
-    if (drawEndY >= Config::SCREEN_HEIGHT)
-        drawEndY =
-        Config::SCREEN_HEIGHT - 1;
-
-    // ==========================================
-    // HORIZONTAL POSITION
-    // ==========================================
-
-    int drawStartX =
-        -spriteWidth / 2 +
-        spriteScreenX;
-
-    int drawEndX =
-        spriteWidth / 2 +
-        spriteScreenX;
-
-    if (drawStartX < 0)
-        drawStartX = 0;
-
-    if (drawEndX >= Config::SCREEN_WIDTH)
-        drawEndX =
-        Config::SCREEN_WIDTH - 1;
-
-    // Completely outside screen
-    if (drawStartX >= Config::SCREEN_WIDTH ||
-        drawEndX < 0)
-    {
-        return;
-    }
-
-    // ==========================================
-    // DRAW STRIPE BY STRIPE
-    // ==========================================
-
-    for (int stripe = drawStartX;
-        stripe < drawEndX;
-        stripe++)
-    {
-        if (stripe < 0 ||
-            stripe >= Config::SCREEN_WIDTH)
-        {
-            continue;
-        }
-
-        // ======================================
-        // WALL Z-BUFFER
-        // ======================================
-
-        if (transformY >= Zbuffer[stripe])
-            continue;
-
-        // ======================================
-        // TEXTURE X
-        // ======================================
-
-        int trueStartX =
-            -spriteWidth / 2 +
-            spriteScreenX;
-
-        int texX =
-            (int)(
-                (stripe - trueStartX) *
-                frameWidth /
-                spriteWidth
-                );
-
-        if (texX < 0)
-            texX = 0;
-
-        if (texX >= (int)frameWidth)
-            texX =
-            (int)frameWidth - 1;
-
-        // ======================================
-        // SOURCE
-        // ======================================
-
-        Rectangle sourceRec =
-        {
-            frameOffsetX + texX,
-            0.0f,
-            1.0f,
-            frameHeight
-        };
-
-        // ======================================
-        // DESTINATION
-        // ======================================
-
-        Rectangle destRec =
-        {
-            (float)stripe,
-            (float)drawStartY,
-            1.0f,
-            (float)(drawEndY - drawStartY)
-        };
-
-        DrawTexturePro(
-            sheet,
-            sourceRec,
-            destRec,
-            { 0.0f, 0.0f },
-            0.0f,
-            WHITE
-        );
-    }
 }
