@@ -27,6 +27,7 @@ void Enemy::update(Player& P, Map& m1) {
 	float dy = P.position.y - position.y;
 	float playerdis = sqrt(dx * dx + dy * dy);
 
+
 	Vector2 NormalDis;
 	if (playerdis > 0) {
 		NormalDis = { dx / playerdis,dy / playerdis };
@@ -44,6 +45,14 @@ void Enemy::update(Player& P, Map& m1) {
 			if (bubbles->life <= 0.0f) {
 				bubbles[i].active = false;
 			}
+		}
+	}
+	if (Respawn==true&&state==DEAD) {
+		RespawnCheck += deltaTime;
+		if (RespawnCheck >= RespawnTimer) {
+			RespawnCheck = 0.0f;
+			state = STILL;
+			health = 100;
 		}
 	}
 	if (health <= 0) {

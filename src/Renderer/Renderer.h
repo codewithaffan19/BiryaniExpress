@@ -101,12 +101,5 @@ private:
     );
 
     void DrawNeonNightSky(Vector2 playerDir);
-    void DrawFountain(
-        Vector2 fountainPos,
-        Vector2 playerPos,
-        Vector2 playerDir,
-        Vector2 cameraPlane,
-        float Zbuffer[]
-    );
     void DrawMarketRoof(Vector2 playerDir);
 };
