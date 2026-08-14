@@ -7,7 +7,6 @@
 enum { STILL, CHASE,INTERROGATE,DEAD,ATTACK,HIT_REACT };
 
 Enemy::Enemy() {
-	position = { 5.5f,5.5f };
 	radius = 0.25f;
 	collosionDistance = 5.0f;
 	AttackDistance = 1.0f;

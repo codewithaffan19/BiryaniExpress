@@ -34,7 +34,7 @@ public:
 
     Vector2 GetDirection() const;
     Vector2 GetCameraPlane() const;
-    int health=85;
+    int health=100;
     int maxhealth = 100;
     float weaponbobtimer;
     float moveSpeed;
@@ -66,13 +66,13 @@ public:
     int WeaponTarget[3] = { 1,1,1 };
 
     //
-    int WeaponTotalFrame=1;
-    int WeaponCurrentFrame=0;
-    float WeaponFrameTimer = 0.5f;
-    float WeaponFrameSpeed=0.5f;
+    int weaponTotalFrames=2;
+    int weaponCurrentFrame=0;
+    float weaponFrameTimer = 0.0f;
+    float weaponFrameSpeed=0.3f;
+    int weaponColumns = 2;
+    int weaponRows = 1;
     bool isAttacking;
-    float idleFrameTimer=0.0f;
-    float idleFrameSpeed=0.5f;
     //
     bool isPoliceTriggered=false;
 private:

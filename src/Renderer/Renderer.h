@@ -15,6 +15,14 @@ class Renderer
 public:
 
     Renderer();
+    struct GameOverButtons {
+        Rectangle retry;
+        Rectangle mainMenu;
+        Rectangle exit;
+    };
+
+    GameOverButtons GetGameOverButtonRects();
+ 
     void DrawHud(Player&p);
     void DrawInventoryHUD(Player& p);
     void Draw(
@@ -53,7 +61,7 @@ public:
     bool IsFadeFinished() const;
     void UpdateFade(float dt);
     void DrawFade();
-
+    void DrawGameOver();
 private:
 
     float fadeAlpha = 0.0f;
@@ -102,4 +110,5 @@ private:
 
     void DrawNeonNightSky(Vector2 playerDir);
     void DrawMarketRoof(Vector2 playerDir);
+
 };

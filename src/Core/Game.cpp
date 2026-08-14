@@ -16,10 +16,132 @@ static bool HasAFCAndDrumble(const Player& player)
         player.MissionCount[0] >= player.MissionTarget[0] &&
         player.MissionCount[1] >= player.MissionTarget[1];
 }
+static void StopIfPlaying(Music& music)
+{
+    if (music.ctxData != nullptr)
+    {
+        StopMusicStream(music);
+    }
+}
+void Game::ChangeMusic(MusicState newMusic)
+{
+    if (currentMusic == newMusic)
+        return;
+
+    StopIfPlaying(menuBGM);
+    StopIfPlaying(streetBGM);
+    StopIfPlaying(marketBGM);
+    StopIfPlaying(neonBGM);
+
+    currentMusic = newMusic;
+
+    switch (newMusic)
+    {
+    case MENU_MUSIC:
+        PlayMusicStream(menuBGM);
+        break;
+
+    case STREET_MUSIC:
+        PlayMusicStream(streetBGM);
+        break;
+
+    case MARKET_MUSIC:
+        PlayMusicStream(marketBGM);
+        break;
+
+    case NEON_MUSIC:
+        PlayMusicStream(neonBGM);
+        break;
+    }
+}
 Game::Game()
 {
     running = true;
+
     
+}
+void Game::ResetGame() {
+    renderer.textures.SetCurrentPartition(
+        TextureManager::Partition::Street
+    );
+    editor.SetTextureManager(&renderer.textures);
+    SetTargetFPS(Config::TARGET_FPS);
+
+   
+    //story 
+    story.Initialize();
+
+    //Game
+    gameStarted = true;
+    running = true;
+    storyRestrictionWarning = false;
+    editorMode = false;
+    insideMarket = false;
+    insideNeon = false;
+    teleportPending = false;
+     outsideDoor = { 8.5f, 2.5f };
+    insideDoor = { 11.5f, 2.5f };
+    outsideNeonDoor = { 22.5f, 6.5f };
+    insideNeonDoor = { 22.5f, 10.5f };
+   //cutscene
+    cutscene.playing = false;
+    cutscene.finished = false;
+    cutscene.transitioning = false;
+    cutscene.currentScene = 0;
+    cutscene.transitionTimer = 0.0f;
+    cutscene.transitionDuration = 1.0f;
+    cutscene.printedWords = 0;
+    cutscene.wordTimer = 0.0f;
+    cutscene.wordDelay = 0.08f;
+
+
+    //editor
+    editor.cameraOffset = { 0, 0 };
+    editor.tileSize = 40.0f;
+    editor.currentTile = 1;
+    editor.selectedTile = 0;
+    editor.scrollOffset = 0;
+    //player
+    player.position = { 2.0f,2.0f };
+    player.GetDirection() = {1.0f,0.0f};
+    player.GetCameraPlane() = {0.0f,0.66f};
+    player.moveSpeed = 3.0f;
+    player.radius = 0.25f;
+    player.currentWeaponIndex = 0;
+    player.hitmessagetimer = 0;
+    player.health = 85;
+    player.currentTex = player.handTex;
+    player.WeaponPouch[0].id = ITEM_BIRYANI;
+    player.WeaponPouch[1].id = ITEM_EMPTY;
+    player.WeaponPouch[2].id = ITEM_EMPTY;
+    //Enemy
+    Police.position = { 4.5f,19.5f };
+    Police.totalframes = 3;
+    Police.moveSpeed = 0.8f;
+    Police.currentAttackTimer = 0.5f;
+    Police.attackDamage = 6;
+    Police.spriteSheet = LoadTexture("../assets/textures/Police.png");
+    for (auto& e : enemies) {
+        e.health = 100; 
+        e.KnockBackTimer = 0.0f;
+        e.hasPopped = false;
+    }
+    enemies[0].position= { 15.5f,12.5f };
+    enemies[1].position= { 20.5f,23.5f };
+    enemies[2].position= { 10.5f,10.5f };
+    enemies[3].position = { 1.0f, 7.0f };
+    enemies[4].position = { 13.0f, 14.0f };
+    enemies[5].position = { 23.5f, 6.5f };
+    enemies[6].position = { 21.5f,23.5f };
+    //Menu 
+    menu.backgroundLoaded = false;
+    menu.settingsOpen = false;
+    menu.pauseOpen = false;
+    menu.brightness = 1.0f;
+    menu.musicVolume = 1.0f;
+
+
+
 }
 
 void Game::Initialize()
@@ -51,7 +173,19 @@ void Game::Initialize()
     // ============================================================
 
     InitAudioDevice();
+    menuBGM =
+        LoadMusicStream("../assets/music/menu.mp3");
 
+    streetBGM =
+        LoadMusicStream("../assets/music/street.mp3");
+
+    marketBGM =
+        LoadMusicStream("../assets/music/market.mp3");
+
+    neonBGM =
+        LoadMusicStream("../assets/music/neon.mp3");
+
+    PlayMusicStream(menuBGM);
     if (!IsAudioDeviceReady())
     {
         TraceLog(
@@ -115,12 +249,12 @@ void Game::Initialize()
     SetTargetFPS(Config::TARGET_FPS);
 
     // Hand
-    Image hand = LoadImage("../assets/textures/hand.png");
+    Image hand = LoadImage("../assets/textures/HandHand.png");
     ImageColorReplace(&hand, MAGENTA, BLANK);
 
     player.handTex = LoadTextureFromImage(hand);
-    player.Weapon1Tex=LoadTexture("../assets/textures/Weapon1.png");
-    player.MikeHandTex = LoadTexture("../assets/textures/mikeHand3.png");
+    player.Weapon1Tex=LoadTexture("../assets/textures/ChaklaHAND.png");
+    player.MikeHandTex = LoadTexture("../assets/textures/MikeHand.png");
     player.currentTex = player.handTex; 
     UnloadImage(hand);
 
@@ -173,7 +307,7 @@ void Game::Initialize()
     Thief2.totalframes = 2;
     Thief2.moveSpeed = 0.9f;
     Thief2.currentAttackTimer=0.5f;
-    Thief2.attackDamage = 8;
+    Thief2.attackDamage = 3;
 
     Enemy Cow;
     Cow.spriteSheet = LoadTexture("../assets/textures/UncleCow.png");
@@ -208,6 +342,7 @@ void Game::Initialize()
     enemies.push_back(Thief2);
     enemies.push_back(BurgerBoy);
     enemies.push_back(AngryUncle2);
+    enemies.push_back(Cow1);
    
 
 
@@ -325,6 +460,10 @@ void Game::CheckSpoonCollosion(Player& p, Enemy& E)
 void Game::Update()
 {
     float dt = GetFrameTime();
+    UpdateMusicStream(menuBGM);
+    UpdateMusicStream(streetBGM);
+    UpdateMusicStream(marketBGM);
+    UpdateMusicStream(neonBGM);
     if (winScreenActive)
     {
         if (winZoom < 0.7f)
@@ -363,6 +502,7 @@ void Game::Update()
             renderer.textures.SetCurrentPartition(
                 TextureManager::Partition::NeonNight
             );
+            ChangeMusic(NEON_MUSIC);
         }
 
         return;
@@ -387,7 +527,7 @@ void Game::Update()
                 gameStarted = true;
 
                 DisableCursor();
-
+                ChangeMusic(STREET_MUSIC);
                 TraceLog(
                     LOG_INFO,
                     "Cutscene finished. Starting game..."
@@ -404,6 +544,10 @@ void Game::Update()
 
         if (action == Menu::Action::Play)
         {
+            ChangeMusic(STREET_MUSIC);
+
+            StopMusicStream(streetBGM);
+
             cutscene.Start();
 
             EnableCursor();
@@ -439,6 +583,15 @@ void Game::Update()
         return;
     }
 
+    // ========================================================
+    // GAME OVER
+    // ========================================================
+
+    if (player.health <= 0)
+    {
+        EnableCursor();
+        return;
+    }
 
 
     // ========================================================
@@ -480,7 +633,7 @@ void Game::Update()
 
         for (int i = 0; i < enemies.size(); i++)
         {
-          
+
 
             CheckPlayerEnemyCollision(
                 player,
@@ -541,6 +694,7 @@ void Game::Update()
         {
             // Intentionally empty.
             // Story controls Neon exit.
+            player.PickUpItem(ITEM_SPOON);
         }
 
         // ========================================================
@@ -667,8 +821,6 @@ void Game::Update()
         return;
     }
 }
-
-
 void Game::Draw()
 {
     BeginDrawing();
@@ -755,7 +907,31 @@ void Game::Draw()
     // ========================================================
     // PAUSE MENU
     // ========================================================
+    if (player.health <= 0) {
+        EnableCursor();
+        renderer.DrawGameOver();
 
+        if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+            Vector2 mouse = GetMousePosition();
+            Renderer::GameOverButtons rects = renderer.GetGameOverButtonRects();
+
+            if (CheckCollisionPointRec(mouse, rects.retry)) {
+                ResetGame();
+                DisableCursor();
+            }
+            else if (CheckCollisionPointRec(mouse, rects.mainMenu)) {
+                ResetGame();
+                gameStarted = false;
+                EnableCursor();
+            }
+            else if (CheckCollisionPointRec(mouse, rects.exit)) {
+                running = false;
+            }
+        }
+
+        EndDrawing();
+        return;
+    }
     if (menu.IsPauseOpen())
     {
         menu.DrawPause();
@@ -1005,6 +1181,7 @@ void Game::Draw()
             renderer.textures.SetCurrentPartition(
                 TextureManager::Partition::Street
             );
+            ChangeMusic(STREET_MUSIC);
         }
 
         // ========================================================
@@ -1049,6 +1226,7 @@ void Game::Draw()
                 renderer.textures.SetCurrentPartition(
                     TextureManager::Partition::Market
                 );
+                ChangeMusic(MARKET_MUSIC);
             }
         }
 
@@ -1057,7 +1235,7 @@ void Game::Draw()
 
     renderer.DrawFade();
 
-    DrawFPS(20, 20);
+    //DrawFPS(20, 20);
 
     EndDrawing();
 
@@ -1086,7 +1264,10 @@ void Game::Shutdown()
     // ============================================================
     // CLOSE AUDIO
     // ============================================================
-
+    UnloadMusicStream(menuBGM);
+    UnloadMusicStream(streetBGM);
+    UnloadMusicStream(marketBGM);
+    UnloadMusicStream(neonBGM);
     if (IsAudioDeviceReady())
     {
         CloseAudioDevice();

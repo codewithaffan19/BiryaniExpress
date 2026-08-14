@@ -179,7 +179,13 @@ bool Cutscene::Initialize(
             soundsLoaded[i] = true;
         }
     }
+    typingSound =
+        LoadSound("../assets/cutscene/typing.wav");
 
+    if (typingSound.frameCount > 0)
+    {
+        typingSoundLoaded = true;
+    }
 
     return success;
 }
@@ -206,6 +212,10 @@ void Cutscene::Start(bool neon)
     wordTimer = 0.0f;
 
     StopCurrentAudio();
+
+    StopSound(typingSound);
+
+    typingPlaying = false;
 
     if (soundsLoaded[0])
     {
@@ -244,6 +254,9 @@ void Cutscene::StartScene(int scene)
     // Stop previous sound immediately
     StopCurrentAudio();
 
+    StopSound(typingSound);
+
+    typingPlaying = false;
 
     currentScene = scene;
 
@@ -310,8 +323,11 @@ void Cutscene::Update()
 
     if (IsKeyPressed(KEY_ENTER))
     {
-        // Stop current audio IMMEDIATELY
         StopCurrentAudio();
+
+        StopSound(typingSound);
+
+        typingPlaying = false;
 
 
         // ====================================================
@@ -360,22 +376,20 @@ void Cutscene::Update()
 
 void Cutscene::UpdateDialogue()
 {
-    if (currentScene < 0 ||
-        currentScene >= 5)
+    if (currentScene < 0 || currentScene >= 5)
     {
         return;
     }
-
 
     const std::string& text =
         useNeonDialogue
         ? neonDialogue[currentScene]
         : dialogue[currentScene];
 
-
     if (text.empty())
+    {
         return;
-
+    }
 
     int totalWords = 0;
 
@@ -384,24 +398,37 @@ void Cutscene::UpdateDialogue()
         totalWords
     );
 
-
-    if (printedWords >= totalWords)
-        return;
-
-
-    wordTimer += GetFrameTime();
-
-
-    if (wordTimer >= wordDelay)
+    if (printedWords < totalWords)
     {
-        wordTimer = 0.0f;
-
-        printedWords++;
-
-
-        if (printedWords > totalWords)
+        if (typingSoundLoaded &&
+            !typingPlaying)
         {
-            printedWords = totalWords;
+            PlaySound(typingSound);
+
+            typingPlaying = true;
+        }
+
+        wordTimer += GetFrameTime();
+
+        if (wordTimer >= wordDelay)
+        {
+            wordTimer = 0.0f;
+
+            printedWords++;
+
+            if (printedWords > totalWords)
+            {
+                printedWords = totalWords;
+            }
+        }
+    }
+    else
+    {
+        if (typingPlaying)
+        {
+            StopSound(typingSound);
+
+            typingPlaying = false;
         }
     }
 }
@@ -1018,7 +1045,12 @@ void Cutscene::Unload()
             soundsLoaded[i] = false;
         }
     }
+    if (typingSoundLoaded)
+    {
+        UnloadSound(typingSound);
 
+        typingSoundLoaded = false;
+    }
 
     playing = false;
 }

@@ -581,7 +581,7 @@ void TextureManager::LoadMarketAssets()
 
     LoadAnimatedTile(
         24,
-        "../assets/marketassets/kiko_milano_anim.png"
+        ".../assets/marketassets/kiko_milano_anim.png"
     );
 
     LoadTile(

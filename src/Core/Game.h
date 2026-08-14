@@ -25,7 +25,24 @@ private:
     void Draw();
     void Shutdown();
     void CheckSpoonCollosion(Player& a, Enemy& E1);
+    void ResetGame();
 private:
+    Music menuBGM{};
+    Music streetBGM{};
+    Music marketBGM{};
+    Music neonBGM{};
+
+    enum MusicState
+    {
+        MENU_MUSIC,
+        STREET_MUSIC,
+        MARKET_MUSIC,
+        NEON_MUSIC
+    };
+
+    MusicState currentMusic = MENU_MUSIC;
+
+    void ChangeMusic(MusicState newMusic);
     Menu menu;
 
     Cutscene cutscene;

@@ -42,6 +42,26 @@ public:
     // Free textures and sounds
     void Unload();
 
+    bool playing = false;
+    bool finished = false;
+    bool transitioning = false;
+
+    int currentScene = 0;
+
+    // ============================================================
+    // TRANSITION
+    // ============================================================
+
+    float transitionTimer = 0.0f;
+
+    float transitionDuration = 1.0f;
+    int printedWords = 0;
+
+    float wordTimer = 0.0f;
+
+    float wordDelay = 0.08f;
+
+
 private:
 
     // ============================================================
@@ -57,25 +77,13 @@ private:
 
     Sound sounds[5]{};
     bool soundsLoaded[5]{};
+    Sound typingSound{};
+    bool typingSoundLoaded = false;
 
+    bool typingPlaying = false;
     // ============================================================
     // STATE
     // ============================================================
-
-    bool playing = false;
-    bool finished = false;
-
-    int currentScene = 0;
-
-    // ============================================================
-    // TRANSITION
-    // ============================================================
-
-    float transitionTimer = 0.0f;
-
-    float transitionDuration = 1.0f;
-
-    bool transitioning = false;
 
     // ============================================================
     // DIALOGUE
@@ -87,11 +95,6 @@ private:
 
     bool useNeonDialogue = false;
 
-    int printedWords = 0;
-
-    float wordTimer = 0.0f;
-
-    float wordDelay = 0.08f;
 
     // ============================================================
     // HELPERS
