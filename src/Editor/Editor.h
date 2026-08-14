@@ -30,19 +30,9 @@ public:
     {
         textures = tex;
     }
-
-private:
-
     // =========================================================
-    // PARTITION
-    // =========================================================
-
-    TextureManager::Partition currentPartition =
-        TextureManager::Partition::Street;
-
-    // =========================================================
-    // CAMERA / EDITOR SETTINGS
-    // =========================================================
+  // CAMERA / EDITOR SETTINGS
+  // =========================================================
 
     Vector2 cameraOffset = { 0, 0 };
 
@@ -62,6 +52,16 @@ private:
     int scrollOffset = 0;
 
     static constexpr int VISIBLE_ITEMS = 18;
+private:
+
+    // =========================================================
+    // PARTITION
+    // =========================================================
+
+    TextureManager::Partition currentPartition =
+        TextureManager::Partition::Street;
+
+  
 
     // =========================================================
     // PARTITION UI

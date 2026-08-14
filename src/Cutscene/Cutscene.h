@@ -40,6 +40,26 @@ public:
     // Free textures and sounds
     void Unload();
 
+    bool playing = false;
+    bool finished = false;
+    bool transitioning = false;
+
+    int currentScene = 0;
+
+    // ============================================================
+    // TRANSITION
+    // ============================================================
+
+    float transitionTimer = 0.0f;
+
+    float transitionDuration = 1.0f;
+    int printedWords = 0;
+
+    float wordTimer = 0.0f;
+
+    float wordDelay = 0.08f;
+
+
 private:
 
     // ============================================================
@@ -60,32 +80,12 @@ private:
     // STATE
     // ============================================================
 
-    bool playing = false;
-    bool finished = false;
-
-    int currentScene = 0;
-
-    // ============================================================
-    // TRANSITION
-    // ============================================================
-
-    float transitionTimer = 0.0f;
-
-    float transitionDuration = 1.0f;
-
-    bool transitioning = false;
-
     // ============================================================
     // DIALOGUE
     // ============================================================
 
     std::string dialogue[4];
 
-    int printedWords = 0;
-
-    float wordTimer = 0.0f;
-
-    float wordDelay = 0.08f;
 
     // ============================================================
     // HELPERS

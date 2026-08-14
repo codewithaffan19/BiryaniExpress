@@ -25,8 +25,7 @@ void Renderer::LoadTextures()
     Missionpouch[1] = LoadTexture("../../assets/textures/Afc.png");
     Weaponpouch[0] = LoadTexture("../../assets/textures/Chakla.png");
     Weaponpouch[1] = LoadTexture("../../assets/textures/mike.png");
-    Weaponpouch[2] = LoadTexture("../../assets/textures/MountainView.png");
-
+    Weaponpouch[2] = LoadTexture("../../assets/textures/Hand.png");
     // ==========================================
     // START WITH STREET ONLY
     // ==========================================
@@ -1524,13 +1523,14 @@ void Renderer::Draw(
     // ==========================================
 
    
-        Texture2D& weaponTex = player.currentTex;
-        float frameWidth = weaponTex.width / player.WeaponTotalFrame;
-        float frameHeight = weaponTex.height;
+    Texture2D& weaponTex = player.currentTex;
 
-        float scale = (Config::SCREEN_HEIGHT * 0.55f) / frameHeight;
-        float drawWidth = frameWidth * scale;
-        float drawHeight = frameHeight * scale;
+    float frameWidth = (float)weaponTex.width / player.weaponTotalFrames;
+    float frameHeight = (float)weaponTex.height;
+
+    float scale = (Config::SCREEN_HEIGHT * 0.55f) / frameHeight;
+    float drawWidth = frameWidth * scale;
+    float drawHeight = frameHeight * scale;
 
         float bobX;
         float bobY;
@@ -1560,42 +1560,21 @@ void Renderer::Draw(
                 3.0f;
         }
 
-        float drawX =
-            Config::SCREEN_WIDTH / 2.0f -
-            drawWidth / 2.0f +
-            bobX;
+        float drawX = Config::SCREEN_WIDTH / 2.0f - drawWidth / 2.0f + bobX;
+        float drawY = Config::SCREEN_HEIGHT - drawHeight + 100.0f + bobY;
 
-        float drawY =
-            Config::SCREEN_HEIGHT -
-            drawHeight +
-            100.0f +
-            bobY;
+        float margin = 2.0f; // keep the anti-bleed guard from before
 
         Rectangle src =
         {
-            player.WeaponCurrentFrame*frameWidth,
+            player.weaponCurrentFrame * frameWidth + margin,
             0.0f,
-            frameWidth,
+            frameWidth - (margin * 2.0f),
             frameHeight
         };
 
-        Rectangle dst =
-        {
-            drawX,
-            drawY,
-            drawWidth,
-            drawHeight
-        };
-
-        DrawTexturePro(
-            weaponTex,
-            src,
-            dst,
-            { 0.0f, 0.0f },
-            0.0f,
-            WHITE
-        );
-
+        Rectangle dst = { drawX, drawY, drawWidth, drawHeight };
+        DrawTexturePro(weaponTex, src, dst, { 0.0f, 0.0f }, 0.0f, WHITE);
 
 
     // ==========================================
@@ -1665,4 +1644,77 @@ void Renderer::StartFadeOut()
 {
     fadingOut = true;
     fadingIn = false;
+}
+
+void Renderer::DrawGameOver()
+{
+    Color gold = { 232, 184, 75, 255 };
+    Color darkPanel = { 10, 12, 20, 235 };
+
+    DrawRectangle(0, 0, Config::SCREEN_WIDTH, Config::SCREEN_HEIGHT, Fade(BLACK, 0.55f));
+
+    int boxWidth = 620;
+    int boxHeight = 220;
+    int boxX = Config::SCREEN_WIDTH / 2 - boxWidth / 2;
+    int boxY = 60;
+
+    DrawRectangle(boxX, boxY, boxWidth, boxHeight, darkPanel);
+    DrawRectangleLinesEx({ (float)boxX, (float)boxY, (float)boxWidth, (float)boxHeight }, 3.0f, gold);
+
+    const char* title = "GAME OVER";
+    int titleSize = 56;
+    int titleWidth = MeasureText(title, titleSize);
+    DrawText(title, Config::SCREEN_WIDTH / 2 - titleWidth / 2, boxY + 55, titleSize, RAYWHITE);
+
+    GameOverButtons rects = GetGameOverButtonRects();
+    struct { const char* label; Rectangle rect; } buttons[3] = {
+        { "RETRY", rects.retry },
+        { "MAIN MENU", rects.mainMenu },
+        { "EXIT", rects.exit }
+    };
+
+    for (int i = 0; i < 3; i++)
+    {
+        bool hovered = CheckCollisionPointRec(GetMousePosition(), buttons[i].rect);
+        Color fill = hovered ? Fade(gold, 0.2f) : darkPanel;
+
+        DrawRectangleRec(buttons[i].rect, fill);
+        DrawRectangleLinesEx(buttons[i].rect, 2.5f, gold);
+
+        int textSize = 24;
+        int textWidth = MeasureText(buttons[i].label, textSize);
+        DrawText(buttons[i].label,
+            (int)(buttons[i].rect.x + buttons[i].rect.width / 2 - textWidth / 2),
+            (int)(buttons[i].rect.y + buttons[i].rect.height / 2 - textSize / 2),
+            textSize, RAYWHITE);
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+Renderer::GameOverButtons Renderer::GetGameOverButtonRects()
+{
+    int boxWidth = 620;
+    int boxHeight = 220;
+    int boxY = 60;
+
+    int btnWidth = 480;
+    int btnHeight = 64;
+    int btnGap = 18;
+    int startY = boxY + boxHeight + 40;
+    int btnX = Config::SCREEN_WIDTH / 2 - btnWidth / 2;
+
+    GameOverButtons rects;
+    rects.retry = { (float)btnX, (float)(startY + 0 * (btnHeight + btnGap)), (float)btnWidth, (float)btnHeight };
+    rects.mainMenu = { (float)btnX, (float)(startY + 1 * (btnHeight + btnGap)), (float)btnWidth, (float)btnHeight };
+    rects.exit = { (float)btnX, (float)(startY + 2 * (btnHeight + btnGap)), (float)btnWidth, (float)btnHeight };
+    return rects;
 }

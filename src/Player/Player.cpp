@@ -22,33 +22,39 @@ Player::Player()
 int Player::GetActiveWeapon()const {
     return WeaponPouch[currentWeaponIndex].id;
 }
-void Player::SwitchWeapon(){
-    int nextWeapon=0;
-    currentTex = handTex;
-    if (currentWeaponIndex == 0)
-    {
+void Player::SwitchWeapon() {
+    int nextWeapon = 0;
+
+    if (currentWeaponIndex == 0) {
         nextWeapon = 1;
     }
-    else if(currentWeaponIndex==1) {
+    else if (currentWeaponIndex == 1) {
         nextWeapon = 2;
     }
     else if (currentWeaponIndex == 2) {
         nextWeapon = 0;
     }
-    currentWeaponIndex=nextWeapon;
+
+    currentWeaponIndex = nextWeapon;
+
     if (WeaponPouch[nextWeapon].id == ITEM_EMPTY) {
         currentTex = handTex;
-        WeaponTotalFrame = 1;
+        weaponTotalFrames = 2;
     }
-    else if(WeaponPouch[nextWeapon].id==ITEM_MIKE) {
+    else if (WeaponPouch[nextWeapon].id == ITEM_MIKE) {
         currentTex = MikeHandTex;
-        WeaponTotalFrame = 4;
+        weaponTotalFrames = 2;
     }
     else if (WeaponPouch[nextWeapon].id == ITEM_SPOON) {
         currentTex = Weapon1Tex;
-        WeaponTotalFrame = 3;
+        weaponTotalFrames = 2;
     }
-    WeaponCurrentFrame = 0;
+    else {
+        currentTex = handTex;
+        weaponTotalFrames = 1;
+    }
+
+    weaponCurrentFrame = 0;
 }
 
 bool Player::PickUpItem(int newItem) {
@@ -97,32 +103,22 @@ void Player::Update(
     if (IsKeyPressed(KEY_ONE)&&WeaponPouch[0].id!=ITEM_EMPTY) {
         SwitchWeapon();
     }
-    if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)&&WeaponTotalFrame>2) {
+    if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)&&weaponTotalFrames>1) {
         isAttacking = true;
-        WeaponCurrentFrame = 2;
-        WeaponFrameTimer = 0.0f;
+        weaponCurrentFrame = 1;
+        weaponFrameTimer = 0.0f;
     }
-    if (isAttacking&&!isWalking) {
-        WeaponFrameTimer += dt;
-        if (WeaponFrameTimer >= WeaponFrameSpeed) {
-            WeaponFrameTimer = 0.0f;
-            WeaponCurrentFrame++;
-        }
-        if (WeaponCurrentFrame >= WeaponTotalFrame) {
-            WeaponCurrentFrame = 0;
+    if (isAttacking) {
+        weaponFrameTimer += dt;
+        if (weaponFrameTimer >= weaponFrameSpeed) {
+            weaponCurrentFrame = 0;
+            weaponFrameTimer = 0.0f;
             isAttacking = false;
         }
     }
-    if (!isWalking&&WeaponTotalFrame>1&&!isAttacking)
+    if (isWalking &&!isAttacking)
     {
-        idleFrameTimer += dt;
-        if (idleFrameTimer >= idleFrameSpeed) {
-            idleFrameTimer = 0.0f;
-            WeaponCurrentFrame++;
-        }
-        if (WeaponCurrentFrame > 1) {
-            WeaponCurrentFrame = 0;
-        }
+         weaponCurrentFrame=0;
     }
     if (isWalking) {
         weaponbobtimer = dt * 10.0f;

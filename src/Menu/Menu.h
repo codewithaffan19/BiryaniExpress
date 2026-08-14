@@ -44,13 +44,6 @@ public:
 
     Action UpdatePause();
     void DrawPause();
-private:
-
-    // =====================================================
-    // BACKGROUND
-    // =====================================================
-
-    Texture2D backgroundTexture{};
     bool backgroundLoaded = false;
 
 
@@ -69,6 +62,14 @@ private:
     float brightness = 1.0f;
     float musicVolume = 1.0f;
 
+private:
+
+    // =====================================================
+    // BACKGROUND
+    // =====================================================
+
+    Texture2D backgroundTexture{};
+    
 
     // =====================================================
     // ANIMATION

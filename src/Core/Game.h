@@ -25,6 +25,7 @@ private:
     void Draw();
     void Shutdown();
     void CheckSpoonCollosion(Player& a, Enemy& E1);
+    void ResetGame();
 private:
     Menu menu;
     Cutscene cutscene;
