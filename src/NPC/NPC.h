@@ -96,7 +96,7 @@ private:
     // INTERACTION
     // ========================================================
 
-    float interactionDistance = 2.0f;
+    float interactionDistance = 1.5f;
 
     bool playerIsNear = false;
     bool interacting = false;

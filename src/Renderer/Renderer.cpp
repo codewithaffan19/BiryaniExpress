@@ -21,11 +21,11 @@ void Renderer::LoadTextures()
 
     textures.LoadCommonAssets();
 
-    Missionpouch[0] = LoadTexture("../../assets/textures/Crumble.png");
-    Missionpouch[1] = LoadTexture("../../assets/textures/Afc.png");
-    Weaponpouch[0] = LoadTexture("../../assets/textures/Chakla.png");
-    Weaponpouch[1] = LoadTexture("../../assets/textures/mike.png");
-    Weaponpouch[2] = LoadTexture("../../assets/textures/MountainView.png");
+    Missionpouch[0] = LoadTexture("../assets/textures/Crumble.png");
+    Missionpouch[1] = LoadTexture("../assets/textures/Afc.png");
+    Weaponpouch[0] = LoadTexture("../assets/textures/Chakla.png");
+    Weaponpouch[1] = LoadTexture("../assets/textures/mike.png");
+    Weaponpouch[2] = LoadTexture("../assets/textures/MountainView.png");
 
     // ==========================================
     // START WITH STREET ONLY

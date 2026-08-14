@@ -119,8 +119,8 @@ void Game::Initialize()
     ImageColorReplace(&hand, MAGENTA, BLANK);
 
     player.handTex = LoadTextureFromImage(hand);
-    player.Weapon1Tex=LoadTexture("../../assets/textures/Weapon1.png");
-    player.MikeHandTex = LoadTexture("../../assets/textures/mikeHand3.png");
+    player.Weapon1Tex=LoadTexture("../assets/textures/Weapon1.png");
+    player.MikeHandTex = LoadTexture("../assets/textures/mikeHand3.png");
     player.currentTex = player.handTex; 
     UnloadImage(hand);
 
@@ -132,7 +132,7 @@ void Game::Initialize()
 
     Enemy BurgerBoy;
     BurgerBoy.spriteSheet =
-        LoadTexture("../../assets/textures/BurgerBoy.png");
+        LoadTexture("../assets/textures/BurgerBoy.png");
     BurgerBoy.totalframes = 4;
     BurgerBoy.moveSpeed = 0.8f;
     BurgerBoy.position = { 13.0f, 14.0f };
@@ -140,7 +140,7 @@ void Game::Initialize()
     BurgerBoy.attackDamage = 5;
 
     Enemy AngryUncle;
-    AngryUncle.spriteSheet = LoadTexture("../../assets/textures/uncle2.png");
+    AngryUncle.spriteSheet = LoadTexture("../assets/textures/uncle2.png");
     AngryUncle.position = { 10.5f,10.5f };
     AngryUncle.totalframes = 5;
     AngryUncle.Respawn = true;
@@ -150,7 +150,7 @@ void Game::Initialize()
     AngryUncle.attackDamage = 10;
 
     Enemy AngryUncle2;
-    AngryUncle2.spriteSheet =LoadTexture("../../assets/textures/uncle2.png");
+    AngryUncle2.spriteSheet =LoadTexture("../assets/textures/uncle2.png");
     AngryUncle2.position = { 23.5f, 6.5f };
     AngryUncle2.totalframes = 5;
     AngryUncle2.moveSpeed = 0.7f;
@@ -158,7 +158,7 @@ void Game::Initialize()
     AngryUncle2.attackDamage = 7;
 
     Enemy Thief;
-    Thief.spriteSheet =LoadTexture("../../assets/textures/Chor.png");
+    Thief.spriteSheet =LoadTexture("../assets/textures/Chor.png");
     Thief.position = { 20.5f,23.5f };
     Thief.totalframes = 2;
     Thief.Respawn = true;
@@ -168,7 +168,7 @@ void Game::Initialize()
     Thief.attackDamage = 5;
     //Y
     Enemy Thief2;
-    Thief2.spriteSheet =LoadTexture("../../assets/textures/Chor2.png");
+    Thief2.spriteSheet =LoadTexture("../assets/textures/Chor2.png");
     Thief2.position = { 1.0f, 7.0f };
     Thief2.totalframes = 2;
     Thief2.moveSpeed = 0.9f;
@@ -176,7 +176,7 @@ void Game::Initialize()
     Thief2.attackDamage = 8;
 
     Enemy Cow;
-    Cow.spriteSheet = LoadTexture("../../assets/textures/UncleCow.png");
+    Cow.spriteSheet = LoadTexture("../assets/textures/UncleCow.png");
     Cow.position = { 15.5f,12.5f };
     Cow.Respawn = true;
     Cow.RespawnTimer = 7.0f;
@@ -186,7 +186,7 @@ void Game::Initialize()
     Cow.attackDamage = 10;
 
     Enemy Cow1;
-    Cow1.spriteSheet = LoadTexture("../../assets/textures/UncleCow.png");
+    Cow1.spriteSheet = LoadTexture("../assets/textures/UncleCow.png");
     Cow1.position = { 21.5f,23.5f };
     Cow1.Respawn = true;
     Cow1.RespawnTimer = 7.0f;
@@ -200,7 +200,7 @@ void Game::Initialize()
     Police.moveSpeed = 0.8f;
     Police.currentAttackTimer = 0.5f;
     Police.attackDamage = 6;
-    Police.spriteSheet = LoadTexture("../../assets/textures/Police.png");
+    Police.spriteSheet = LoadTexture("../assets/textures/Police.png");
 
     enemies.push_back(Cow);
     enemies.push_back(Thief);

@@ -35,9 +35,9 @@ void Story::Initialize()
     };
 
     guards[0].key = KEY_DOOR_1;
-    guards[0].dialogues[0] = "Dialogue 1";
-    guards[0].dialogues[1] = "Dialogue 2";
-    guards[0].dialogues[2] = "Dialogue 3";
+    guards[0].dialogues[0] = "Affan: Uncle, yahan se nikalne ka koi raasta hai? \n Guard: Raasta toh hai beta... lekin har raasta seedha exit tak nahi jata.";
+    guards[0].dialogues[1] = "Affan: Toh mujhe sahi darwaze ki chabi de dein. \n Guard: Hahaha... sahi chabi aur sahi chaye har kisi ko nahi milti";
+    guards[0].dialogues[2] = "Guard: Ye lo chabi... seedha aage jao aur jo darwaza mile, usay try karna.\n Aur haan... agar darwaza na khule, toh wapas mat aana!";
     // ========================================================
     // GUARD 2
     //
@@ -69,9 +69,9 @@ void Story::Initialize()
     };
 
     guards[2].key = KEY_DOOR_2;
-    guards[2].dialogues[0] = "Dialogue 1";
-    guards[2].dialogues[1] = "Dialogue 2";
-    guards[2].dialogues[2] = "Dialogue 3";
+    guards[2].dialogues[0] = "Guard 2: Bachay, is waqt bahir kyun ghoom rahay ho? Raat kaafi ho gayi hai.";
+    guards[2].dialogues[1] = "Affan: Mujhe yahan se nikalna hai... bahar jaane walay darwazay ki chaabi de dein.\n Guard 2: Fikar na karo, acha bura waqt ata jata rehta h";
+    guards[2].dialogues[2] = "Guard 2: Ye lo chaabi aur bhaag jao! Jaldi se nikalo...\n bahar jaa ke ayashi karna!";
 
     // ========================================================
 // STORY DOORS
@@ -752,7 +752,7 @@ void Story::UpdateGuardInteraction(
     {
         guard.interactionTimer += dt;
 
-        const float animationSpeed = 0.20f;
+        const float animationSpeed = 0.40f;
 
         if (guard.interactionTimer >= animationSpeed)
         {
