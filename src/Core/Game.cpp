@@ -148,15 +148,17 @@ void Game::Initialize()
 // ============================================================
 
     if (!cutscene.Initialize(
-        "../../assets/cutscene/image1.png",
-        "../../assets/cutscene/image2.png",
-        "../../assets/cutscene/image3.png",
-        "../../assets/cutscene/image4.png",
+        "../assets/cutscene/image1.png",
+        "../assets/cutscene/image2.png",
+        "../assets/cutscene/image3.png",
+        "../assets/cutscene/image4.png",
+        "../assets/cutscene/image4.png",
 
-        "../../assets/cutscene/audio1.wav",
-        "../../assets/cutscene/audio2.wav",
-        "../../assets/cutscene/audio3.wav",
-        "../../assets/cutscene/audio4.wav"
+        "../assets/cutscene/audio1.wav",
+        "../assets/cutscene/audio2.wav",
+        "../assets/cutscene/audio3.wav",
+        "../assets/cutscene/audio4.wav",
+        "../assets/cutscene/audio4.wav"
     ))
     {
         TraceLog(
@@ -164,6 +166,29 @@ void Game::Initialize()
             "Failed to initialize cutscene!"
         );
     }
+    if (!neonCutscene.Initialize(
+        "../assets/cutscene/neonimage1.png",
+        "../assets/cutscene/neonimage2.png",
+        "../assets/cutscene/neonimage3.png",
+        "../assets/cutscene/neonimage4.png",
+        "../assets/cutscene/neonimage5.png",
+
+        "../assets/cutscene/neonaudio1.wav",
+        "../assets/cutscene/neonaudio2.wav",
+        "../assets/cutscene/neonaudio3.wav",
+        "../assets/cutscene/neonaudio4.wav",
+        "../assets/cutscene/neonaudio5.wav"
+    ))
+    {
+        TraceLog(
+            LOG_ERROR,
+            "Failed to initialize neon cutscene!"
+        );
+    }
+    winTexture =
+        LoadTexture(
+            "../assets/textures/win.png"
+        );
     renderer.LoadTextures();
     renderer.textures.SetCurrentPartition(
         TextureManager::Partition::Street
@@ -385,6 +410,48 @@ void Game::CheckSpoonCollosion(Player& p, Enemy& E)
 void Game::Update()
 {
     float dt = GetFrameTime();
+    if (winScreenActive)
+    {
+        if (winZoom < 0.7f)
+        {
+            winZoom += dt;
+        }
+
+        if (IsKeyPressed(KEY_ENTER))
+        {
+            winScreenActive = false;
+
+            gameStarted = false;
+
+            winZoom = 0.5f;
+
+            story.Initialize();
+
+            EnableCursor();
+        }
+
+        return;
+    }
+    if (neonCutsceneActive)
+    {
+        neonCutscene.Update();
+
+        if (neonCutscene.IsFinished())
+        {
+            neonCutsceneActive = false;
+
+            player.position = insideNeonDoor;
+
+            insideNeon = true;
+            insideMarket = false;
+
+            renderer.textures.SetCurrentPartition(
+                TextureManager::Partition::NeonNight
+            );
+        }
+
+        return;
+    }
     // ========================================================
     // MAIN MENU
     // ========================================================
@@ -547,6 +614,10 @@ void Game::Update()
         player,
         insideNeon
     );
+    if (story.IsWon())
+    {
+        winScreenActive = true;
+    }
     // ============================================================
     // STORY DOORS
     // ============================================================
@@ -696,30 +767,80 @@ void Game::Draw()
     BeginDrawing();
 
     ClearBackground(BLACK);
+    if (winScreenActive)
+    {
+        float width =
+            winTexture.width * winZoom;
 
-    
+        float height =
+            winTexture.height * winZoom;
+
+        DrawTexturePro(
+            winTexture,
+            {
+                0,
+                0,
+                (float)winTexture.width,
+                (float)winTexture.height
+            },
+        {
+            Config::SCREEN_WIDTH / 2.0f,
+            Config::SCREEN_HEIGHT / 2.0f,
+            width,
+            height
+        },
+        {
+            width / 2.0f,
+            height / 2.0f
+        },
+            0,
+            WHITE
+        );
+
+        DrawText(
+            "PRESS ENTER",
+            Config::SCREEN_WIDTH / 2 - 120,
+            Config::SCREEN_HEIGHT - 80,
+            30,
+            WHITE
+        );
+
+        EndDrawing();
+
+        return;
+    }
+    // ====================================================
+    // NEON CUTSCENE
+    // ====================================================
+
+    if (neonCutsceneActive)
+    {
+        neonCutscene.Draw();
+
+        EndDrawing();
+
+        return;
+    }
+
+    // ====================================================
+    // MAIN MENU + OPENING CUTSCENE
+    // ====================================================
+
     if (!gameStarted)
     {
-        // ====================================================
-        // CUTSCENE
-        // ====================================================
-
         if (cutscene.IsPlaying())
         {
             cutscene.Draw();
 
             EndDrawing();
+
             return;
         }
-
-
-        // ====================================================
-        // MAIN MENU
-        // ====================================================
 
         menu.Draw();
 
         EndDrawing();
+
         return;
     }
 
@@ -1024,17 +1145,11 @@ void Game::Draw()
             // ====================================================
             // ENTER NEON
             // ====================================================
-
             if (neonDist < marketDist)
             {
-                player.position = insideNeonDoor;
+                neonCutscene.Start(true);
 
-                insideNeon = true;
-                insideMarket = false;
-
-                renderer.textures.SetCurrentPartition(
-                    TextureManager::Partition::NeonNight
-                );
+                neonCutsceneActive = true;
             }
 
             // ====================================================
@@ -1067,7 +1182,9 @@ void Game::Draw()
 
 void Game::Shutdown()
 {
+    UnloadTexture(winTexture);
     cutscene.Unload();
+    neonCutscene.Unload();
     // ============================================================
     // UNLOAD NPCs
     // ============================================================

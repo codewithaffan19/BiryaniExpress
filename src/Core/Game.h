@@ -28,7 +28,16 @@ private:
     void ResetGame();
 private:
     Menu menu;
+
     Cutscene cutscene;
+    Cutscene neonCutscene;
+
+    bool neonCutsceneActive = false;
+    bool winScreenActive = false;
+
+    Texture2D winTexture{};
+
+    float winZoom = 0.5f;
     bool gameStarted = false;
     bool running = false;
     bool storyRestrictionWarning = false;

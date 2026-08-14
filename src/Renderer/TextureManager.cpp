@@ -76,7 +76,7 @@ TextureManager::TextureManager()
 // No animation.
 // =========================================================
 
-    for (int i = 47; i <= 61; i++)
+    for (int i = 47; i <= 62; i++)
     {
         tileNames[i] =
             "NeonWall" + std::to_string(i - 46);
@@ -285,7 +285,7 @@ void TextureManager::LoadStreetAssets()
         tilePartitions[i] = Partition::Street;
     }
 
-    for (int i = 47; i <= 61; i++)
+    for (int i = 47; i <= 62; i++)
     {
         tilePartitions[i] = Partition::NeonNight;
     }
@@ -808,7 +808,7 @@ void TextureManager::LoadNeonNightAssets()
 // No animation.
 // =========================================================
 
-    for (int i = 1; i <= 15; i++)
+    for (int i = 1; i <= 16; i++)
     {
         int index = 46 + i;
 
@@ -941,7 +941,7 @@ void TextureManager::UnloadNeonNightAssets()
 // NEON NIGHT WALLS
 // =========================================================
 
-    for (int i = 47; i <= 61; i++)
+    for (int i = 47; i <= 62; i++)
     {
         UnloadTile(i);
     }

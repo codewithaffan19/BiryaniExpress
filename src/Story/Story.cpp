@@ -35,7 +35,9 @@ void Story::Initialize()
     };
 
     guards[0].key = KEY_DOOR_1;
-
+    guards[0].dialogues[0] = "Dialogue 1";
+    guards[0].dialogues[1] = "Dialogue 2";
+    guards[0].dialogues[2] = "Dialogue 3";
     // ========================================================
     // GUARD 2
     //
@@ -50,7 +52,9 @@ void Story::Initialize()
     };
 
     guards[1].key = KEY_DOOR_3;
-
+    guards[1].dialogues[0] = "Affan: Uncle, yahan se nikalne ki asli chaabi de dein, baar baar scam ho raha hai.\n Guard 2: Beta, de dete hain... bas paisa lagay ga.";
+    guards[1].dialogues[1] = "Affan: Ye lein... bas chaabi sahi darwazay ki de dein.\n Guard 2: Hahaha... fikar na karo beta, dekhte hain.";
+    guards[1].dialogues[2] = "Guard: Ye lo chaabi... seedha EXIT ke paas jao ge.";
     // ========================================================
     // GUARD 3
     //
@@ -65,7 +69,9 @@ void Story::Initialize()
     };
 
     guards[2].key = KEY_DOOR_2;
-
+    guards[2].dialogues[0] = "Dialogue 1";
+    guards[2].dialogues[1] = "Dialogue 2";
+    guards[2].dialogues[2] = "Dialogue 3";
 
     // ========================================================
 // STORY DOORS
@@ -1270,6 +1276,28 @@ void Story::DrawUI() const
             120,
             WHITE
         );
+
+        if (activeGuard >= 0 && activeGuard < 3)
+        {
+            int dialogueIndex =
+                guards[activeGuard].interactionStage - 1;
+
+            if (dialogueIndex < 0)
+                dialogueIndex = 0;
+
+            if (dialogueIndex > 2)
+                dialogueIndex = 2;
+
+            DrawText(
+                guards[activeGuard]
+                .dialogues[dialogueIndex]
+                .c_str(),
+                130,
+                GetScreenHeight() - 140,
+                24,
+                WHITE
+            );
+        }
     }
 }
 // ============================================================
