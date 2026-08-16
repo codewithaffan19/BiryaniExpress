@@ -61,7 +61,7 @@ private:
     TextureManager::Partition currentPartition =
         TextureManager::Partition::Street;
 
-  
+
 
     // =========================================================
     // PARTITION UI

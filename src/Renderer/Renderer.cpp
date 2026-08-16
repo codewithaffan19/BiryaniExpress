@@ -3,8 +3,40 @@
 #include <cmath>
 #include "../Renderer/TextureManager.h"
 #include <iostream>
+#include <string>
 //Enemy states
 enum { STILL, CHASE, INTERROGATE, DEAD };
+
+// ================================================================
+// FAST PIXEL FETCH
+//
+// Replaces raylib's GetImageColor() in the floor-casting hot loops
+// (~460,000 calls/frame at 1280x720). GetImageColor() does a full
+// bounds-check + pixel-format switch on every call; this assumes
+// the image has already been converted to PIXELFORMAT_UNCOMPRESSED_
+// R8G8B8A8 (done once at load time in TextureManager) and the (x,y)
+// passed in is already clamped in-range (also already true at every
+// call site below), so it can go straight to the byte offset. Same
+// output as GetImageColor for that format — just far fewer cycles
+// per pixel, which is the single biggest win for the floor casters.
+// ================================================================
+
+static inline Color GetPixelFast(const Image& img, int x, int y)
+{
+    const unsigned char* pixels =
+        (const unsigned char*)img.data;
+
+    int index = (y * img.width + x) * 4;
+
+    return Color
+    {
+        pixels[index + 0],
+        pixels[index + 1],
+        pixels[index + 2],
+        pixels[index + 3]
+    };
+}
+
 Renderer::Renderer()
 {
 }
@@ -21,11 +53,11 @@ void Renderer::LoadTextures()
 
     textures.LoadCommonAssets();
 
-    Missionpouch[0] = LoadTexture("../assets/textures/Crumble.png");
-    Missionpouch[1] = LoadTexture("../assets/textures/Afc.png");
-    Weaponpouch[0] = LoadTexture("../assets/textures/Chakla.png");
-    Weaponpouch[1] = LoadTexture("../assets/textures/mike.png");
-    Weaponpouch[2] = LoadTexture("../assets/textures/Hand.png");
+    Missionpouch[0] = LoadTexture("assets/textures/Crumble.png");
+    Missionpouch[1] = LoadTexture("assets/textures/Afc.png");
+    Weaponpouch[0] = LoadTexture("assets/textures/Chakla.png");
+    Weaponpouch[1] = LoadTexture("assets/textures/mike.png");
+    Weaponpouch[2] = LoadTexture("assets/textures/Hand.png");
     // ==========================================
     // START WITH STREET ONLY
     // ==========================================
@@ -58,6 +90,43 @@ void Renderer::LoadTextures()
         LoadTextureFromImage(blankImg);
 
     UnloadImage(blankImg);
+
+    // ==========================================
+    // FULLSCREEN RENDER TARGET
+    //
+    // Everything Config::SCREEN_WIDTH/HEIGHT-based (3D view, HUD,
+    // Win screen, Game Over screen) renders into this fixed-size
+    // texture; Game::Draw() scales it up to fill the real window.
+    // ==========================================
+
+    gameView =
+        LoadRenderTexture(
+            Config::SCREEN_WIDTH,
+            Config::SCREEN_HEIGHT
+        );
+
+    SetTextureFilter(
+        gameView.texture,
+        TEXTURE_FILTER_BILINEAR
+    );
+
+    // ==========================================
+    // LOADING SCREEN BACKGROUND IMAGES
+    //
+    // loadingMarketTex: shown for BOTH market->street and
+    // street->market transitions.
+    // loadingNeonTex: shown for street->neon.
+    // ==========================================
+
+    loadingMarketTex =
+        LoadTexture(
+            "assets/textures/loadingMarket.png"
+        );
+
+    loadingNeonTex =
+        LoadTexture(
+            "assets/textures/loadingNeon.png"
+        );
 }
 void Renderer::UnloadTextures()
 {
@@ -74,6 +143,88 @@ void Renderer::UnloadTextures()
         UnloadTexture(floorTexture);
         floorTexture.id = 0;
     }
+
+    if (gameView.id != 0)
+    {
+        UnloadRenderTexture(gameView);
+        gameView.id = 0;
+    }
+
+    if (loadingMarketTex.id != 0)
+    {
+        UnloadTexture(loadingMarketTex);
+        loadingMarketTex.id = 0;
+    }
+
+    if (loadingNeonTex.id != 0)
+    {
+        UnloadTexture(loadingNeonTex);
+        loadingNeonTex.id = 0;
+    }
+}
+
+// ================================================================
+// FULLSCREEN SCALING
+// ================================================================
+
+void Renderer::DrawGameViewToScreen()
+{
+    float scale =
+        fminf(
+            (float)GetScreenWidth() / Config::SCREEN_WIDTH,
+            (float)GetScreenHeight() / Config::SCREEN_HEIGHT
+        );
+
+    float destWidth = Config::SCREEN_WIDTH * scale;
+    float destHeight = Config::SCREEN_HEIGHT * scale;
+
+    float destX = (GetScreenWidth() - destWidth) * 0.5f;
+    float destY = (GetScreenHeight() - destHeight) * 0.5f;
+
+    Rectangle source =
+    {
+        0,
+        0,
+        (float)gameView.texture.width,
+        // RenderTexture2D textures are stored bottom-up (OpenGL
+        // convention) — a negative height flips it back the right
+        // way up when drawn.
+        -(float)gameView.texture.height
+    };
+
+    Rectangle dest = { destX, destY, destWidth, destHeight };
+
+    DrawTexturePro(
+        gameView.texture,
+        source,
+        dest,
+        { 0, 0 },
+        0.0f,
+        WHITE
+    );
+}
+
+Vector2 Renderer::GetVirtualMousePosition()
+{
+    Vector2 mouse = GetMousePosition();
+
+    float scale =
+        fminf(
+            (float)GetScreenWidth() / Config::SCREEN_WIDTH,
+            (float)GetScreenHeight() / Config::SCREEN_HEIGHT
+        );
+
+    float destWidth = Config::SCREEN_WIDTH * scale;
+    float destHeight = Config::SCREEN_HEIGHT * scale;
+
+    float offsetX = (GetScreenWidth() - destWidth) * 0.5f;
+    float offsetY = (GetScreenHeight() - destHeight) * 0.5f;
+
+    return Vector2
+    {
+        (mouse.x - offsetX) / scale,
+        (mouse.y - offsetY) / scale
+    };
 }
 
 void Renderer::DrawSky(Vector2 playerDir)
@@ -270,15 +421,15 @@ void Renderer::DrawHud(Player& p) {
     int barY = 20;
     int MaxBarWidth = 320;
     int barHeight = 46;
-    int bazel=4;
-    float healthPercentage = (float) p.health / (float)p.maxhealth;
+    int bazel = 4;
+    float healthPercentage = (float)p.health / (float)p.maxhealth;
     if (healthPercentage < 0.0f) {
         healthPercentage = 0.0f;
     }
     int currentwidth = healthPercentage * MaxBarWidth;
     //Layer1 Dark outer shadow
     DrawRectangleRounded({ (float)barX - 2,(float)barY - 2,(float)MaxBarWidth + 4,(float)barHeight + 4 }, 0.15f, 4, BLACK);
-   //Layer2 Metallic outer bazel
+    //Layer2 Metallic outer bazel
     DrawRectangleRounded({ (float)barX,(float)barY ,(float)MaxBarWidth,(float)barHeight }, 0.15f, 4, GRAY);
     //Layer3 DarkInnerTrough
     int innerX = barX + bazel;
@@ -328,14 +479,14 @@ void Renderer::DrawInventoryHUD(Player& p) {
     int slotX = Config::SCREEN_WIDTH - slotSize - 20;
     int startY = 20;
     int slotY;
-    for (int i = 0; i<3; i++) {
+    for (int i = 0; i < 3; i++) {
         slotY = startY + i * (slotSize + slotGap) + 5;
         bool isSelected = (i == p.currentWeaponIndex);
         Color BgColor = isSelected ? Fade(SKYBLUE, 0.4f) : Fade(BLACK, 0.4f);
 
         Rectangle dest = { (float)slotX, (float)slotY, (float)slotSize, (float)slotSize };
         Color BorderColor = GRAY;
-        
+
         DrawRectangle(slotX, slotY, slotSize, slotSize, BgColor);
         if (p.WeaponPouch[i].id != ITEM_EMPTY) {
             Texture2D tex;
@@ -356,39 +507,39 @@ void Renderer::DrawInventoryHUD(Player& p) {
         DrawRectangleLinesEx({ (float)slotX,(float)slotY,(float)slotSize,(float)slotSize },
             isSelected ? 3.0f : 2.0f, BorderColor);
     }
-    DrawText("Press 1 to toggle", slotX-40, startY-15, 14, WHITE);
+    DrawText("Press 1 to toggle", slotX - 40, startY - 15, 14, WHITE);
     slotX = 30;
     startY = 120;
     slotGap = 12;
 
-      for (int i = 0; i < 2; i++) {
-            slotY = startY + i * (slotSize + slotGap) + 5;
+    for (int i = 0; i < 2; i++) {
+        slotY = startY + i * (slotSize + slotGap) + 5;
 
-            bool hasItem;
-            if (p.MissionCount[i] > 0) {
-                hasItem = true;
-               
-            }
-            else {
-                hasItem = false;
+        bool hasItem;
+        if (p.MissionCount[i] > 0) {
+            hasItem = true;
 
-            }
-            Color BgColor =hasItem? Fade(YELLOW, 0.4f): Fade(BLACK, 0.4f);
-            Rectangle dest = { (float)slotX, (float)slotY, (float)slotSize, (float)slotSize };
-
-            DrawRectangle(slotX, slotY, slotSize, slotSize, BgColor);
-
-            Texture2D tex = Missionpouch[i];
-            Rectangle source = { 0, 0, (float)tex.width, (float)tex.height };
-            DrawTexturePro(tex, source, dest, { 0, 0 }, 0.0f, WHITE);
-
-            Color BorderColor = hasItem ? YELLOW : GRAY;
-            DrawRectangleLinesEx({ (float)slotX,(float)slotY,(float)slotSize,(float)slotSize },
-                hasItem ? 3.0f : 2.0f, BorderColor);
-
-            const char* counterText = TextFormat("%d/%d", p.MissionCount[i], p.MissionTarget[i]);
-            DrawText(counterText, slotX + 4, slotY + slotSize - 16, 14, WHITE);
         }
+        else {
+            hasItem = false;
+
+        }
+        Color BgColor = hasItem ? Fade(YELLOW, 0.4f) : Fade(BLACK, 0.4f);
+        Rectangle dest = { (float)slotX, (float)slotY, (float)slotSize, (float)slotSize };
+
+        DrawRectangle(slotX, slotY, slotSize, slotSize, BgColor);
+
+        Texture2D tex = Missionpouch[i];
+        Rectangle source = { 0, 0, (float)tex.width, (float)tex.height };
+        DrawTexturePro(tex, source, dest, { 0, 0 }, 0.0f, WHITE);
+
+        Color BorderColor = hasItem ? YELLOW : GRAY;
+        DrawRectangleLinesEx({ (float)slotX,(float)slotY,(float)slotSize,(float)slotSize },
+            hasItem ? 3.0f : 2.0f, BorderColor);
+
+        const char* counterText = TextFormat("%d/%d", p.MissionCount[i], p.MissionTarget[i]);
+        DrawText(counterText, slotX + 4, slotY + slotSize - 16, 14, WHITE);
+    }
 }
 
 
@@ -607,7 +758,7 @@ void Renderer::DrawWideFloor(
                     ty = texHeight - 1;
 
                 color =
-                    GetImageColor(
+                    GetPixelFast(
                         textures.floorimg,
                         tx,
                         ty
@@ -650,7 +801,7 @@ void Renderer::DrawWideFloor(
                     ty = texHeight - 1;
 
                 color =
-                    GetImageColor(
+                    GetPixelFast(
                         textures.floorimg,
                         tx,
                         ty
@@ -689,7 +840,7 @@ void Renderer::DrawWideFloor(
                     ty = texHeight - 1;
 
                 color =
-                    GetImageColor(
+                    GetPixelFast(
                         textures.floorimg,
                         tx,
                         ty
@@ -728,7 +879,7 @@ void Renderer::DrawWideFloor(
                     ty = texHeight - 1;
 
                 color =
-                    GetImageColor(
+                    GetPixelFast(
                         textures.floor2Img,
                         tx,
                         ty
@@ -744,7 +895,7 @@ void Renderer::DrawWideFloor(
                 color = DARKGRAY;
             }
 
-            
+
             // ==========================================
             // NEXT WORLD POSITION
             // ==========================================
@@ -839,7 +990,7 @@ void Renderer::DrawMarketFloor(Vector2 playerPos, Vector2 playerDir, Vector2 cam
             floorY += floorStepY;
 
             // 1. Get the exact pixel color from our CPU Image
-            Color color = GetImageColor(textures.marketFloorImg, tx, ty);
+            Color color = GetPixelFast(textures.marketFloorImg, tx, ty);
 
             int arrayIndex = y * Config::SCREEN_WIDTH + x;
             floorBuffer[arrayIndex] = color;
@@ -957,7 +1108,7 @@ void Renderer::DrawNeonNightFloor(
                 ty = texHeight - 1;
 
             Color color =
-                GetImageColor(
+                GetPixelFast(
                     textures.nightFloorImg,
                     tx,
                     ty
@@ -1021,23 +1172,8 @@ void Renderer::DrawWallColumn(
     if (drawEnd >= Config::SCREEN_HEIGHT)
         drawEnd = Config::SCREEN_HEIGHT - 1;
 
-    // OLD RED WALL
-    if (tile == 1)
-    {
-        Color color = (side == 0) ? RED : MAROON;
-
-        DrawRectangle(
-            screenX,
-            drawStart,
-            1,
-            drawEnd - drawStart,
-            color);
-
-        return;
-    }
-
     // NEW TEXTURED WALL
-    if (tile >= 2 && tile <= 62)
+    if (tile >= 2 && tile <= 64)
     {
         Texture2D* tex = &textures.tiles[tile];
 
@@ -1514,15 +1650,15 @@ void Renderer::Draw(
     story.DrawWorld(
         player,
         Zbuffer,
-        GetScreenWidth(),
-        GetScreenHeight(),
+        Config::SCREEN_WIDTH,
+        Config::SCREEN_HEIGHT,
         insideNeon
     );
     // ==========================================
     // PHASE 4: PLAYER HAND
     // ==========================================
 
-   
+
     Texture2D& weaponTex = player.currentTex;
 
     float frameWidth = (float)weaponTex.width / player.weaponTotalFrames;
@@ -1532,49 +1668,49 @@ void Renderer::Draw(
     float drawWidth = frameWidth * scale;
     float drawHeight = frameHeight * scale;
 
-        float bobX;
-        float bobY;
+    float bobX;
+    float bobY;
 
-        bool walking =
-            IsKeyDown(KEY_W) ||
-            IsKeyDown(KEY_A) ||
-            IsKeyDown(KEY_S) ||
-            IsKeyDown(KEY_D);
+    bool walking =
+        IsKeyDown(KEY_W) ||
+        IsKeyDown(KEY_A) ||
+        IsKeyDown(KEY_S) ||
+        IsKeyDown(KEY_D);
 
-        if (walking)
-        {
-            bobX =
-                cosf((float)GetTime() * 10.0f) *
-                18.0f;
+    if (walking)
+    {
+        bobX =
+            cosf((float)GetTime() * 10.0f) *
+            18.0f;
 
-            bobY =
-                fabsf(sinf((float)GetTime() * 10.0f)) *
-                16.0f;
-        }
-        else
-        {
-            bobX = 0.0f;
+        bobY =
+            fabsf(sinf((float)GetTime() * 10.0f)) *
+            16.0f;
+    }
+    else
+    {
+        bobX = 0.0f;
 
-            bobY =
-                sinf((float)GetTime() * 2.0f) *
-                3.0f;
-        }
+        bobY =
+            sinf((float)GetTime() * 2.0f) *
+            3.0f;
+    }
 
-        float drawX = Config::SCREEN_WIDTH / 2.0f - drawWidth / 2.0f + bobX;
-        float drawY = Config::SCREEN_HEIGHT - drawHeight + 100.0f + bobY;
+    float drawX = Config::SCREEN_WIDTH / 2.0f - drawWidth / 2.0f + bobX;
+    float drawY = Config::SCREEN_HEIGHT - drawHeight + 100.0f + bobY;
 
-        float margin = 2.0f; // keep the anti-bleed guard from before
+    float margin = 2.0f; // keep the anti-bleed guard from before
 
-        Rectangle src =
-        {
-            player.weaponCurrentFrame * frameWidth + margin,
-            0.0f,
-            frameWidth - (margin * 2.0f),
-            frameHeight
-        };
+    Rectangle src =
+    {
+        player.weaponCurrentFrame * frameWidth + margin,
+        0.0f,
+        frameWidth - (margin * 2.0f),
+        frameHeight
+    };
 
-        Rectangle dst = { drawX, drawY, drawWidth, drawHeight };
-        DrawTexturePro(weaponTex, src, dst, { 0.0f, 0.0f }, 0.0f, WHITE);
+    Rectangle dst = { drawX, drawY, drawWidth, drawHeight };
+    DrawTexturePro(weaponTex, src, dst, { 0.0f, 0.0f }, 0.0f, WHITE);
 
 
     // ==========================================
@@ -1585,8 +1721,8 @@ void Renderer::Draw(
     {
         DrawText(
             "BAM! UNCLE HIT!",
-            GetScreenWidth() / 2 - 150,
-            GetScreenHeight() / 2 + 100,
+            Config::SCREEN_WIDTH / 2 - 150,
+            Config::SCREEN_HEIGHT / 2 + 100,
             40,
             GREEN
         );
@@ -1595,10 +1731,11 @@ void Renderer::Draw(
     DrawInventoryHUD(player);
 }
 
-void Renderer::StartFadeIn()
+void Renderer::StartFadeIn(LoadingTransition transition)
 {
     fadingIn = true;
     fadingOut = false;
+    currentTransition = transition;
 }
 bool Renderer::IsFadeFinished() const
 {
@@ -1633,12 +1770,117 @@ void Renderer::DrawFade()
     if (fadeAlpha <= 0)
         return;
 
+    float alpha = fadeAlpha / 255.0f;
+
+    // ------------------------------------------------------------
+    // LOADING SCREEN
+    //
+    // Replaces the old plain-black fade for partition transitions
+    // (street<->market, street->neon) — this is exactly the window
+    // where TextureManager::SetCurrentPartition() synchronously
+    // loads the new area's assets, which is what used to show as a
+    // dead black screen.
+    //
+    // Styled to match the main menu: same dark navy background,
+    // same gold accent color as the Game Over screen.
+    // ------------------------------------------------------------
+
+    Color navy = { 5, 10, 20, 255 };
+    Color gold = { 232, 184, 75, 255 };
+
+    // Destination background image (behind everything else),
+    // picked by which transition is in progress.
+    Texture2D* bgImage = nullptr;
+
+    if (currentTransition == LoadingTransition::Market)
+        bgImage = &loadingMarketTex;
+    else if (currentTransition == LoadingTransition::Neon)
+        bgImage = &loadingNeonTex;
+
+    if (bgImage != nullptr && bgImage->id != 0)
+    {
+        Rectangle source =
+        {
+            0, 0,
+            (float)bgImage->width,
+            (float)bgImage->height
+        };
+
+        Rectangle dest =
+        {
+            0, 0,
+            (float)Config::SCREEN_WIDTH,
+            (float)Config::SCREEN_HEIGHT
+        };
+
+        DrawTexturePro(
+            *bgImage,
+            source,
+            dest,
+            { 0, 0 },
+            0.0f,
+            Fade(WHITE, alpha)
+        );
+    }
+    else
+    {
+        DrawRectangle(
+            0, 0,
+            Config::SCREEN_WIDTH,
+            Config::SCREEN_HEIGHT,
+            Fade(navy, alpha)
+        );
+    }
+
+    // Dark navy veil on top so "LOADING" stays readable over
+    // whatever the background image looks like.
     DrawRectangle(
-        0,
-        0,
+        0, 0,
         Config::SCREEN_WIDTH,
         Config::SCREEN_HEIGHT,
-        Fade(BLACK, fadeAlpha / 255.0f));
+        Fade(navy, alpha * 0.6f)
+    );
+
+    // "LOADING" + animated dots, gold, centered — matches the
+    // Game Over screen's accent color / menu's overall look.
+    int dotCount = ((int)(GetTime() * 3.0f)) % 4;
+
+    std::string label = "LOADING";
+    for (int i = 0; i < dotCount; i++)
+        label += ".";
+
+    int fontSize = 40;
+    int textWidth = MeasureText(label.c_str(), fontSize);
+
+    DrawText(
+        label.c_str(),
+        Config::SCREEN_WIDTH / 2 - textWidth / 2,
+        Config::SCREEN_HEIGHT - 120,
+        fontSize,
+        Fade(gold, alpha)
+    );
+
+    // Thin pulsing accent bar under the text, purely decorative.
+    int barWidth = 240;
+    int barHeight = 4;
+    int barX = Config::SCREEN_WIDTH / 2 - barWidth / 2;
+    int barY = Config::SCREEN_HEIGHT - 70;
+
+    DrawRectangle(
+        barX, barY,
+        barWidth, barHeight,
+        Fade(gold, alpha * 0.25f)
+    );
+
+    float pulse =
+        (sinf((float)GetTime() * 4.0f) + 1.0f) * 0.5f;
+
+    DrawRectangle(
+        barX, barY,
+        (int)(barWidth * pulse),
+        barHeight,
+        Fade(gold, alpha)
+    );
 }
 void Renderer::StartFadeOut()
 {
@@ -1675,7 +1917,7 @@ void Renderer::DrawGameOver()
 
     for (int i = 0; i < 3; i++)
     {
-        bool hovered = CheckCollisionPointRec(GetMousePosition(), buttons[i].rect);
+        bool hovered = CheckCollisionPointRec(GetVirtualMousePosition(), buttons[i].rect);
         Color fill = hovered ? Fade(gold, 0.2f) : darkPanel;
 
         DrawRectangleRec(buttons[i].rect, fill);

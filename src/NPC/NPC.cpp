@@ -1,4 +1,4 @@
-#include "NPC.h"
+﻿#include "NPC.h"
 
 #include "raylib.h"
 #include <cmath>
@@ -41,13 +41,13 @@ bool NPC::Load(
     if (isJack)
     {
         jackDialogue1 =
-            LoadSound("../assets/audio/jack_dialogue_1.wav");
+            LoadSound("assets/audio/jack_dialogue_1.wav");
 
         jackDialogue2 =
-            LoadSound("../assets/audio/jack_dialogue_2.wav");
+            LoadSound("assets/audio/jack_dialogue_2.wav");
 
         jackDialogue3 =
-            LoadSound("../assets/audio/jack_dialogue_3.wav");
+            LoadSound("assets/audio/jack_dialogue_3.wav");
 
         jackAudioLoaded =
             (jackDialogue1.frameCount > 0 &&
@@ -155,7 +155,7 @@ void NPC::Unload()
 // UPDATE
 // ============================================================
 
-void NPC::Update(Vector2 playerPos,Player&p)
+void NPC::Update(Vector2 playerPos, Player& p)
 {
     float dt = GetFrameTime();
 
@@ -199,7 +199,7 @@ void NPC::Update(Vector2 playerPos,Player&p)
 
         // Frame 4
         currentFrame = 3;
-        
+
         if (interactionTimer >= interactionDuration)
         {
             interacting = false;
@@ -234,12 +234,12 @@ void NPC::Update(Vector2 playerPos,Player&p)
         if (IsKeyPressed(KEY_E))
         {
             StartInteraction();
-            bool f=p.PickUpItem(myItem);
+            bool f = p.PickUpItem(myItem);
             if (f) {
                 std::cout << "Item picked up successfully\n";
 
             }
-            else{
+            else {
                 std::cout << "No empty space\n";
             }
         }

@@ -9,7 +9,8 @@ public:
 
     Cutscene();
 
-    // Load the 4 cutscene images and their audio effects
+    // Load the 5 cutscene images, background music, typing sound,
+    // and 5 per-scene dialogue voice-over sounds.
     bool Initialize(
         const char* image1Path,
         const char* image2Path,
@@ -17,11 +18,14 @@ public:
         const char* image4Path,
         const char* image5Path,
 
-        const char* audio1Path,
-        const char* audio2Path,
-        const char* audio3Path,
-        const char* audio4Path,
-        const char* audio5Path
+        const char* bgMusicPath,
+        const char* typingSoundPath,
+
+        const char* dialogue1Path,
+        const char* dialogue2Path,
+        const char* dialogue3Path,
+        const char* dialogue4Path,
+        const char* dialogue5Path
     );
 
     // Start / restart cutscene
@@ -73,14 +77,22 @@ private:
 
     // ============================================================
     // AUDIO
+    //
+    // bgMusic loops continuously for the whole cutscene (doesn't
+    // restart per scene). typingSound fires once per word as the
+    // dialogue types out. dialogueSounds[i] is the voice-over line
+    // for scene i, played once when that scene starts.
     // ============================================================
 
-    Sound sounds[5]{};
-    bool soundsLoaded[5]{};
+    Music bgMusic{};
+    bool bgMusicLoaded = false;
+
     Sound typingSound{};
     bool typingSoundLoaded = false;
 
-    bool typingPlaying = false;
+    Sound dialogueSounds[5]{};
+    bool dialogueSoundsLoaded[5]{};
+
     // ============================================================
     // STATE
     // ============================================================
@@ -102,7 +114,9 @@ private:
 
     void StartScene(int scene);
 
-    void StopCurrentAudio();
+    // Stops any currently-playing dialogue voice-over and starts
+    // the one for this scene.
+    void PlayDialogueSound(int scene);
 
     void UpdateDialogue();
 

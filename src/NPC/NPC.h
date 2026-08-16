@@ -17,7 +17,7 @@ public:
     void Unload();
 
     // Update NPC state
-    void Update(Vector2 playerPos,Player&p);
+    void Update(Vector2 playerPos, Player& p);
 
     // Draw NPC
     void Draw(

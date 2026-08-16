@@ -41,13 +41,13 @@ Vector2 CheckMapCollosion(Vector2 pos, float PlayerRadius, Vector2 Velocity, Map
 
 	return pos;
 }
-void CheckPlayerEnemyCollision(Player& p, Enemy& E,Map&m1) {
-	float dx = E.position.x-p.position.x;
-	float dy =  E.position.y- p.position.y;
+void CheckPlayerEnemyCollision(Player& p, Enemy& E, Map& m1) {
+	float dx = E.position.x - p.position.x;
+	float dy = E.position.y - p.position.y;
 	float dis = sqrt((dx * dx) + (dy * dy));
 	float RadiiSum = p.radius + E.radius;
-	
-	if (dis>0.0001f&& dis<RadiiSum) {
+
+	if (dis > 0.0001f && dis < RadiiSum) {
 		float Overlap = RadiiSum - dis;
 		float pushforce = Overlap / 2.0f;
 		float NormalX = dx / dis;
@@ -93,7 +93,7 @@ void CheckPlayerNPCCollision(Player& E, NPC& p, Map& m1) {
 		E.position = CheckMapCollosion(E.position, E.radius, EnemyBumpVelocity, m1);
 	}
 }
-void CheckEnemyEnemyCollision(std::vector<Enemy>&enemies ,Map& m1) {
+void CheckEnemyEnemyCollision(std::vector<Enemy>& enemies, Map& m1) {
 	for (size_t i = 0; i < enemies.size(); i++) {
 		if (enemies[i].state == DEAD) {
 			continue;
@@ -120,7 +120,7 @@ void CheckEnemyEnemyCollision(std::vector<Enemy>&enemies ,Map& m1) {
 
 				enemies[i].position = CheckMapCollosion(a, enemies[i].radius, { NewposA.x - a.x,NewposA.y - a.y }, m1);
 				enemies[j].position = CheckMapCollosion(b, enemies[j].radius, { NewposB.x - b.x,NewposB.y - b.y }, m1);
- 			}
+			}
 			else if (dis <= 0.00001f) {
 				enemies[i].position.x -= 0.01f;
 				enemies[j].position.x += 0.01f;

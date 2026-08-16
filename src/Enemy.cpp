@@ -4,7 +4,7 @@
 #include "raymath.h"
 #include "../src/World/Collision.h"
 
-enum { STILL, CHASE,INTERROGATE,DEAD,ATTACK,HIT_REACT };
+enum { STILL, CHASE, INTERROGATE, DEAD, ATTACK, HIT_REACT };
 
 Enemy::Enemy() {
 	radius = 0.25f;
@@ -46,7 +46,7 @@ void Enemy::update(Player& P, Map& m1) {
 			}
 		}
 	}
-	if (Respawn==true&&state==DEAD) {
+	if (Respawn == true && state == DEAD) {
 		RespawnCheck += deltaTime;
 		if (RespawnCheck >= RespawnTimer) {
 			RespawnCheck = 0.0f;

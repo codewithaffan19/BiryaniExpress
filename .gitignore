@@ -16,7 +16,6 @@ CMakeFiles/
 CMakeCache.txt
 
 # Executables
-*.exe
 *.pdb
 *.ilk
 

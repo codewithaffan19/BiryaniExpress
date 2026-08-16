@@ -8,9 +8,9 @@ struct Bubble {
 	float life;
 	bool active;
 };
-class Enemy:public Player {
+class Enemy :public Player {
 private:
-	
+
 	float collosionDistance;
 	float AttackDistance;
 public:
@@ -32,7 +32,7 @@ public:
 	float RespawnTimer = 5.0f;
 	float RespawnCheck = 0.0f;
 	float health;
-	static const int MAX_BUBBLES = 12; 
+	static const int MAX_BUBBLES = 12;
 	Bubble bubbles[MAX_BUBBLES];
 	bool hasPopped = false;
 	float attackRange = 1.0f;

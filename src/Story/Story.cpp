@@ -1,9 +1,10 @@
-#include "Story.h"
+﻿#include "Story.h"
 
 #include "raylib.h"
 #include "raymath.h"
 
 #include "../World/Collision.h"
+#include "../Core/Config.h"
 #include <cmath>
 #include <iostream>
 // ============================================================
@@ -204,7 +205,7 @@ void Story::CheckGuradCollosion(Guard& G1, Player& p, Map& m1) {
     float dy = p.position.y - G1.position.y;
     float dis = sqrt((dx * dx) + (dy * dy));
     float radiiSum = p.radius + G1.radius;
-    if (dis > 0.001f&&dis<radiiSum) {
+    if (dis > 0.001f && dis < radiiSum) {
         float overlap = radiiSum - dis;
         float Push = overlap / 2.0f;
         float NormalX = dx / dis;
@@ -239,7 +240,7 @@ void Story::LoadStoryTextures()
 
     guards[0].texture =
         LoadTexture(
-            "../assets/textures/guard1.png"
+            "assets/textures/guard1.png"
         );
 
     if (guards[0].texture.id == 0)
@@ -256,7 +257,7 @@ void Story::LoadStoryTextures()
 
     guards[1].texture =
         LoadTexture(
-            "../assets/textures/guard2.png"
+            "assets/textures/guard2.png"
         );
 
     if (guards[1].texture.id == 0)
@@ -273,7 +274,7 @@ void Story::LoadStoryTextures()
 
     guards[2].texture =
         LoadTexture(
-            "../assets/textures/guard3.png"
+            "assets/textures/guard3.png"
         );
 
     if (guards[2].texture.id == 0)
@@ -616,7 +617,7 @@ void Story::StartGuardInteraction(
     // ========================================================
     // SECOND E
     // Start looping:
- 
+
     // Frame 2 -> Frame 3 -> Frame 4 -> Frame 2...
     //
     // This continues until the THIRD E.
@@ -671,7 +672,7 @@ void Story::StartGuardInteraction(
 
         std::cout
             << "Guard finished interaction.\n";
-        
+
         return;
     }
 
@@ -782,7 +783,7 @@ void Story::UpdateGuardInteraction(
                 guardIndex
             );
         }
-        
+
         return;
     }
 
@@ -1221,11 +1222,11 @@ void Story::DrawUI() const
             );
 
         int x =
-            GetScreenWidth() / 2 -
+            Config::SCREEN_WIDTH / 2 -
             textWidth / 2;
 
         int y =
-            GetScreenHeight() - 90;
+            Config::SCREEN_HEIGHT - 90;
 
         // Background
         DrawRectangle(
@@ -1263,16 +1264,16 @@ void Story::DrawUI() const
     {
         DrawRectangle(
             100,
-            GetScreenHeight() - 180,
-            GetScreenWidth() - 200,
+            Config::SCREEN_HEIGHT - 180,
+            Config::SCREEN_WIDTH - 200,
             120,
             Fade(BLACK, 0.75f)
         );
 
         DrawRectangleLines(
             100,
-            GetScreenHeight() - 180,
-            GetScreenWidth() - 200,
+            Config::SCREEN_HEIGHT - 180,
+            Config::SCREEN_WIDTH - 200,
             120,
             WHITE
         );
@@ -1293,7 +1294,7 @@ void Story::DrawUI() const
                 .dialogues[dialogueIndex]
                 .c_str(),
                 130,
-                GetScreenHeight() - 140,
+                Config::SCREEN_HEIGHT - 140,
                 24,
                 WHITE
             );
@@ -1459,7 +1460,7 @@ void Story::DrawGuard(
             );
 
     // ========================================================
-    // VERTICAL POSITION — KEEP GUARD ON THE FLOOR
+    // VERTICAL POSITION â€” KEEP GUARD ON THE FLOOR
     // ========================================================
 
     float groundOffset =
@@ -1612,7 +1613,7 @@ void Story::DrawGuard(
 
 }
 // ============================================================
-// PLAYER ↔ GUARD COLLISION
+// PLAYER â†” GUARD COLLISION
 //
 // Uses the same physical logic as NPC collision.
 //

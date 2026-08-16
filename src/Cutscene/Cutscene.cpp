@@ -66,11 +66,14 @@ bool Cutscene::Initialize(
     const char* image4Path,
     const char* image5Path,
 
-    const char* audio1Path,
-    const char* audio2Path,
-    const char* audio3Path,
-    const char* audio4Path,
-    const char* audio5Path
+    const char* bgMusicPath,
+    const char* typingSoundPath,
+
+    const char* dialogue1Path,
+    const char* dialogue2Path,
+    const char* dialogue3Path,
+    const char* dialogue4Path,
+    const char* dialogue5Path
 )
 {
     const char* imagePaths[5] =
@@ -82,13 +85,13 @@ bool Cutscene::Initialize(
         image5Path
     };
 
-    const char* audioPaths[5] =
+    const char* dialoguePaths[5] =
     {
-        audio1Path,
-        audio2Path,
-        audio3Path,
-        audio4Path,
-        audio5Path
+        dialogue1Path,
+        dialogue2Path,
+        dialogue3Path,
+        dialogue4Path,
+        dialogue5Path
     };
 
 
@@ -142,50 +145,89 @@ bool Cutscene::Initialize(
 
 
     // ========================================================
-    // LOAD AUDIO
+    // BACKGROUND MUSIC
+    //
+    // Loops continuously for the whole cutscene.
+    // ========================================================
+
+    if (bgMusicPath != nullptr)
+    {
+        bgMusic = LoadMusicStream(bgMusicPath);
+
+        if (bgMusic.frameCount == 0)
+        {
+            TraceLog(
+                LOG_WARNING,
+                "Failed to load cutscene bg music: %s",
+                bgMusicPath
+            );
+
+            bgMusicLoaded = false;
+        }
+        else
+        {
+            bgMusic.looping = true;
+            bgMusicLoaded = true;
+        }
+    }
+
+
+    // ========================================================
+    // TYPING SOUND
+    // ========================================================
+
+    if (typingSoundPath != nullptr)
+    {
+        typingSound = LoadSound(typingSoundPath);
+
+        if (typingSound.frameCount == 0)
+        {
+            TraceLog(
+                LOG_WARNING,
+                "Failed to load cutscene typing sound: %s",
+                typingSoundPath
+            );
+
+            typingSoundLoaded = false;
+        }
+        else
+        {
+            typingSoundLoaded = true;
+        }
+    }
+
+
+    // ========================================================
+    // DIALOGUE VOICE-OVER (one per scene)
     // ========================================================
 
     for (int i = 0; i < 5; i++)
     {
-        if (audioPaths[i] == nullptr)
+        if (dialoguePaths[i] == nullptr)
         {
-            TraceLog(
-                LOG_WARNING,
-                "Cutscene audio path %d is null.",
-                i + 1
-            );
-
-            soundsLoaded[i] = false;
+            dialogueSoundsLoaded[i] = false;
             continue;
         }
 
+        dialogueSounds[i] = LoadSound(dialoguePaths[i]);
 
-        sounds[i] = LoadSound(audioPaths[i]);
-
-
-        if (sounds[i].frameCount == 0)
+        if (dialogueSounds[i].frameCount == 0)
         {
             TraceLog(
                 LOG_WARNING,
-                "Failed to load cutscene audio %d: %s",
+                "Failed to load cutscene dialogue sound %d: %s",
                 i + 1,
-                audioPaths[i]
+                dialoguePaths[i]
             );
 
-            soundsLoaded[i] = false;
+            dialogueSoundsLoaded[i] = false;
         }
         else
         {
-            soundsLoaded[i] = true;
+            dialogueSoundsLoaded[i] = true;
         }
     }
-    typingSound =
-        LoadSound("../assets/cutscene/typing.wav");
 
-    if (typingSound.frameCount > 0)
-    {
-        typingSoundLoaded = true;
-    }
 
     return success;
 }
@@ -211,33 +253,14 @@ void Cutscene::Start(bool neon)
     printedWords = 0;
     wordTimer = 0.0f;
 
-    StopCurrentAudio();
-
-    StopSound(typingSound);
-
-    typingPlaying = false;
-
-    if (soundsLoaded[0])
+    // Background music loops for the whole cutscene — started once
+    // here, not restarted per scene.
+    if (bgMusicLoaded)
     {
-        PlaySound(sounds[0]);
+        PlayMusicStream(bgMusic);
     }
-}
 
-
-// ============================================================
-// STOP AUDIO
-// ============================================================
-
-void Cutscene::StopCurrentAudio()
-{
-    if (currentScene >= 0 &&
-        currentScene < 5 &&
-        soundsLoaded[currentScene])
-    {
-        StopSound(
-            sounds[currentScene]
-        );
-    }
+    PlayDialogueSound(currentScene);
 }
 
 
@@ -251,13 +274,6 @@ void Cutscene::StartScene(int scene)
         return;
 
 
-    // Stop previous sound immediately
-    StopCurrentAudio();
-
-    StopSound(typingSound);
-
-    typingPlaying = false;
-
     currentScene = scene;
 
     transitionTimer = 0.0f;
@@ -268,13 +284,28 @@ void Cutscene::StartScene(int scene)
 
     wordTimer = 0.0f;
 
+    PlayDialogueSound(currentScene);
+}
 
-    // Start the new sound immediately
-    if (soundsLoaded[currentScene])
+
+// ============================================================
+// PLAY DIALOGUE SOUND
+// ============================================================
+
+void Cutscene::PlayDialogueSound(int scene)
+{
+    // Stop any dialogue line still playing from the previous scene.
+    for (int i = 0; i < 5; i++)
     {
-        PlaySound(
-            sounds[currentScene]
-        );
+        if (dialogueSoundsLoaded[i] && IsSoundPlaying(dialogueSounds[i]))
+        {
+            StopSound(dialogueSounds[i]);
+        }
+    }
+
+    if (scene >= 0 && scene < 5 && dialogueSoundsLoaded[scene])
+    {
+        PlaySound(dialogueSounds[scene]);
     }
 }
 
@@ -290,6 +321,12 @@ void Cutscene::Update()
 
 
     float dt = GetFrameTime();
+
+    // Keep the bg music stream fed while the cutscene is playing.
+    if (bgMusicLoaded)
+    {
+        UpdateMusicStream(bgMusic);
+    }
 
 
     // ========================================================
@@ -323,13 +360,6 @@ void Cutscene::Update()
 
     if (IsKeyPressed(KEY_ENTER))
     {
-        StopCurrentAudio();
-
-        StopSound(typingSound);
-
-        typingPlaying = false;
-
-
         // ====================================================
         // NEXT IMAGE
         // ====================================================
@@ -362,6 +392,19 @@ void Cutscene::Update()
 
         finished = true;
 
+        if (bgMusicLoaded && IsMusicStreamPlaying(bgMusic))
+        {
+            StopMusicStream(bgMusic);
+        }
+
+        for (int i = 0; i < 5; i++)
+        {
+            if (dialogueSoundsLoaded[i] && IsSoundPlaying(dialogueSounds[i]))
+            {
+                StopSound(dialogueSounds[i]);
+            }
+        }
+
         TraceLog(
             LOG_INFO,
             "Cutscene finished."
@@ -376,20 +419,22 @@ void Cutscene::Update()
 
 void Cutscene::UpdateDialogue()
 {
-    if (currentScene < 0 || currentScene >= 5)
+    if (currentScene < 0 ||
+        currentScene >= 5)
     {
         return;
     }
+
 
     const std::string& text =
         useNeonDialogue
         ? neonDialogue[currentScene]
         : dialogue[currentScene];
 
+
     if (text.empty())
-    {
         return;
-    }
+
 
     int totalWords = 0;
 
@@ -398,37 +443,29 @@ void Cutscene::UpdateDialogue()
         totalWords
     );
 
-    if (printedWords < totalWords)
+
+    if (printedWords >= totalWords)
+        return;
+
+
+    wordTimer += GetFrameTime();
+
+
+    if (wordTimer >= wordDelay)
     {
-        if (typingSoundLoaded &&
-            !typingPlaying)
+        wordTimer = 0.0f;
+
+        printedWords++;
+
+        // One typing blip per word revealed.
+        if (typingSoundLoaded)
         {
             PlaySound(typingSound);
-
-            typingPlaying = true;
         }
 
-        wordTimer += GetFrameTime();
-
-        if (wordTimer >= wordDelay)
+        if (printedWords > totalWords)
         {
-            wordTimer = 0.0f;
-
-            printedWords++;
-
-            if (printedWords > totalWords)
-            {
-                printedWords = totalWords;
-            }
-        }
-    }
-    else
-    {
-        if (typingPlaying)
-        {
-            StopSound(typingSound);
-
-            typingPlaying = false;
+            printedWords = totalWords;
         }
     }
 }
@@ -663,9 +700,9 @@ void Cutscene::DrawDialogueBox()
 
 
     const std::string& text =
-    useNeonDialogue
-    ? neonDialogue[currentScene]
-    : dialogue[currentScene];
+        useNeonDialogue
+        ? neonDialogue[currentScene]
+        : dialogue[currentScene];
 
 
     if (text.empty())
@@ -1006,9 +1043,6 @@ bool Cutscene::IsFinished() const
 
 void Cutscene::Unload()
 {
-    StopCurrentAudio();
-
-
     // ========================================================
     // TEXTURES
     // ========================================================
@@ -1032,25 +1066,27 @@ void Cutscene::Unload()
     // AUDIO
     // ========================================================
 
-    for (int i = 0; i < 4; i++)
+    if (bgMusicLoaded)
     {
-        if (soundsLoaded[i])
-        {
-            UnloadSound(
-                sounds[i]
-            );
-
-            sounds[i] = {};
-
-            soundsLoaded[i] = false;
-        }
+        UnloadMusicStream(bgMusic);
+        bgMusicLoaded = false;
     }
+
     if (typingSoundLoaded)
     {
         UnloadSound(typingSound);
-
         typingSoundLoaded = false;
     }
+
+    for (int i = 0; i < 5; i++)
+    {
+        if (dialogueSoundsLoaded[i])
+        {
+            UnloadSound(dialogueSounds[i]);
+            dialogueSoundsLoaded[i] = false;
+        }
+    }
+
 
     playing = false;
 }

@@ -1,4 +1,4 @@
-#include "Editor.h"
+﻿#include "Editor.h"
 #include "../World/Map.h"
 #include "../Renderer/TextureManager.h"
 #include<fstream>
@@ -286,7 +286,7 @@ void Editor::Draw(Map& map)
             28
         };
 
-        if ( tileIndex== currentTile)
+        if (tileIndex == currentTile)
             DrawRectangleRec(item, SKYBLUE);
 
         DrawRectangleLinesEx(item, 1, BLACK);
@@ -330,7 +330,7 @@ void Editor::SaveShortcut(Map& map)
 {
     if (IsKeyPressed(KEY_S))
     {
-        map.SaveMap("../assets/maps/test.txt");
+        map.SaveMap("assets/maps/test.txt");
     }
 }
 void Editor::HandlePartitionSelection(Vector2 mouse)

@@ -58,7 +58,7 @@ void Player::SwitchWeapon() {
 }
 
 bool Player::PickUpItem(int newItem) {
-    int index=0;
+    int index = 0;
     if (newItem == ITEM_BIRYANI || newItem == ITEM_DRUMBLE || newItem == ITEM_AFC) {
         if (newItem == ITEM_DRUMBLE) index = 0;
         else if (newItem == ITEM_AFC) index = 1;
@@ -79,11 +79,11 @@ bool Player::PickUpItem(int newItem) {
         WeaponPouch[index].id = newItem;
         WeaponCount[index]++;
         if (WeaponCount[index] > MissionTarget[index]) {
-            WeaponCount[index]=WeaponTarget[index];
+            WeaponCount[index] = WeaponTarget[index];
             return false;
         }
         return true;
-    }   
+    }
 
     return false;
 }
@@ -92,18 +92,19 @@ void Player::Update(
     InputManager& input,
     Map& map)
 {
-   /* if (health <= 0)
-    {
-        return;
-    }*/
-    //Inventory
-    
+    /* if (health <= 0)
+     {
+         return;
+     }*/
+     //Inventory
+
 
     bool isWalking = IsKeyDown(KEY_W) || IsKeyDown(KEY_A) || IsKeyDown(KEY_S) || IsKeyDown(KEY_D);
-    if (IsKeyPressed(KEY_ONE)&&WeaponPouch[0].id!=ITEM_EMPTY) {
+    isMoving = isWalking;
+    if (IsKeyPressed(KEY_ONE) && WeaponPouch[0].id != ITEM_EMPTY) {
         SwitchWeapon();
     }
-    if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)&&weaponTotalFrames>1) {
+    if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT) && weaponTotalFrames > 1) {
         isAttacking = true;
         weaponCurrentFrame = 1;
         weaponFrameTimer = 0.0f;
@@ -116,9 +117,9 @@ void Player::Update(
             isAttacking = false;
         }
     }
-    if (isWalking &&!isAttacking)
+    if (isWalking && !isAttacking)
     {
-         weaponCurrentFrame=0;
+        weaponCurrentFrame = 0;
     }
     if (isWalking) {
         weaponbobtimer = dt * 10.0f;
@@ -163,63 +164,63 @@ void Player::Update(
     if (KnockBackTimer > 0.0) {
         position = KnockBack(position, KnockBackVelocity, KnockBackTimer, radius, map, dt);
     }
-        Vector2 newPos = position;
+    Vector2 newPos = position;
 
-        if (input.Forward())
-        {
-            newPos.x += direction.x * moveSpeed * dt;
-            newPos.y += direction.y * moveSpeed * dt;
-        }
+    if (input.Forward())
+    {
+        newPos.x += direction.x * moveSpeed * dt;
+        newPos.y += direction.y * moveSpeed * dt;
+    }
 
-        if (input.Backward())
-        {
-            newPos.x -= direction.x * moveSpeed * dt;
-            newPos.y -= direction.y * moveSpeed * dt;
-        }
+    if (input.Backward())
+    {
+        newPos.x -= direction.x * moveSpeed * dt;
+        newPos.y -= direction.y * moveSpeed * dt;
+    }
 
-        Vector2 right =
-        {
-            -direction.y,
-             direction.x
-        };
+    Vector2 right =
+    {
+        -direction.y,
+         direction.x
+    };
 
-        if (input.Left())
-        {
-            newPos.x -= right.x * moveSpeed * dt;
-            newPos.y -= right.y * moveSpeed * dt;
-        }
+    if (input.Left())
+    {
+        newPos.x -= right.x * moveSpeed * dt;
+        newPos.y -= right.y * moveSpeed * dt;
+    }
 
-        if (input.Right())
-        {
-            newPos.x += right.x * moveSpeed * dt;
-            newPos.y += right.y * moveSpeed * dt;
-        }
+    if (input.Right())
+    {
+        newPos.x += right.x * moveSpeed * dt;
+        newPos.y += right.y * moveSpeed * dt;
+    }
 
-        //-------------------------------------------------
-        // Collision
-        //-------------------------------------------------
+    //-------------------------------------------------
+    // Collision
+    //-------------------------------------------------
 
-        if (map.GetCell(
+    if (map.GetCell(
+        (int)position.y,
+        (int)(newPos.x + radius)) == 0 &&
+        map.GetCell(
             (int)position.y,
-            (int)(newPos.x + radius)) == 0 &&
-            map.GetCell(
-                (int)position.y,
-                (int)(newPos.x - radius)) == 0)
-        {
-            position.x = newPos.x;
-        }
+            (int)(newPos.x - radius)) == 0)
+    {
+        position.x = newPos.x;
+    }
 
-        if (map.GetCell(
-            (int)(newPos.y + radius),
-            (int)position.x) == 0 &&
-            map.GetCell(
-                (int)(newPos.y - radius),
-                (int)position.x) == 0)
-        {
-            position.y = newPos.y;
-        }
-        if (hitmessagetimer > 0)
-            hitmessagetimer--;
+    if (map.GetCell(
+        (int)(newPos.y + radius),
+        (int)position.x) == 0 &&
+        map.GetCell(
+            (int)(newPos.y - radius),
+            (int)position.x) == 0)
+    {
+        position.y = newPos.y;
+    }
+    if (hitmessagetimer > 0)
+        hitmessagetimer--;
 }
 
 
@@ -231,6 +232,10 @@ Vector2 Player::GetDirection() const
 Vector2 Player::GetCameraPlane() const
 {
     return cameraPlane;
+}
+bool Player::IsMoving() const
+{
+    return isMoving;
 }
 Vector2 Player::GetPosition() const
 {

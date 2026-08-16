@@ -1,4 +1,4 @@
-#include "TextureManager.h"
+﻿#include "TextureManager.h"
 #include "raylib.h"
 
 #include <string>
@@ -39,7 +39,6 @@ TextureManager::TextureManager()
     // ---------------------------------------------------------
 
     tileNames[0] = "Empty";
-    tileNames[1] = "RedWall";
 
     // ---------------------------------------------------------
     // COMMON STREET -> MARKET DOORS
@@ -69,6 +68,8 @@ TextureManager::TextureManager()
     tileNames[43] = "Door2";
     tileNames[44] = "Door3";
     tileNames[45] = "NeonDoor";
+    tileNames[63] = "StreetTile1";
+    tileNames[64] = "StreetTile2";
     // =========================================================
 // NEON NIGHT WALLS
 //
@@ -294,38 +295,10 @@ void TextureManager::LoadStreetAssets()
     // ---------------------------------------------------------
 
     tileNames[0] = "Empty";
-    tileNames[1] = "RedWall";
 
-    // ---------------------------------------------------------
-    // Street Wall 1 - Wall 8
-    // ---------------------------------------------------------
-
-    for (int i = 1; i <= 8; i++)
-    {
-        int index = i + 1;
-
-        std::string path =
-            "../assets/streetassets/wall" +
-            std::to_string(i) +
-            ".png";
-
-        LoadTile(
-            index,
-            path,
-            "Wall" + std::to_string(i),
-            true
-        );
-
-        std::string animPath =
-            "../assets/streetassets/wall" +
-            std::to_string(i) +
-            "_anim.png";
-
-        LoadAnimatedTile(
-            index,
-            animPath
-        );
-    }
+    // NOTE: tile 1 ("RedWall", the old hardcoded placeholder wall)
+    // and tiles 2-9 ("Wall1"-"Wall8", wall1.png-wall8.png) are
+    // removed â€” unused, not placed anywhere in the finished map.
 
     // ---------------------------------------------------------
     // Welcome Wall
@@ -333,21 +306,25 @@ void TextureManager::LoadStreetAssets()
 
     LoadTile(
         31,
-        "../assets/streetassets/wall_welcome.png",
+        "assets/streetassets/wall_welcome.png",
         "WallWelcome",
         true
     );
 
     // ---------------------------------------------------------
     // Street Walls
+    //
+    // Only 1-6 exist on disk (streetwall7-10.png are missing,
+    // so those slots are skipped instead of being retried
+    // every load).
     // ---------------------------------------------------------
 
-    for (int i = 0; i < 10; i++)
+    for (int i = 0; i < 6; i++)
     {
         int index = 32 + i;
 
         std::string path =
-            "../assets/streetassets/streetwall" +
+            "assets/streetassets/streetwall" +
             std::to_string(i + 1) +
             ".png";
 
@@ -359,7 +336,7 @@ void TextureManager::LoadStreetAssets()
         );
 
         std::string animPath =
-            "../assets/streetassets/streetwall" +
+            "assets/streetassets/streetwall" +
             std::to_string(i + 1) +
             "_anim.png";
 
@@ -377,16 +354,30 @@ void TextureManager::LoadStreetAssets()
     {
         floorimg =
             LoadImage(
-                "../assets/streetassets/floor.png"
+                "assets/streetassets/floor.png"
             );
+
+        // Force a known pixel layout so the fast per-pixel fetch
+        // used by the floor caster (GetPixelFast in Renderer.cpp)
+        // can read raw bytes safely, regardless of the source
+        // PNG's original color format.
+        ImageFormat(
+            &floorimg,
+            PIXELFORMAT_UNCOMPRESSED_R8G8B8A8
+        );
     }
 
     if (floor2Img.data == nullptr)
     {
         floor2Img =
             LoadImage(
-                "../assets/streetassets/floor2.png"
+                "assets/streetassets/floor2.png"
             );
+
+        ImageFormat(
+            &floor2Img,
+            PIXELFORMAT_UNCOMPRESSED_R8G8B8A8
+        );
     }
 
     // ---------------------------------------------------------
@@ -397,7 +388,7 @@ void TextureManager::LoadStreetAssets()
     {
         skyTex =
             LoadTexture(
-                "../assets/streetassets/sky.png"
+                "assets/streetassets/sky.png"
             );
 
         SetTextureFilter(
@@ -405,7 +396,23 @@ void TextureManager::LoadStreetAssets()
             TEXTURE_FILTER_BILINEAR
         );
     }
+    // ---------------------------------------------------------
+// Extra street tiles
+// ---------------------------------------------------------
 
+    LoadTile(
+        63,
+        "assets/streetassets/yourtile1.png",
+        "StreetTile1",
+        true
+    );
+
+    LoadTile(
+        64,
+        "assets/streetassets/yourtile2.png",
+        "StreetTile2",
+        true
+    );
     currentPartition = Partition::Street;
 
     TraceLog(LOG_INFO, "STREET assets loaded.");
@@ -440,61 +447,54 @@ void TextureManager::LoadMarketAssets()
 
     LoadTile(
         10,
-        "../assets/marketassets/6.3cafe.png",
+        "assets/marketassets/6.3cafe.png",
         "Cafe"
     );
 
     LoadTile(
         11,
-        "../assets/marketassets/AFC.png",
+        "assets/marketassets/AFC.png",
         "AFC"
     );
 
     LoadTile(
         12,
-        "../assets/marketassets/drumble.png",
+        "assets/marketassets/drumble.png",
         "Drumble"
     );
 
-    LoadTile(
-        13,
-        "../assets/marketassets/CHIPS.png",
-        "CHIPS"
-    );
-
-    LoadTile(
-        14,
-        "../assets/marketassets/wall8.png",
-        "Butcher"
-    );
+    // NOTE: CHIPS.png and wall8.png (base textures for tiles 13/14)
+    // are missing on disk, so those LoadTile() calls were removed â€”
+    // the CHIPS_anim / wall8_anim overlays below still load fine
+    // and are unaffected.
 
     LoadTile(
         15,
-        "../assets/marketassets/marketwall1.png",
+        "assets/marketassets/marketwall1.png",
         "MarketWall1"
     );
 
     LoadTile(
         16,
-        "../assets/marketassets/marketwall2.png",
+        "assets/marketassets/marketwall2.png",
         "MarketWall2"
     );
 
     LoadTile(
         17,
-        "../assets/marketassets/marketwall3.png",
+        "assets/marketassets/marketwall3.png",
         "MarketWall3"
     );
 
     LoadTile(
         18,
-        "../assets/marketassets/AMW.png",
+        "assets/marketassets/AMW.png",
         "AMW"
     );
 
     LoadTile(
         19,
-        "../assets/marketassets/SlimeLite.png",
+        "assets/marketassets/SlimeLite.png",
         "SlimeLite"
     );
 
@@ -504,47 +504,47 @@ void TextureManager::LoadMarketAssets()
 
     LoadAnimatedTile(
         10,
-        "../assets/marketassets/6.3cafe_anim.png"
+        "assets/marketassets/6.3cafe_anim.png"
     );
 
     LoadAnimatedTile(
         11,
-        "../assets/marketassets/AFC_anim.png"
+        "assets/marketassets/AFC_anim.png"
     );
 
     LoadAnimatedTile(
         12,
-        "../assets/marketassets/drumble_anim.png"
+        "assets/marketassets/drumble_anim.png"
     );
 
     LoadAnimatedTile(
         13,
-        "../assets/marketassets/CHIPS_anim.png"
+        "assets/marketassets/CHIPS_anim.png"
     );
 
     LoadAnimatedTile(
         14,
-        "../assets/marketassets/wall8_anim.png"
+        "assets/marketassets/wall8_anim.png"
     );
 
     LoadAnimatedTile(
         18,
-        "../assets/marketassets/AMW_anim.png"
+        "assets/marketassets/AMW_anim.png"
     );
 
     LoadAnimatedTile(
         19,
-        "../assets/marketassets/SlimeLite_anim.png"
+        "assets/marketassets/SlimeLite_anim.png"
     );
     LoadTile(
         20,
-        "../assets/commonassets/entranceDoor.png",
+        "assets/commonassets/entranceDoor.png",
         "EntranceDoor"
     );
 
     LoadTile(
         21,
-        "../assets/commonassets/exitDoor.png",
+        "assets/commonassets/exitDoor.png",
         "ExitDoor"
     );
     // ---------------------------------------------------------
@@ -553,57 +553,57 @@ void TextureManager::LoadMarketAssets()
 
     LoadTile(
         22,
-        "../assets/marketassets/gym.png",
+        "assets/marketassets/gym.png",
         "Gym"
     );
 
     LoadAnimatedTile(
         22,
-        "../assets/marketassets/gym_anim.png"
+        "assets/marketassets/gym_anim.png"
     );
 
     LoadTile(
         23,
-        "../assets/marketassets/mike.png",
+        "assets/marketassets/mike.png",
         "Mike"
     );
 
     LoadAnimatedTile(
         23,
-        "../assets/marketassets/mike_anim.png"
+        "assets/marketassets/mike_anim.png"
     );
 
     LoadTile(
         24,
-        "../assets/marketassets/kiko_milano.png",
+        "assets/marketassets/kiko_milano.png",
         "KikoMilano"
     );
 
     LoadAnimatedTile(
         24,
-        ".../assets/marketassets/kiko_milano_anim.png"
+        ".assets/marketassets/kiko_milano_anim.png"
     );
 
     LoadTile(
         25,
-        "../assets/marketassets/mehak_posh.png",
+        "assets/marketassets/mehak_posh.png",
         "MehakPosh"
     );
 
     LoadAnimatedTile(
         25,
-        "../assets/marketassets/mehak_posh_anim.png"
+        "assets/marketassets/mehak_posh_anim.png"
     );
 
     LoadTile(
         26,
-        "../assets/marketassets/clinex.png",
+        "assets/marketassets/clinex.png",
         "Clinex"
     );
 
     LoadAnimatedTile(
         26,
-        "../assets/marketassets/clinex_anim.png"
+        "assets/marketassets/clinex_anim.png"
     );
 
     // ---------------------------------------------------------
@@ -612,46 +612,46 @@ void TextureManager::LoadMarketAssets()
 
     LoadTile(
         27,
-        "../assets/marketassets/bar.png",
+        "assets/marketassets/bar.png",
         "Bar"
     );
 
     LoadAnimatedTile(
         27,
-        "../assets/marketassets/bar_anim.png"
+        "assets/marketassets/bar_anim.png"
     );
 
     LoadTile(
         28,
-        "../assets/marketassets/brolex.png",
+        "assets/marketassets/brolex.png",
         "Brolex"
     );
 
     LoadAnimatedTile(
         28,
-        "../assets/marketassets/brolex_anim.png"
+        "assets/marketassets/brolex_anim.png"
     );
 
     LoadTile(
         29,
-        "../assets/marketassets/Davidputra.png",
+        "assets/marketassets/Davidputra.png",
         "DavidPutra"
     );
 
     LoadAnimatedTile(
         29,
-        "../assets/marketassets/Davidputra_anim.png"
+        "assets/marketassets/Davidputra_anim.png"
     );
 
     LoadTile(
         30,
-        "../assets/marketassets/gamingzone.png",
+        "assets/marketassets/gamingzone.png",
         "GamingZone"
     );
 
     LoadAnimatedTile(
         30,
-        "../assets/marketassets/gamingzone_anim.png"
+        "assets/marketassets/gamingzone_anim.png"
     );
 
     // ---------------------------------------------------------
@@ -662,8 +662,13 @@ void TextureManager::LoadMarketAssets()
     {
         marketFloorImg =
             LoadImage(
-                "../assets/marketassets/marketFloor.png"
+                "assets/marketassets/marketFloor.png"
             );
+
+        ImageFormat(
+            &marketFloorImg,
+            PIXELFORMAT_UNCOMPRESSED_R8G8B8A8
+        );
     }
 
     // ---------------------------------------------------------
@@ -674,15 +679,15 @@ void TextureManager::LoadMarketAssets()
     {
         marketRoofTex =
             LoadTexture(
-                "../assets/marketassets/marketRoof.png"
+                "assets/marketassets/marketRoof.png"
             );
-     
+
         SetTextureFilter(
             marketRoofTex,
             TEXTURE_FILTER_BILINEAR
         );
     }
-    
+
     // ---------------------------------------------------------
     // Fountain
     // ---------------------------------------------------------
@@ -691,7 +696,7 @@ void TextureManager::LoadMarketAssets()
     {
         fountainSheet =
             LoadTexture(
-                "../assets/marketassets/fountain.png"
+                "assets/marketassets/fountain.png"
             );
 
         SetTextureFilter(
@@ -713,13 +718,13 @@ void TextureManager::LoadCommonAssets()
 
     LoadTile(
         20,
-        "../assets/commonassets/entranceDoor.png",
+        "assets/commonassets/entranceDoor.png",
         "EntranceDoor"
     );
 
     LoadTile(
         21,
-        "../assets/commonassets/exitDoor.png",
+        "assets/commonassets/exitDoor.png",
         "ExitDoor"
     );
 
@@ -729,19 +734,19 @@ void TextureManager::LoadCommonAssets()
 
     LoadTile(
         42,
-        "../assets/commonassets/door1.png",
+        "assets/commonassets/door1.png",
         "Door1"
     );
 
     LoadTile(
         43,
-        "../assets/commonassets/door2.png",
+        "assets/commonassets/door2.png",
         "Door2"
     );
 
     LoadTile(
         44,
-        "../assets/commonassets/door3.png",
+        "assets/commonassets/door3.png",
         "Door3"
     );
 
@@ -751,12 +756,12 @@ void TextureManager::LoadCommonAssets()
 
     LoadTile(
         45,
-        "../assets/commonassets/neonDoor.png",
+        "assets/commonassets/neonDoor.png",
         "NeonDoor"
     );
     LoadTile(
         46,
-        "../assets/commonassets/marketdoor.png",
+        "assets/commonassets/marketdoor.png",
         "NeonDoor"
     );
 
@@ -777,8 +782,13 @@ void TextureManager::LoadNeonNightAssets()
     {
         nightFloorImg =
             LoadImage(
-                "../assets/neonnightassets/nightFloor.png"
+                "assets/neonnightassets/nightFloor.png"
             );
+
+        ImageFormat(
+            &nightFloorImg,
+            PIXELFORMAT_UNCOMPRESSED_R8G8B8A8
+        );
     }
 
     // ---------------------------------------------------------
@@ -789,7 +799,7 @@ void TextureManager::LoadNeonNightAssets()
     {
         nightSkyTex =
             LoadTexture(
-                "../assets/neonnightassets/nightSky.png"
+                "assets/neonnightassets/nightSky.png"
             );
 
         SetTextureFilter(
@@ -813,7 +823,7 @@ void TextureManager::LoadNeonNightAssets()
         int index = 46 + i;
 
         std::string path =
-            "../assets/neonnightassets/neonwall" +
+            "assets/neonnightassets/neonwall" +
             std::to_string(i) +
             ".png";
 
@@ -836,7 +846,6 @@ void TextureManager::UnloadStreetAssets()
     // ---------------------------------------------------------
     // Street tile ranges
     //
-    // 2 - 9   = Wall1 - Wall8
     // 31      = Welcome wall
     // 32 - 41 = Street walls
     //
@@ -845,14 +854,12 @@ void TextureManager::UnloadStreetAssets()
     // They are deliberately NOT unloaded here.
     // ---------------------------------------------------------
 
-    for (int i = 2; i <= 9; i++)
-        UnloadTile(i);
-
     UnloadTile(31);
 
     for (int i = 32; i <= 41; i++)
         UnloadTile(i);
-
+    UnloadTile(63);
+    UnloadTile(64);
     // ---------------------------------------------------------
     // Street Floor
     // ---------------------------------------------------------

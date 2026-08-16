@@ -1,4 +1,4 @@
-#include "Game.h"
+﻿#include "Game.h"
 #include "raylib.h"
 #include "Config.h"
 #include "InputManager.h"
@@ -16,58 +16,19 @@ static bool HasAFCAndDrumble(const Player& player)
         player.MissionCount[0] >= player.MissionTarget[0] &&
         player.MissionCount[1] >= player.MissionTarget[1];
 }
-static void StopIfPlaying(Music& music)
-{
-    if (music.ctxData != nullptr)
-    {
-        StopMusicStream(music);
-    }
-}
-void Game::ChangeMusic(MusicState newMusic)
-{
-    if (currentMusic == newMusic)
-        return;
-
-    StopIfPlaying(menuBGM);
-    StopIfPlaying(streetBGM);
-    StopIfPlaying(marketBGM);
-    StopIfPlaying(neonBGM);
-
-    currentMusic = newMusic;
-
-    switch (newMusic)
-    {
-    case MENU_MUSIC:
-        PlayMusicStream(menuBGM);
-        break;
-
-    case STREET_MUSIC:
-        PlayMusicStream(streetBGM);
-        break;
-
-    case MARKET_MUSIC:
-        PlayMusicStream(marketBGM);
-        break;
-
-    case NEON_MUSIC:
-        PlayMusicStream(neonBGM);
-        break;
-    }
-}
 Game::Game()
 {
     running = true;
 
-    
+
 }
 void Game::ResetGame() {
-    renderer.textures.SetCurrentPartition(
+    SetPartitionAndSound(
         TextureManager::Partition::Street
     );
-    editor.SetTextureManager(&renderer.textures);
     SetTargetFPS(Config::TARGET_FPS);
 
-   
+
     //story 
     story.Initialize();
 
@@ -75,15 +36,15 @@ void Game::ResetGame() {
     gameStarted = true;
     running = true;
     storyRestrictionWarning = false;
-    editorMode = false;
     insideMarket = false;
     insideNeon = false;
     teleportPending = false;
-     outsideDoor = { 8.5f, 2.5f };
+    gameOverCursorSet = false;
+    outsideDoor = { 8.5f, 2.5f };
     insideDoor = { 11.5f, 2.5f };
     outsideNeonDoor = { 22.5f, 6.5f };
     insideNeonDoor = { 22.5f, 10.5f };
-   //cutscene
+    //cutscene
     cutscene.playing = false;
     cutscene.finished = false;
     cutscene.transitioning = false;
@@ -95,16 +56,10 @@ void Game::ResetGame() {
     cutscene.wordDelay = 0.08f;
 
 
-    //editor
-    editor.cameraOffset = { 0, 0 };
-    editor.tileSize = 40.0f;
-    editor.currentTile = 1;
-    editor.selectedTile = 0;
-    editor.scrollOffset = 0;
     //player
     player.position = { 2.0f,2.0f };
-    player.GetDirection() = {1.0f,0.0f};
-    player.GetCameraPlane() = {0.0f,0.66f};
+    player.GetDirection() = { 1.0f,0.0f };
+    player.GetCameraPlane() = { 0.0f,0.66f };
     player.moveSpeed = 3.0f;
     player.radius = 0.25f;
     player.currentWeaponIndex = 0;
@@ -120,15 +75,15 @@ void Game::ResetGame() {
     Police.moveSpeed = 0.8f;
     Police.currentAttackTimer = 0.5f;
     Police.attackDamage = 6;
-    Police.spriteSheet = LoadTexture("../assets/textures/Police.png");
+    Police.spriteSheet = LoadTexture("assets/textures/Police.png");
     for (auto& e : enemies) {
-        e.health = 100; 
+        e.health = 100;
         e.KnockBackTimer = 0.0f;
         e.hasPopped = false;
     }
-    enemies[0].position= { 15.5f,12.5f };
-    enemies[1].position= { 20.5f,23.5f };
-    enemies[2].position= { 10.5f,10.5f };
+    enemies[0].position = { 15.5f,12.5f };
+    enemies[1].position = { 20.5f,23.5f };
+    enemies[2].position = { 10.5f,10.5f };
     enemies[3].position = { 1.0f, 7.0f };
     enemies[4].position = { 13.0f, 14.0f };
     enemies[5].position = { 23.5f, 6.5f };
@@ -144,19 +99,73 @@ void Game::ResetGame() {
 
 }
 
+// ================================================================
+// PARTITION + AMBIENCE
+// ================================================================
+
+void Game::SetPartitionAndSound(TextureManager::Partition partition)
+{
+    renderer.textures.SetCurrentPartition(partition);
+
+    switch (partition)
+    {
+    case TextureManager::Partition::Street:
+        soundManager.SetAmbience(SoundManager::Ambience::Street);
+        break;
+
+    case TextureManager::Partition::Market:
+        soundManager.SetAmbience(SoundManager::Ambience::Market);
+        break;
+
+    case TextureManager::Partition::NeonNight:
+        soundManager.SetAmbience(SoundManager::Ambience::Neon);
+        break;
+
+    default:
+        break;
+    }
+}
+
 void Game::Initialize()
 {
     InitWindow(
         Config::SCREEN_WIDTH,
         Config::SCREEN_HEIGHT,
-        "BiryaniExpress"
+        "Last Key"
     );
+
+    // ============================================================
+    // FULLSCREEN
+    //
+    // Resize the window to the monitor's native resolution BEFORE
+    // toggling fullscreen â€” raylib's ToggleFullscreen() uses the
+    // CURRENT window size as the fullscreen resolution, so doing
+    // this first is what makes it fill the real screen instead of
+    // a small 1280x720 video mode.
+    //
+    // Everything the game actually draws still targets a fixed
+    // Config::SCREEN_WIDTH x SCREEN_HEIGHT surface internally (see
+    // renderer.gameView) and gets scaled up to fit here â€” so this
+    // is purely a display-mode change; nothing about how the game
+    // is rendered depends on the real window size.
+    // ============================================================
+
+    int monitor = GetCurrentMonitor();
+    int monitorWidth = GetMonitorWidth(monitor);
+    int monitorHeight = GetMonitorHeight(monitor);
+
+    if (monitorWidth > 0 && monitorHeight > 0)
+    {
+        SetWindowSize(monitorWidth, monitorHeight);
+        ToggleFullscreen();
+    }
+
     // ============================================================
 // MENU
 // ============================================================
 
     if (!menu.Initialize(
-        "../assets/menu/background.png"
+        "assets/menu/background.png"
     ))
     {
         TraceLog(
@@ -173,19 +182,7 @@ void Game::Initialize()
     // ============================================================
 
     InitAudioDevice();
-    menuBGM =
-        LoadMusicStream("../assets/music/menu.mp3");
 
-    streetBGM =
-        LoadMusicStream("../assets/music/street.mp3");
-
-    marketBGM =
-        LoadMusicStream("../assets/music/market.mp3");
-
-    neonBGM =
-        LoadMusicStream("../assets/music/neon.mp3");
-
-    PlayMusicStream(menuBGM);
     if (!IsAudioDeviceReady())
     {
         TraceLog(
@@ -198,17 +195,20 @@ void Game::Initialize()
 // ============================================================
 
     if (!cutscene.Initialize(
-        "../assets/cutscene/image1.png",
-        "../assets/cutscene/image2.png",
-        "../assets/cutscene/image3.png",
-        "../assets/cutscene/image4.png",
-        "../assets/cutscene/image4.png",
+        "assets/cutscene/image1.png",
+        "assets/cutscene/image2.png",
+        "assets/cutscene/image3.png",
+        "assets/cutscene/image4.png",
+        "assets/cutscene/image4.png",
 
-        "../assets/cutscene/audio1.wav",
-        "../assets/cutscene/audio2.wav",
-        "../assets/cutscene/audio3.wav",
-        "../assets/cutscene/audio4.wav",
-        "../assets/cutscene/audio4.wav"
+        "assets/audio/cutsceneBg.ogg",
+        "assets/audio/typing.wav",
+
+        "assets/audio/cutsceneDialogue1.wav",
+        "assets/audio/cutsceneDialogue2.wav",
+        "assets/audio/cutsceneDialogue3.wav",
+        "assets/audio/cutsceneDialogue4.wav",
+        "assets/audio/cutsceneDialogue4.wav"
     ))
     {
         TraceLog(
@@ -217,17 +217,20 @@ void Game::Initialize()
         );
     }
     if (!neonCutscene.Initialize(
-        "../assets/cutscene/neonimage1.png",
-        "../assets/cutscene/neonimage2.png",
-        "../assets/cutscene/neonimage3.png",
-        "../assets/cutscene/neonimage4.png",
-        "../assets/cutscene/neonimage5.png",
+        "assets/cutscene/neonimage1.png",
+        "assets/cutscene/neonimage2.png",
+        "assets/cutscene/neonimage3.png",
+        "assets/cutscene/neonimage4.png",
+        "assets/cutscene/neonimage5.png",
 
-        "../assets/cutscene/neonaudio1.wav",
-        "../assets/cutscene/neonaudio2.wav",
-        "../assets/cutscene/neonaudio3.wav",
-        "../assets/cutscene/neonaudio4.wav",
-        "../assets/cutscene/neonaudio5.wav"
+        "assets/audio/neonCutsceneBg.ogg",
+        "assets/audio/typing.wav",
+
+        "assets/audio/neonDialogue1.wav",
+        "assets/audio/neonDialogue2.wav",
+        "assets/audio/neonDialogue3.wav",
+        "assets/audio/neonDialogue4.wav",
+        "assets/audio/neonDialogue5.wav"
     ))
     {
         TraceLog(
@@ -237,25 +240,55 @@ void Game::Initialize()
     }
     winTexture =
         LoadTexture(
-            "../assets/textures/win.png"
+            "assets/textures/win.png"
         );
     renderer.LoadTextures();
     renderer.textures.SetCurrentPartition(
         TextureManager::Partition::Street
     );
-    editor.SetTextureManager(&renderer.textures);
+
+    // ============================================================
+    // AMBIENCE SOUND SLOTS
+    //
+    // Menu / Street / Market / Neon. Drop the matching files at
+    // these paths (missing files are skipped safely, same as
+    // every other asset in this project).
+    // ============================================================
+
+    soundManager.LoadSounds(
+        "assets/audio/menuAmbience.ogg",
+        "assets/audio/streetAmbience.ogg",
+        "assets/audio/marketAmbience.ogg",
+        "assets/audio/neonAmbience.ogg"
+    );
+
+    soundManager.SetVolume(menu.GetMusicVolume());
+
+    // Game boots straight into the main menu.
+    soundManager.SetAmbience(SoundManager::Ambience::Menu);
+
+    // ============================================================
+    // SFX SLOTS: FOOTSTEP + HIT
+    // ============================================================
+
+    soundManager.LoadSfx(
+        "assets/audio/footstep.wav",
+        "assets/audio/hit.wav"
+    );
+
+    soundManager.SetSfxVolume(menu.GetMusicVolume());
 
     EnableCursor();
     SetTargetFPS(Config::TARGET_FPS);
 
     // Hand
-    Image hand = LoadImage("../assets/textures/HandHand.png");
+    Image hand = LoadImage("assets/textures/HandHand.png");
     ImageColorReplace(&hand, MAGENTA, BLANK);
 
     player.handTex = LoadTextureFromImage(hand);
-    player.Weapon1Tex=LoadTexture("../assets/textures/ChaklaHAND.png");
-    player.MikeHandTex = LoadTexture("../assets/textures/MikeHand.png");
-    player.currentTex = player.handTex; 
+    player.Weapon1Tex = LoadTexture("assets/textures/ChaklaHAND.png");
+    player.MikeHandTex = LoadTexture("assets/textures/MikeHand.png");
+    player.currentTex = player.handTex;
     UnloadImage(hand);
 
     // ==========================================
@@ -266,7 +299,7 @@ void Game::Initialize()
 
     Enemy BurgerBoy;
     BurgerBoy.spriteSheet =
-        LoadTexture("../assets/textures/BurgerBoy.png");
+        LoadTexture("assets/textures/BurgerBoy.png");
     BurgerBoy.totalframes = 4;
     BurgerBoy.moveSpeed = 0.8f;
     BurgerBoy.position = { 13.0f, 14.0f };
@@ -274,7 +307,7 @@ void Game::Initialize()
     BurgerBoy.attackDamage = 5;
 
     Enemy AngryUncle;
-    AngryUncle.spriteSheet = LoadTexture("../assets/textures/uncle2.png");
+    AngryUncle.spriteSheet = LoadTexture("assets/textures/uncle2.png");
     AngryUncle.position = { 10.5f,10.5f };
     AngryUncle.totalframes = 5;
     AngryUncle.Respawn = true;
@@ -284,7 +317,7 @@ void Game::Initialize()
     AngryUncle.attackDamage = 10;
 
     Enemy AngryUncle2;
-    AngryUncle2.spriteSheet =LoadTexture("../assets/textures/uncle2.png");
+    AngryUncle2.spriteSheet = LoadTexture("assets/textures/uncle2.png");
     AngryUncle2.position = { 23.5f, 6.5f };
     AngryUncle2.totalframes = 5;
     AngryUncle2.moveSpeed = 0.7f;
@@ -292,7 +325,7 @@ void Game::Initialize()
     AngryUncle2.attackDamage = 7;
 
     Enemy Thief;
-    Thief.spriteSheet =LoadTexture("../assets/textures/Chor.png");
+    Thief.spriteSheet = LoadTexture("assets/textures/Chor.png");
     Thief.position = { 20.5f,23.5f };
     Thief.totalframes = 2;
     Thief.Respawn = true;
@@ -302,15 +335,15 @@ void Game::Initialize()
     Thief.attackDamage = 5;
     //Y
     Enemy Thief2;
-    Thief2.spriteSheet =LoadTexture("../assets/textures/Chor2.png");
+    Thief2.spriteSheet = LoadTexture("assets/textures/Chor2.png");
     Thief2.position = { 1.0f, 7.0f };
     Thief2.totalframes = 2;
     Thief2.moveSpeed = 0.9f;
-    Thief2.currentAttackTimer=0.5f;
+    Thief2.currentAttackTimer = 0.5f;
     Thief2.attackDamage = 3;
 
     Enemy Cow;
-    Cow.spriteSheet = LoadTexture("../assets/textures/UncleCow.png");
+    Cow.spriteSheet = LoadTexture("assets/textures/UncleCow.png");
     Cow.position = { 15.5f,12.5f };
     Cow.Respawn = true;
     Cow.RespawnTimer = 7.0f;
@@ -320,7 +353,7 @@ void Game::Initialize()
     Cow.attackDamage = 10;
 
     Enemy Cow1;
-    Cow1.spriteSheet = LoadTexture("../assets/textures/UncleCow.png");
+    Cow1.spriteSheet = LoadTexture("assets/textures/UncleCow.png");
     Cow1.position = { 21.5f,23.5f };
     Cow1.Respawn = true;
     Cow1.RespawnTimer = 7.0f;
@@ -329,12 +362,12 @@ void Game::Initialize()
     Cow1.currentAttackTimer = 0.6f;
     Cow1.attackDamage = 10;
 
-    Police.position = {4.5f,19.5f};
+    Police.position = { 4.5f,19.5f };
     Police.totalframes = 3;
     Police.moveSpeed = 0.8f;
     Police.currentAttackTimer = 0.5f;
     Police.attackDamage = 6;
-    Police.spriteSheet = LoadTexture("../assets/textures/Police.png");
+    Police.spriteSheet = LoadTexture("assets/textures/Police.png");
 
     enemies.push_back(Cow);
     enemies.push_back(Thief);
@@ -343,14 +376,14 @@ void Game::Initialize()
     enemies.push_back(BurgerBoy);
     enemies.push_back(AngryUncle2);
     enemies.push_back(Cow1);
-   
+
 
 
     // ==========================================
     // MAP
     // ==========================================
 
-    map.LoadMap("../assets/maps/test.txt");
+    map.LoadMap("assets/maps/test.txt");
 
     // ==========================================
     // NPCs
@@ -362,7 +395,7 @@ void Game::Initialize()
     afc.myItem = ITEM_AFC;
     if (!afc.Load(
         "AFC Waiter",
-        "../assets/textures/AFC_waiter.png",
+        "assets/textures/AFC_waiter.png",
         { 13.5f, 1.5f }))
     {
         TraceLog(LOG_ERROR, "Failed to load AFC Waiter");
@@ -373,7 +406,7 @@ void Game::Initialize()
     mike.myItem = ITEM_MIKE;
     if (!mike.Load(
         "MIKE Waiter",
-        "../assets/textures/MIKE_waiter.png",
+        "assets/textures/MIKE_waiter.png",
         { 13.5f, 3.5f }))
     {
         TraceLog(LOG_ERROR, "Failed to load MIKE Waiter");
@@ -384,7 +417,7 @@ void Game::Initialize()
     clinex.myItem = ITEM_CLINIX;
     if (!clinex.Load(
         "CLINEX Waiter",
-        "../assets/textures/CLINEX_waiter.png",
+        "assets/textures/CLINEX_waiter.png",
         { 19.5f, 3.5f }))
     {
         TraceLog(LOG_ERROR, "Failed to load CLINEX Waiter");
@@ -395,7 +428,7 @@ void Game::Initialize()
     drumble.myItem = ITEM_DRUMBLE;
     if (!drumble.Load(
         "DRUMBLE Waiter",
-        "../assets/textures/DRUMBLE_waiter.png",
+        "assets/textures/DRUMBLE_waiter.png",
         { 17.5f, 1.5f }))
     {
         TraceLog(LOG_ERROR, "Failed to load DRUMBLE Waiter");
@@ -411,7 +444,7 @@ void Game::Initialize()
 
     if (!jack.Load(
         "Jack",
-        "../assets/textures/jack.png",
+        "assets/textures/jack.png",
         { 22.5f, 3.5f }))
     {
         TraceLog(LOG_ERROR, "Failed to load Jack");
@@ -449,10 +482,12 @@ void Game::CheckSpoonCollosion(Player& p, Enemy& E)
                 p.hitmessagetimer = 30;
                 E.health -= 20;
 
+                soundManager.PlayHit();
+
                 float knockBackForce = 4.0f;
                 E.KnockBackVelocity = { normX * knockBackForce,normY * knockBackForce };
                 E.KnockBackTimer = 0.2f;
-                E.position=KnockBack(E.position, E.KnockBackVelocity, E.KnockBackTimer, E.radius, map, dt);
+                E.position = KnockBack(E.position, E.KnockBackVelocity, E.KnockBackTimer, E.radius, map, dt);
             }
         }
     }
@@ -460,10 +495,14 @@ void Game::CheckSpoonCollosion(Player& p, Enemy& E)
 void Game::Update()
 {
     float dt = GetFrameTime();
-    UpdateMusicStream(menuBGM);
-    UpdateMusicStream(streetBGM);
-    UpdateMusicStream(marketBGM);
-    UpdateMusicStream(neonBGM);
+
+    // Keep the ambience music stream fed every frame, regardless of
+    // which screen/state is active (menu, cutscene, gameplay, pause,
+    // game over, etc.), and pick up live volume-slider changes.
+    soundManager.Update();
+    soundManager.SetVolume(menu.GetMusicVolume());
+    soundManager.SetSfxVolume(menu.GetMusicVolume());
+
     if (winScreenActive)
     {
         if (winZoom < 0.7f)
@@ -479,7 +518,14 @@ void Game::Update()
 
             winZoom = 0.5f;
 
-            story.Initialize();
+            // Full reset (player, enemies, NPCs, doors, story) â€”
+            // previously this only re-ran story.Initialize(), so
+            // starting a new playthrough after a win kept stale
+            // player/enemy/mission state from the finished run.
+            ResetGame();
+            gameStarted = false;
+
+            soundManager.SetAmbience(SoundManager::Ambience::Menu);
 
             EnableCursor();
         }
@@ -499,10 +545,9 @@ void Game::Update()
             insideNeon = true;
             insideMarket = false;
 
-            renderer.textures.SetCurrentPartition(
+            SetPartitionAndSound(
                 TextureManager::Partition::NeonNight
             );
-            ChangeMusic(NEON_MUSIC);
         }
 
         return;
@@ -526,8 +571,12 @@ void Game::Update()
             {
                 gameStarted = true;
 
+                // Gameplay starts on the Street partition â€”
+                // switch ambience from Menu to Street to match.
+                soundManager.SetAmbience(SoundManager::Ambience::Street);
+
                 DisableCursor();
-                ChangeMusic(STREET_MUSIC);
+
                 TraceLog(
                     LOG_INFO,
                     "Cutscene finished. Starting game..."
@@ -544,9 +593,9 @@ void Game::Update()
 
         if (action == Menu::Action::Play)
         {
-            ChangeMusic(STREET_MUSIC);
-
-            StopMusicStream(streetBGM);
+            // Stop the menu ambience so it doesn't overlap the
+            // cutscene's own background music.
+            soundManager.Stop();
 
             cutscene.Start();
 
@@ -589,7 +638,16 @@ void Game::Update()
 
     if (player.health <= 0)
     {
-        EnableCursor();
+        // Only re-center/enable the cursor ONCE when the Game Over
+        // screen first appears. Calling EnableCursor() every frame
+        // (as before) re-centers the OS cursor every frame too, which
+        // made it look "stuck" and unusable on the restart buttons.
+        if (!gameOverCursorSet)
+        {
+            EnableCursor();
+            gameOverCursorSet = true;
+        }
+
         return;
     }
 
@@ -599,70 +657,68 @@ void Game::Update()
     // ========================================================
     input.Update();
     storyRestrictionWarning = false;
+
     // ==========================================
-    // EDITOR TOGGLE
+    // GAME UPDATE
     // ==========================================
 
-    if (IsKeyPressed(KEY_TAB))
+    if (!story.IsPlayerLocked())
     {
-        editorMode = !editorMode;
+        player.Update(dt, input, map);
 
-        if (editorMode)
-            EnableCursor();
-        else
-            DisableCursor();
-    }
-
-    // ==========================================
-    // GAME / EDITOR UPDATE
-    // ==========================================
-
-    if (editorMode)
-    {
-        editor.Update(map);
-    }
-    else
-    {
-        if (!story.IsPlayerLocked())
+        // Footstep sound â€” fires on an interval while the player is
+        // actually moving (WASD held); silent otherwise.
+        if (player.IsMoving())
         {
-            player.Update(dt, input, map);
-            for (int i = 0; i < enemies.size(); i++) {
-                enemies[i].update(player, map);
+            footstepTimer += dt;
+
+            if (footstepTimer >= 0.35f)
+            {
+                footstepTimer = 0.0f;
+                soundManager.PlayFootstep();
             }
         }
-
-        for (int i = 0; i < enemies.size(); i++)
+        else
         {
-
-
-            CheckPlayerEnemyCollision(
-                player,
-                enemies[i],
-                map
-            );
-            CheckSpoonCollosion(
-                player,
-                enemies[i]
-            );
-            CheckEnemyEnemyCollision(enemies, map);
+            footstepTimer = 0.0f;
         }
 
-        for (int i = 0; i < npcs.size(); i++)
-        {
-            CheckPlayerNPCCollision(
-                player,
-                npcs[i],
-                map
-            );
+        for (int i = 0; i < enemies.size(); i++) {
+            enemies[i].update(player, map);
         }
-        story.CheckPlayerGuardCollision(
+    }
+
+    for (int i = 0; i < enemies.size(); i++)
+    {
+
+
+        CheckPlayerEnemyCollision(
             player,
+            enemies[i],
             map
         );
-        if (player.isPoliceTriggered) {
-            enemies.push_back(Police);
-            player.isPoliceTriggered = false;
-        }
+        CheckSpoonCollosion(
+            player,
+            enemies[i]
+        );
+        CheckEnemyEnemyCollision(enemies, map);
+    }
+
+    for (int i = 0; i < npcs.size(); i++)
+    {
+        CheckPlayerNPCCollision(
+            player,
+            npcs[i],
+            map
+        );
+    }
+    story.CheckPlayerGuardCollision(
+        player,
+        map
+    );
+    if (player.isPoliceTriggered) {
+        enemies.push_back(Police);
+        player.isPoliceTriggered = false;
     }
     // ==========================================
     // UPDATE NPCs
@@ -681,7 +737,6 @@ void Game::Update()
     // STORY DOORS
     // ============================================================
 
-    if (!editorMode)
     {
         // ========================================================
         // INSIDE NEON
@@ -723,7 +778,7 @@ void Game::Update()
                     // MARKET EXIT ALLOWED
                     // ------------------------------------------
 
-                    renderer.StartFadeIn();
+                    renderer.StartFadeIn(Renderer::LoadingTransition::Market);
                     teleportPending = true;
                 }
                 else
@@ -777,7 +832,7 @@ void Game::Update()
                         // NEON ENTRY ALLOWED
                         // --------------------------------------
 
-                        renderer.StartFadeIn();
+                        renderer.StartFadeIn(Renderer::LoadingTransition::Neon);
                         teleportPending = true;
                     }
                     else
@@ -797,7 +852,7 @@ void Game::Update()
                 else if (marketDist < 1.2f)
                 {
                     // Market entry is always allowed.
-                    renderer.StartFadeIn();
+                    renderer.StartFadeIn(Renderer::LoadingTransition::Market);
                     teleportPending = true;
                 }
             }
@@ -813,8 +868,7 @@ void Game::Update()
 // ESCAPE / PAUSE
 // ==========================================
 
-    if (!editorMode &&
-        input.IsKeyPressed(KEY_ESCAPE))
+    if (input.IsKeyPressed(KEY_ESCAPE))
     {
         menu.OpenPause();
 
@@ -828,6 +882,9 @@ void Game::Draw()
     ClearBackground(BLACK);
     if (winScreenActive)
     {
+        BeginTextureMode(renderer.gameView);
+        ClearBackground(BLACK);
+
         float width =
             winTexture.width * winZoom;
 
@@ -863,6 +920,9 @@ void Game::Draw()
             30,
             WHITE
         );
+
+        EndTextureMode();
+        renderer.DrawGameViewToScreen();
 
         EndDrawing();
 
@@ -908,11 +968,20 @@ void Game::Draw()
     // PAUSE MENU
     // ========================================================
     if (player.health <= 0) {
-        EnableCursor();
+        // NOTE: cursor is enabled once (edge-triggered) in Update(),
+        // not here every frame â€” see gameOverCursorSet. Calling
+        // EnableCursor() every frame re-centers the OS cursor every
+        // frame, which is what made it look stuck on this screen.
+        BeginTextureMode(renderer.gameView);
+        ClearBackground(BLACK);
+
         renderer.DrawGameOver();
 
+        EndTextureMode();
+        renderer.DrawGameViewToScreen();
+
         if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
-            Vector2 mouse = GetMousePosition();
+            Vector2 mouse = Renderer::GetVirtualMousePosition();
             Renderer::GameOverButtons rects = renderer.GetGameOverButtonRects();
 
             if (CheckCollisionPointRec(mouse, rects.retry)) {
@@ -922,6 +991,7 @@ void Game::Draw()
             else if (CheckCollisionPointRec(mouse, rects.mainMenu)) {
                 ResetGame();
                 gameStarted = false;
+                soundManager.SetAmbience(SoundManager::Ambience::Menu);
                 EnableCursor();
             }
             else if (CheckCollisionPointRec(mouse, rects.exit)) {
@@ -942,17 +1012,15 @@ void Game::Draw()
 
     // ========================================================
     // GAME
+    //
+    // Rendered into a fixed Config::SCREEN_WIDTH x SCREEN_HEIGHT
+    // texture (renderer.gameView), then scaled up to fill the
+    // real fullscreen window afterward â€” see
+    // Renderer::DrawGameViewToScreen(). Everything in this block
+    // keeps using Config::SCREEN_WIDTH/HEIGHT exactly as before.
     // ========================================================
+    BeginTextureMode(renderer.gameView);
     ClearBackground(RAYWHITE);
-    // ==========================================
-    // EDITOR
-    // ==========================================
-
-    if (editorMode)
-    {
-        editor.Draw(map);
-    }
-    else
     {
         // ==========================================
         // PLAYER CAMERA DATA
@@ -1178,10 +1246,9 @@ void Game::Draw()
             player.position = outsideDoor;
             insideMarket = false;
 
-            renderer.textures.SetCurrentPartition(
+            SetPartitionAndSound(
                 TextureManager::Partition::Street
             );
-            ChangeMusic(STREET_MUSIC);
         }
 
         // ========================================================
@@ -1207,6 +1274,10 @@ void Game::Draw()
             // ====================================================
             if (neonDist < marketDist)
             {
+                // Stop the street ambience so it doesn't overlap
+                // the neon cutscene's own background music.
+                soundManager.Stop();
+
                 neonCutscene.Start(true);
 
                 neonCutsceneActive = true;
@@ -1223,10 +1294,9 @@ void Game::Draw()
                 insideMarket = true;
                 insideNeon = false;
 
-                renderer.textures.SetCurrentPartition(
+                SetPartitionAndSound(
                     TextureManager::Partition::Market
                 );
-                ChangeMusic(MARKET_MUSIC);
             }
         }
 
@@ -1234,6 +1304,11 @@ void Game::Draw()
     }
 
     renderer.DrawFade();
+
+    EndTextureMode();
+
+    // Scale the fixed-resolution frame up to fill the real window.
+    renderer.DrawGameViewToScreen();
 
     //DrawFPS(20, 20);
 
@@ -1262,12 +1337,14 @@ void Game::Shutdown()
 
     story.Unload();
     // ============================================================
+    // UNLOAD AMBIENCE SOUND
+    // ============================================================
+
+    soundManager.Unload();
+    // ============================================================
     // CLOSE AUDIO
     // ============================================================
-    UnloadMusicStream(menuBGM);
-    UnloadMusicStream(streetBGM);
-    UnloadMusicStream(marketBGM);
-    UnloadMusicStream(neonBGM);
+
     if (IsAudioDeviceReady())
     {
         CloseAudioDevice();
